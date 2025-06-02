@@ -1,0 +1,390 @@
+/* CustomizeBracelet.css - Updated */
+.customize-bracelet-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 75px 20px 120px; /* Added top padding to account for navbar */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn 0.4s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  .bracelet-display {
+    margin-bottom: 50px;
+    text-align: center;
+    background-color: #fcfafc;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 2px 15px rgba(88, 46, 78, 0.08);
+  }
+  
+  .bracelet-display h2 {
+    margin-bottom: 25px;
+    color: #582e4e;
+    font-weight: 500;
+    font-size: 1.8rem;
+    letter-spacing: 0.5px;
+  }
+  
+  .size-selector {
+    margin: 20px 0 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+  }
+  
+  .size-selector label {
+    font-weight: 500;
+    color: #582e4e;
+  }
+  
+  .size-selector select {
+    padding: 10px 15px;
+    border-radius: 4px;
+    border: 1px solid #e0d0e0;
+    color: #582e4e;
+    background-color: white;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+  }
+  
+  .size-selector select:focus {
+    outline: none;
+    border-color: #582e4e;
+    box-shadow: 0 0 0 2px rgba(88, 46, 78, 0.2);
+  }
+  
+  .charm-count {
+    color: #666;
+    font-size: 0.9em;
+    background-color: #f8f4f8;
+    padding: 8px 12px;
+    border-radius: 20px;
+  }
+  
+  .bracelet-visual {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    gap: 3px;
+    margin: 30px auto;
+    padding: 25px 30px;
+    background-color: #f9f6f9;
+    border-radius: 16px;
+    overflow-x: auto;
+    max-width: 100%;
+    min-height: 100px;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+  
+  .bracelet-charm {
+    width: 50px; /* Increased from 40px */
+    height: 50px; /* Increased from 40px */
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    flex-shrink: 0;
+    background-color: white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  }
+  
+  .bracelet-charm.selectable {
+    cursor: pointer;
+    outline: 2px dashed #582e4e;
+    transform: scale(1.05);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(88, 46, 78, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(88, 46, 78, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(88, 46, 78, 0);
+  }
+}
+  
+  .bracelet-charm.selectable:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(88, 46, 78, 0.2);
+  }
+  
+  .bracelet-charm img {
+    width: 90%;
+    height: 90%;
+    object-fit: contain;
+  }
+  
+  .default-charm {
+    filter: grayscale(100%) brightness(1.2);
+  }
+  
+  .charm-selection {
+    flex-grow: 1;
+  }
+  
+  .charm-selection h2 {
+    margin-bottom: 20px;
+    color: #582e4e;
+    font-weight: 500;
+    font-size: 1.6rem;
+  }
+  
+  .charm-categories {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .charm-category h3 {
+    background-color: #582e4e;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin: 0;
+    font-weight: 500;
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+  }
+  
+  .charm-category h3:hover {
+    background-color: #6d3a60;
+  }
+  
+  .charm-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 18px;
+    margin-top: 18px;
+    padding: 20px;
+    background-color: #f9f6f9;
+    border-radius: 8px;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.03);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+  
+  .charm-subcategory {
+    grid-column: 1 / -1;
+  }
+  
+  .charm-subcategory h4 {
+    margin: 10px 0;
+    color: #582e4e;
+    font-weight: 500;
+  }
+  
+  .subcategory-charms {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 18px;
+  }
+  
+  .charm-option {
+    background-color: white;
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  
+  .charm-option:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(88, 46, 78, 0.15);
+  }
+  
+  .charm-option.selected {
+    outline: 2px solid #582e4e;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 12px rgba(88, 46, 78, 0.2);
+  }
+  
+  .charm-option img {
+    width: 100%;
+    height: 110px;
+    object-fit: contain;
+    border-radius: 6px;
+    transition: transform 0.2s ease;
+  }
+  
+  .charm-option:hover img {
+    transform: scale(1.05);
+  }
+  
+  .charm-option p {
+    margin: 10px 0 0;
+    font-size: 0.9em;
+    text-align: center;
+    color: #582e4e;
+  }
+  
+  /* Type tabs */
+  .type-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 25px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+  }
+  
+  .type-tab {
+    padding: 10px 18px;
+    background-color: #f0f0f0;
+    color: #582e4e;
+    border: none;
+    border-radius: 30px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  
+  .type-tab:hover {
+    background-color: #e8e0e8;
+  }
+  
+  .type-tab.active {
+    background-color: #582e4e;
+    color: white;
+    font-weight: 500;
+  }
+  
+  .price-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #582e4e;
+  color: white;
+  padding: 10px 15px; /* Reduced from 15px 20px */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1000;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1); /* More subtle shadow */
+  height: 50px; /* Reduced from 65px */
+}
+
+.total-price {
+  font-size: 1rem; /* Reduced from 1.1em */
+  font-weight: 500; /* Changed from bold */
+}
+
+.add-to-cart {
+  background-color: white;
+  color: #582e4e;
+  border: none;
+  padding: 8px 18px; /* Reduced from 10px 24px */
+  border-radius: 4px; /* Reduced from 6px */
+  font-weight: 500; /* Reduced from 600 */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem; /* Reduced from 0.95rem */
+  letter-spacing: 0.3px; /* Reduced from 0.5px */
+}
+
+/* For mobile responsiveness */
+@media (max-width: 768px) {
+  .price-footer {
+    padding: 8px 12px;
+    height: 45px;
+  }
+  
+  .total-price {
+    font-size: 0.9rem;
+  }
+  
+  .add-to-cart {
+    padding: 6px 14px;
+    font-size: 0.8rem;
+  }
+}
+  
+  .add-to-cart:hover {
+    background-color: #f0f0f0;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .add-to-cart::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(88, 46, 78, 0.1), transparent);
+  transition: 0.5s;
+}
+
+.add-to-cart:hover::after {
+  left: 100%;
+}
+  
+  .loading {
+    text-align: center;
+    padding: 30px;
+    color: #582e4e;
+    font-size: 1.1rem;
+  }
+  
+  .no-charms {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    font-style: italic;
+  }
+  
+  @media (max-width: 768px) {
+    .bracelet-visual {
+      padding: 15px;
+    }
+    
+    .bracelet-charm {
+      width: 45px;
+      height: 45px;
+    }
+    
+    .charm-options {
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 12px;
+    }
+    
+    .customize-bracelet-page {
+      padding-top: 65px;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .bracelet-charm {
+      width: 40px;
+      height: 40px;
+    }
+    
+    .charm-selection h2 {
+      font-size: 1.4rem;
+    }
+    
+    .bracelet-display h2 {
+      font-size: 1.5rem;
+    }
+  }
+
+  

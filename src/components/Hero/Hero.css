@@ -1,0 +1,123 @@
+/* Font settings */
+:root {
+  --font-headline: 'Playfair Display', Georgia, serif;
+  --font-brand: 'Montserrat', 'Avenir Next', sans-serif;
+  --font-button: 'Roboto Mono', 'Helvetica Neue', monospace;
+}
+
+.hero {
+  width: 100vw;
+  min-height: 100vh;
+  background: linear-gradient(rgba(88, 46, 78, 0.8), rgba(88, 46, 78, 0.8)), url('../assets/charms-background.jpg');
+  background-size: cover;
+  background-position: center;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 20% 50%, rgba(88, 46, 78, 0.8) 0%, rgba(88, 46, 78, 0.9) 100%);
+  z-index: -1;
+}
+
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 15%;
+  width: 100%;
+  perspective: 1000px;
+}
+
+.brand-name {
+  font-family: var(--font-brand);
+  letter-spacing: 4px;
+  font-weight: 300;
+  font-size: 0.9rem;
+  margin-bottom: 7.0rem;
+  text-transform: uppercase;
+}
+
+.hero-text {
+  text-align: center;
+  max-width: 600px;
+}
+
+.hero-text h1 {
+  font-family: var(--font-headline);
+  margin: 10px 0 40px;
+  font-size: 3.5rem;
+  font-weight: 300;
+  line-height: 1.2;
+  letter-spacing: 0.5px;
+  margin-bottom: 3.0rem;
+}
+
+.italic {
+  font-family: var(--font-headline);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.customize-btn {
+  font-family: var(--font-button);
+  background-color: transparent;
+  color: #fff;
+  border: 1px solid #fff;
+  padding: 12px 30px;
+  font-size: 0.7rem;
+  letter-spacing: 3px;
+  font-weight: 300;
+  text-transform: uppercase;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.5s ease;
+}
+
+.customize-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.customize-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.customize-btn:hover::after {
+  opacity: 1;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.hero-text h1 {
+  animation: float 6s ease-in-out infinite;
+}

@@ -1,0 +1,352 @@
+/* InventoryManagement.css */
+/* Reset and base styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5f5f5;
+}
+
+/* Main container */
+.inventory-page {
+  width: 100%;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+/* Header styles */
+.inventory-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 15px 0;
+  background-color: #582e4e;
+  color: white;
+  border-radius: 6px;
+}
+
+.inventory-header h1 {
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+/* Grid layout for items */
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 25px;
+  margin-bottom: 40px;
+}
+
+/* Individual item card */
+.inventory-item {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+}
+
+.inventory-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Add this to InventoryManagement.css */
+.item-image {
+  height: 120px; /* Reduced from 180px */
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9f9f9;
+}
+
+/* For mobile responsiveness */
+@media (max-width: 768px) {
+  .item-image {
+    height: 100px;
+  }
+}
+
+.item-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.inventory-item:hover .item-image img {
+  transform: scale(1.05);
+}
+
+.item-details {
+  padding: 15px;
+}
+
+.item-details h3 {
+  font-size: 1.1rem;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.item-price {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #582e4e;
+  margin-bottom: 5px;
+}
+
+.item-category {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* Action buttons */
+.item-actions {
+  display: flex;
+  padding: 0 15px 15px;
+  gap: 10px;
+}
+
+.edit-button, .delete-button {
+  border: none;
+  border-radius: 4px;
+  padding: 8px 15px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+}
+
+.edit-button {
+  background-color: #f0f0f0;
+}
+
+.edit-button:hover {
+  background-color: #e0e0e0;
+}
+
+.delete-button {
+  background-color: #ffeeee;
+}
+
+.delete-button:hover {
+  background-color: #ffd5d5;
+}
+
+/* Edit form */
+.edit-form {
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-top: 1px solid #eee;
+}
+
+.edit-form input {
+  width: 100%;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.save-button {
+  width: 100%;
+  padding: 8px;
+  background-color: #582e4e;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.save-button:hover {
+  background-color: #6d3a60;
+}
+
+/* Add new section */
+.add-new-section {
+  background-color: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+.add-new-section h2 {
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+}
+
+.form-row input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.add-form input {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.add-button {
+  padding: 12px;
+  background-color: #582e4e;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+}
+
+.add-button:hover {
+  background-color: #6d3a60;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .inventory-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 15px;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .item-image {
+    height: 150px;
+  }
+}
+
+@media (max-width: 480px) {
+  .inventory-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .inventory-header h1 {
+    font-size: 1.5rem;
+  }
+}
+
+/* Type filter tabs styles */
+.type-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 30px;
+  background-color: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  overflow-x: auto;
+}
+
+.type-tab {
+  padding: 10px 20px;
+  background-color: #f0f0f0;
+  color: #333;
+  border: none;
+  border-radius: 30px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.type-tab:hover {
+  background-color: #e0e0e0;
+}
+
+.type-tab.active {
+  background-color: #582e4e;
+  color: white;
+  font-weight: 500;
+}
+
+/* Responsive adjustments for tabs */
+@media (max-width: 768px) {
+  .type-tabs {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .type-tab {
+    padding: 8px 15px;
+    font-size: 0.85rem;
+  }
+}
+
+.drop-zone {
+  border: 2px dashed #ccc;
+  padding: 10px;
+  text-align: center;
+  color: #666;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+.drop-zone:hover {
+  background-color: #f9f9f9;
+}
+
+/* Add these to InventoryManagement.css */
+.inventory-item {
+  padding: 10px; /* Reduced padding */
+}
+
+.item-details {
+  padding: 8px; /* Reduced padding */
+}
+
+.item-details h3 {
+  font-size: 0.9rem; /* Smaller font size */
+  margin-bottom: 3px; /* Reduced margin */
+}
+
+.item-price {
+  font-size: 1rem; /* Smaller font size */
+}
+
+.item-category {
+  font-size: 0.8rem; /* Smaller font size */
+}
+
+.edit-button, .delete-button {
+  padding: 6px 10px; /* Smaller buttons */
+  font-size: 0.9rem;
+}
+
+/* Make the grid more compact */
+.inventory-grid {
+  gap: 15px; /* Reduced gap between items */
+}
+
+@media (max-width: 768px) {
+  .inventory-grid {
+    gap: 10px;
+  }
+}
