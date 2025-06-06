@@ -1,14 +1,15 @@
 import React from 'react';
 import Hero from './components/Hero/Hero';
 import About from './components/About/About';
-import Customize from './components/Customize/Customize';
+import UpcomingEvents from './components/UpcomingEvents/UpcomingEvents';
 
 const HomePage = () => {
   return (
     <>
       <Hero />
+      <UpcomingEvents />
       <About />
-      <Customize />
+
     </>
   );
 };
