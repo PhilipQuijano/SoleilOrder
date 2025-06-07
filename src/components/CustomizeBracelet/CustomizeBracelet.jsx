@@ -127,7 +127,9 @@ const CustomizeBracelet = () => {
     if (activeType === 'All') return charmsData;
     
     return charmsData.filter(charm => 
-      charm.category === activeType || charm.type === activeType
+      charm.category === activeType || 
+      charm.type === activeType ||
+      `${charm.category.charAt(0).toUpperCase()}${charm.category.slice(1)} Charms` === activeType
     );
   };
 
@@ -221,7 +223,6 @@ const CustomizeBracelet = () => {
                           onClick={() => selectedCharm && applyCharmToPosition(index)}
                           title={selectedCharm ? 'Click to place charm here' : charm.name}
                           style={{
-                              transform: selectedCharm ? 'scale(1.05)' : 'scale(1)',
                               zIndex: selectedCharm ? 10 : 1
                           }}
                       >
@@ -245,16 +246,42 @@ const CustomizeBracelet = () => {
       >
         <h2>Select Your Charms</h2>
         
-        {/* Type Filter Tabs */}
-        <div className="type-tabs">
-          {availableTypes.map((type) => (
-            <button 
-              key={type} 
-              className={`type-tab ${activeType === type ? 'active' : ''}`}
-              onClick={() => handleTypeSelect(type)}
+{/* Category Selection Cards */}
+        <div className="category-cards">
+          <div 
+            className={`category-card ${activeType === 'All' ? 'active' : ''}`}
+            onClick={() => handleTypeSelect('All')}
+          >
+            <div className="category-image-container">
+              <div className="category-image-grid">
+                {Object.values(availableCharms).slice(0, 4).map((category, index) => (
+                  <img 
+                    key={index}
+                    src={category.charms?.[0]?.image || category.subcategories?.[0]?.charms?.[0]?.image || defaultSilverCharmImage} 
+                    alt=""
+                    className="grid-image"
+                  />
+                ))}
+              </div>
+            </div>
+            <span className="category-name">All</span>
+          </div>
+          
+          {Object.entries(availableCharms).map(([key, category]) => (
+            <div 
+              key={key}
+              className={`category-card ${activeType === category.name || activeType === key ? 'active' : ''}`}
+              onClick={() => handleTypeSelect(category.name)}
             >
-              {type}
-            </button>
+              <div className="category-image-container">
+                <img 
+                  src={category.charms?.[0]?.image || category.subcategories?.[0]?.charms?.[0]?.image || defaultSilverCharmImage} 
+                  alt={category.name}
+                  className="category-preview-image"
+                />
+              </div>
+              <span className="category-name">{category.name.replace(' Charms', '')}</span>
+            </div>
           ))}
         </div>
         
