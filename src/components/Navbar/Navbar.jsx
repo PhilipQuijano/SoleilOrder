@@ -47,7 +47,7 @@ const Navbar = () => {
           </Link>
         </motion.div>
         <div className="nav-links">
-          {['About', 'Shop', 'Contact'].map((item) => (
+          {['About', 'Customize', 'Contact'].map((item) => (
             <motion.div
               key={item}
               variants={linkVariants}

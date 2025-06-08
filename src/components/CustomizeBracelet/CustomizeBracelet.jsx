@@ -4,9 +4,11 @@ import defaultSilverCharmImage from '../../assets/default-silver-charm.jpg';
 import { fetchCharms } from '../../../api/getCharms';
 import { motion, AnimatePresence } from 'framer-motion';
 import '../GlobalTransitions.css';
+import { useNavigate } from 'react-router-dom';
 
 const CustomizeBracelet = () => {
   // State for bracelet size
+  const navigate = useNavigate();
   const [size, setSize] = useState(17);
   const [charms, setCharms] = useState([]);
   const [selectedCharm, setSelectedCharm] = useState(null);
@@ -25,7 +27,7 @@ const CustomizeBracelet = () => {
     { value: 19, label: 'Medium - 19 cm', charms: 19 },
     { value: 20, label: 'Large - 20 cm', charms: 20 },
     { value: 21, label: 'Large - 21 cm', charms: 21 },
-    { value: 22, label: 'Extra Large - 22 cm', charms: 22 }
+    { value: 22, label: 'Extra Large - 22 cm', charms: 24 }
   ];
 
   // Initialize with default silver charms
@@ -122,6 +124,8 @@ const CustomizeBracelet = () => {
     loadCharms();
   }, []);
 
+
+  
   // Filter charms by active type
   const filterCharmsByType = (charmsData) => {
     if (activeType === 'All') return charmsData;
@@ -247,42 +251,44 @@ const CustomizeBracelet = () => {
         <h2>Select Your Charms</h2>
         
 {/* Category Selection Cards */}
-        <div className="category-cards">
-          <div 
-            className={`category-card ${activeType === 'All' ? 'active' : ''}`}
-            onClick={() => handleTypeSelect('All')}
-          >
-            <div className="category-image-container">
-              <div className="category-image-grid">
-                {Object.values(availableCharms).slice(0, 4).map((category, index) => (
-                  <img 
-                    key={index}
-                    src={category.charms?.[0]?.image || category.subcategories?.[0]?.charms?.[0]?.image || defaultSilverCharmImage} 
-                    alt=""
-                    className="grid-image"
-                  />
-                ))}
-              </div>
-            </div>
-            <span className="category-name">All</span>
-          </div>
-          
-          {Object.entries(availableCharms).map(([key, category]) => (
+      <div className="category-cards-container">
+          <div className="category-cards">
             <div 
-              key={key}
-              className={`category-card ${activeType === category.name || activeType === key ? 'active' : ''}`}
-              onClick={() => handleTypeSelect(category.name)}
+              className={`category-card ${activeType === 'All' ? 'active' : ''}`}
+              onClick={() => handleTypeSelect('All')}
             >
               <div className="category-image-container">
-                <img 
-                  src={category.charms?.[0]?.image || category.subcategories?.[0]?.charms?.[0]?.image || defaultSilverCharmImage} 
-                  alt={category.name}
-                  className="category-preview-image"
-                />
+                <div className="category-image-grid">
+                  {Object.values(availableCharms).slice(0, 4).map((category, index) => (
+                    <img 
+                      key={index}
+                      src={category.charms?.[0]?.image || category.subcategories?.[0]?.charms?.[0]?.image || defaultSilverCharmImage} 
+                      alt=""
+                      className="grid-image"
+                    />
+                  ))}
+                </div>
               </div>
-              <span className="category-name">{category.name.replace(' Charms', '')}</span>
+              <span className="category-name">All</span>
             </div>
-          ))}
+            
+            {Object.entries(availableCharms).map(([key, category]) => (
+              <div 
+                key={key}
+                className={`category-card ${activeType === category.name || activeType === key ? 'active' : ''}`}
+                onClick={() => handleTypeSelect(category.name)}
+              >
+                <div className="category-image-container">
+                  <img 
+                    src={category.charms?.[0]?.image || category.subcategories?.[0]?.charms?.[0]?.image || defaultSilverCharmImage} 
+                    alt={category.name}
+                    className="category-preview-image"
+                  />
+                </div>
+                <span className="category-name">{category.name.replace(' Charms', '')}</span>
+              </div>
+            ))}
+          </div>
         </div>
         
         {loading ? (
@@ -421,9 +427,32 @@ const CustomizeBracelet = () => {
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.5, duration: 0.4 }}
             >
-              <span className="total-label">✨ Total Amount</span>
+              <span className="total-label">Total Amount</span>
               <span className="total-value">₱{totalPrice.toLocaleString()}</span>
             </motion.div>
+            
+            <motion.button 
+              className="checkout-button"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.4 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => {
+                const checkoutData = {
+                  charms: getUniqueCharmsForPricing(),
+                  totalPrice,
+                  size,
+                  braceletPreview: charms
+                };
+                navigate('/checkout', { state: checkoutData });
+              }}
+                // Here you would navigate to checkout page
+                // For now, we'll create a separate checkout component
+            >
+              <span className="checkout-text">Proceed to Checkout</span>
+              <span className="checkout-icon">🛒</span>
+            </motion.button>
           </div>
         </div>
       </motion.div>
