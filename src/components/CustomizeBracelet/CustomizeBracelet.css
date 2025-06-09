@@ -366,6 +366,7 @@
 .charm-option.selected {
     background: linear-gradient(145deg, #fdf9fd 0%, #f8f4f8 100%);
     box-shadow: 0 8px 25px rgba(88, 46, 78, 0.2);
+    border: 2px solid #582e4e;
 }
 
 .charm-option img {
@@ -374,6 +375,11 @@
     object-fit: contain;
     padding: 10px;
     display: block;
+    pointer-events: none; /* This prevents the image from being draggable */
+    user-select: none; /* This prevents text/image selection */
+    -webkit-user-drag: none; /* This specifically prevents image dragging in webkit browsers */
+    -moz-user-select: none; /* Firefox specific */
+    -ms-user-select: none; /* IE specific */
 }
 
 /* Subcategory Charms */
@@ -562,5 +568,75 @@
     
     .step-title {
         order: 2;
+    }
+}
+
+.bracelet-charm.drag-over {
+    background: linear-gradient(135deg, rgba(88, 46, 78, 0.1) 0%, rgba(88, 46, 78, 0.2) 100%);
+    border: 2px dashed #582e4e;
+    border-radius: 8px;
+    transform: scale(1.05);
+    transition: all 0.2s ease;
+}
+
+.bracelet-charm.drag-over::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(88, 46, 78, 0.2) 0%, transparent 70%);
+    border-radius: 6px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+
+/* Enhanced draggable charm styles */
+.charm-option[draggable="true"] {
+    position: relative;
+    cursor: grab !important;
+}
+
+.charm-option[draggable="true"]:hover {
+    box-shadow: 0 8px 25px rgba(88, 46, 78, 0.15), 0 0 0 2px rgba(88, 46, 78, 0.3);
+}
+
+.charm-option[draggable="true"]:active {
+    cursor: grabbing !important;
+}
+
+
+/* Drag indicator */
+.charm-option.selected::after {
+    content: '↗️ Drag me!';
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #582e4e 0%, #6d3a60 100%);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(88, 46, 78, 0.3);
+    animation: bounceIn 0.3s ease-out;
+}
+
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(10px) scale(0.8);
+    }
+    60% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(-2px) scale(1.05);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(1);
     }
 }

@@ -18,6 +18,8 @@ const CustomizeBracelet = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedSubtype, setSelectedSubtype] = useState(null);
   const [defaultSilverCharm, setDefaultSilverCharm] = useState(null);
+  const [draggedCharm, setDraggedCharm] = useState(null);
+  const [dragOverPosition, setDragOverPosition] = useState(null);
 
   // Size options with charm counts
   const sizeOptions = [
@@ -29,6 +31,50 @@ const CustomizeBracelet = () => {
     { value: 21, label: 'Large - 21 cm', charms: 21 },
     { value: 22, label: 'Extra Large - 22 cm', charms: 24 }
   ];
+
+    // Handle drag start for selected charm
+  const handleDragStart = (e, charm) => {
+    setDraggedCharm(charm);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', '');
+    // Also select the charm when dragging starts
+    setSelectedCharm(charm);
+  };
+
+  // Handle drag over bracelet positions
+  const handleDragOver = (e, position) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverPosition(position);
+  };
+
+  // Handle drag leave
+  const handleDragLeave = (e) => {
+    // Only clear if we're actually leaving the drop zone
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      setDragOverPosition(null);
+    }
+  };
+
+  // Handle drop on bracelet position
+  const handleDrop = (e, position) => {
+    e.preventDefault();
+    if (draggedCharm) {
+      const newCharms = [...charms];
+      newCharms[position] = draggedCharm;
+      setCharms(newCharms);
+      calculateTotalPrice(newCharms);
+      setSelectedCharm(null);
+    }
+    setDraggedCharm(null);
+    setDragOverPosition(null);
+  };
+
+  // Handle drag end
+  const handleDragEnd = () => {
+    setDraggedCharm(null);
+    setDragOverPosition(null);
+  };
 
   // Initialize with default silver charms
   useEffect(() => {
@@ -256,15 +302,18 @@ const CustomizeBracelet = () => {
         <div className="bracelet-preview-section">
           <div className="bracelet-visual">
                   {charms.map((charm, index) => (
-                      <div 
-                          key={index} 
-                          className={`bracelet-charm ${selectedCharm ? 'selectable' : ''}`}
-                          onClick={() => selectedCharm && applyCharmToPosition(index)}
-                          title={selectedCharm ? 'Click to place charm here' : charm.name}
-                          style={{
-                              zIndex: selectedCharm ? 10 : 1
-                          }}
-                      >
+                          <div 
+                              key={index} 
+                              className={`bracelet-charm ${selectedCharm ? 'selectable' : ''} ${dragOverPosition === index ? 'drag-over' : ''}`}
+                              onClick={() => selectedCharm && applyCharmToPosition(index)}
+                              onDragOver={(e) => handleDragOver(e, index)}
+                              onDragLeave={handleDragLeave}
+                              onDrop={(e) => handleDrop(e, index)}
+                              title={selectedCharm ? 'Click to place charm here or drag a charm here' : charm.name}
+                              style={{
+                                  zIndex: selectedCharm ? 10 : 1
+                              }}
+                          >
                           <img 
                               src={charm.image || defaultSilverCharmImage} 
                               alt={charm.name} 
@@ -394,22 +443,32 @@ const CustomizeBracelet = () => {
                 <div className="charm-selection-area">
                   <div className="charm-options">
                     {getCharmsToDisplay().map((item) => {
-                      // Handle subcategories (like letters)
                       if (item.charms) {
                         return (
                           <div key={item.name} className="charm-subcategory">
                             <h4>{item.name}</h4>
                             <div className="subcategory-charms">
                               {item.charms.map((charm) => (
-                                <motion.div 
+                               <motion.div 
                                   key={charm.id} 
                                   className={`charm-option ${selectedCharm && selectedCharm.id === charm.id ? 'selected' : ''}`}
                                   onClick={() => selectCharm(charm)}
+                                  draggable={true}
+                                  onDragStart={(e) => handleDragStart(e, charm)}
+                                  onDragEnd={handleDragEnd}
                                   whileHover={{ scale: 1.02 }}
                                   whileTap={{ scale: 0.98 }}
                                   title={`${charm.name} - ₱${charm.price}`}
+                                  style={{
+                                    cursor: 'grab',
+                                    opacity: draggedCharm && draggedCharm.id === charm.id ? 0.5 : 1
+                                  }}
                                 >
-                                  <img src={charm.image} alt={charm.name} />
+                                  <img 
+                                    src={item.image} 
+                                    alt={item.name} 
+                                    onDragStart={(e) => e.preventDefault()}
+                                  />
                                 </motion.div>
                               ))}
                             </div>
@@ -420,15 +479,26 @@ const CustomizeBracelet = () => {
                       // Handle regular charms
                       return (
                         <motion.div 
-                          key={item.id} 
-                          className={`charm-option ${selectedCharm && selectedCharm.id === item.id ? 'selected' : ''}`}
-                          onClick={() => selectCharm(item)}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          title={`${item.name} - ₱${item.price}`}
-                        >
-                          <img src={item.image} alt={item.name} />
-                        </motion.div>
+                            key={item.id} 
+                            className={`charm-option ${selectedCharm && selectedCharm.id === item.id ? 'selected' : ''}`}
+                            onClick={() => selectCharm(item)}
+                            draggable={true}
+                            onDragStart={(e) => handleDragStart(e, item)}
+                            onDragEnd={handleDragEnd}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            title={`${item.name} - ₱${item.price}`}
+                            style={{
+                              cursor: 'grab',
+                              opacity: draggedCharm && draggedCharm.id === item.id ? 0.5 : 1
+                            }}
+                          >
+                            <img 
+                              src={item.image} 
+                              alt={item.name} 
+                              onDragStart={(e) => e.preventDefault()}
+                            />
+                          </motion.div>
                       );
                     })}
                   </div>
