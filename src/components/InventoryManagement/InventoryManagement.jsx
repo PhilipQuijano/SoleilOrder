@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../../api/supabaseClient';
 import './InventoryManagement.css'; // Use dedicated CSS file
+import PasswordPrompt from '../PasswordPrompt/PasswordPrompt';
 
 const InventoryManagement = () => {
   const [charms, setCharms] = useState([]);
@@ -12,6 +13,7 @@ const InventoryManagement = () => {
   const [activeType, setActiveType] = useState('All');
   const [availableTypes, setAvailableTypes] = useState(['All']);
   const [uploadedFile, setUploadedFile] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     fetchCharms();
@@ -128,6 +130,13 @@ const InventoryManagement = () => {
   const handleTypeSelect = (type) => {
     setActiveType(type);
   };
+
+  if (!isAuthenticated) {
+    return <PasswordPrompt 
+      correctPassword="SoleilQuijano1234@@" 
+      onSuccess={() => setIsAuthenticated(true)} 
+    />;
+  }
 
   return (
     <div className="inventory-page">

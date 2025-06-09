@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './UpcomingEvents.css';
+import { supabase } from '../../../api/supabaseClient';
 
 // Sample event data - this would be replaced with actual data from a CMS or database
 const sampleEvents = [
@@ -28,9 +29,24 @@ const sampleEvents = [
 ];
 
 const UpcomingEvents = () => {
+  const [events, setEvents] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(null);
 
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+    const fetchEvents = async () => {
+    const { data, error } = await supabase
+      .from('events')
+      .select('*')
+      .order('date', { ascending: true });
+    
+    if (!error && data.length > 0) {
+      setEvents(data);
+    }
+  };
   // Auto-advance the carousel every 5 seconds
   useEffect(() => {
     const interval = setInterval(() => {

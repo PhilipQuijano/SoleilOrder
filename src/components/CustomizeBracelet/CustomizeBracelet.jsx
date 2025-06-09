@@ -15,8 +15,8 @@ const CustomizeBracelet = () => {
   const [totalPrice, setTotalPrice] = useState(0);
   const [availableCharms, setAvailableCharms] = useState({});
   const [loading, setLoading] = useState(true);
-  const [activeType, setActiveType] = useState('All');
-  const [availableTypes, setAvailableTypes] = useState(['All']);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedSubtype, setSelectedSubtype] = useState(null);
   const [defaultSilverCharm, setDefaultSilverCharm] = useState(null);
 
   // Size options with charm counts
@@ -69,18 +69,6 @@ const CustomizeBracelet = () => {
         
         setDefaultSilverCharm(silverCharm);
 
-        // Extract unique categories and types for the filter tabs
-        const types = ['All'];
-        const categories = new Set();
-        const subTypes = new Set();
-        
-        charmsFromDB.forEach(charm => {
-          if (charm.category && charm.category !== 'default') categories.add(charm.category);
-          if (charm.type) subTypes.add(charm.type);
-        });
-        
-        setAvailableTypes([...types, ...Array.from(categories), ...Array.from(subTypes)]);
-
         // Organize charms into categories (exclude default charms from selection)
         const categoriesObj = {};
         
@@ -124,22 +112,62 @@ const CustomizeBracelet = () => {
     loadCharms();
   }, []);
 
-
-  
-  // Filter charms by active type
-  const filterCharmsByType = (charmsData) => {
-    if (activeType === 'All') return charmsData;
-    
-    return charmsData.filter(charm => 
-      charm.category === activeType || 
-      charm.type === activeType ||
-      `${charm.category.charAt(0).toUpperCase()}${charm.category.slice(1)} Charms` === activeType
-    );
+  // Handle category selection
+  const handleCategorySelect = (categoryKey, categoryName) => {
+    setSelectedCategory({ key: categoryKey, name: categoryName });
+    setSelectedSubtype(null);
+    setSelectedCharm(null);
   };
 
-  // Handle type selection
-  const handleTypeSelect = (type) => {
-    setActiveType(type);
+  // Handle subtype selection for Gold/Silver categories
+  const handleSubtypeSelect = (subtype) => {
+    setSelectedSubtype(subtype);
+    setSelectedCharm(null);
+  };
+
+  // Get available subtypes for Gold/Silver categories
+  const getAvailableSubtypes = () => {
+    if (!selectedCategory) return [];
+    
+    const category = availableCharms[selectedCategory.key];
+    if (!category || !category.charms) return [];
+    
+    // For Gold/Silver categories, extract Plain/Special subtypes
+    if (selectedCategory.key === 'gold' || selectedCategory.key === 'silver') {
+      const subtypes = [...new Set(category.charms.map(charm => charm.type || 'Plain'))];
+      return subtypes.map(type => ({
+        key: type.toLowerCase(),
+        name: type,
+        charms: category.charms.filter(charm => (charm.type || 'Plain') === type)
+      }));
+    }
+    
+    return [];
+  };
+
+  // Get charms to display based on current selection
+  const getCharmsToDisplay = () => {
+    if (!selectedCategory) return [];
+    
+    const category = availableCharms[selectedCategory.key];
+    if (!category) return [];
+    
+    // For Gold/Silver with subtype selection
+    if ((selectedCategory.key === 'gold' || selectedCategory.key === 'silver') && selectedSubtype) {
+      return category.charms.filter(charm => (charm.type || 'Plain').toLowerCase() === selectedSubtype);
+    }
+    
+    // For Gold/Silver without subtype selection, don't show charms yet
+    if (selectedCategory.key === 'gold' || selectedCategory.key === 'silver') {
+      return [];
+    }
+    
+    // For other categories, return all charms or subcategories
+    if (category.subcategories) {
+      return category.subcategories;
+    }
+    
+    return category.charms || [];
   };
 
   // Handle size change
@@ -190,6 +218,13 @@ const CustomizeBracelet = () => {
     });
     
     return Object.values(charmCounts);
+  };
+
+  // Reset selection flow
+  const resetSelection = () => {
+    setSelectedCategory(null);
+    setSelectedSubtype(null);
+    setSelectedCharm(null);
   };
 
   return (
@@ -250,139 +285,155 @@ const CustomizeBracelet = () => {
       >
         <h2>Select Your Charms</h2>
         
-{/* Category Selection Cards */}
-      <div className="category-cards-container">
-          <div className="category-cards">
-            <div 
-              className={`category-card ${activeType === 'All' ? 'active' : ''}`}
-              onClick={() => handleTypeSelect('All')}
-            >
-              <div className="category-image-container">
-                <div className="category-image-grid">
-                  {Object.values(availableCharms).slice(0, 4).map((category, index) => (
-                    <img 
-                      key={index}
-                      src={category.charms?.[0]?.image || category.subcategories?.[0]?.charms?.[0]?.image || defaultSilverCharmImage} 
-                      alt=""
-                      className="grid-image"
-                    />
-                  ))}
-                </div>
-              </div>
-              <span className="category-name">All</span>
-            </div>
-            
-            {Object.entries(availableCharms).map(([key, category]) => (
-              <div 
-                key={key}
-                className={`category-card ${activeType === category.name || activeType === key ? 'active' : ''}`}
-                onClick={() => handleTypeSelect(category.name)}
-              >
-                <div className="category-image-container">
-                  <img 
-                    src={category.charms?.[0]?.image || category.subcategories?.[0]?.charms?.[0]?.image || defaultSilverCharmImage} 
-                    alt={category.name}
-                    className="category-preview-image"
-                  />
-                </div>
-                <span className="category-name">{category.name.replace(' Charms', '')}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        
+        {/* Step-by-step selection process */}
         {loading ? (
           <div className="loading">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              style={{ display: 'inline-block', marginRight: '10px' }}
-            >
-              ⚙️
-            </motion.div>
             Loading charms...
           </div>
         ) : (
-          <div className="charm-categories">
-            {Object.keys(availableCharms).length === 0 ? (
-              <div className="no-charms">
-                <p>No charms available at the moment</p>
-                <p>Please check back later!</p>
-              </div>
-            ) : (
-              Object.entries(availableCharms).map(([key, category]) => {
-                // Filter charms based on active type
-                const filteredCategory = {
-                  ...category,
-                  charms: filterCharmsByType(category.charms || []),
-                  subcategories: category.subcategories?.map(sub => ({
-                    ...sub,
-                    charms: filterCharmsByType(sub.charms || [])
-                  }))
-                };
+          <div className="selection-steps">
+            {/* Step 1: Category Selection */}
+            {!selectedCategory && (
+              <motion.div 
+                className="selection-step"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.4 }}
+              >
+                <h3 className="step-title">Step 1: Choose Category</h3>
+                <div className="category-cards-container">
+                  <div className="category-cards">
+                    {Object.entries(availableCharms).map(([key, category]) => (
+                      <div 
+                        key={key}
+                        className="category-card"
+                        onClick={() => handleCategorySelect(key, category.name)}
+                      >
+                        <div className="category-image-container">
+                          <img 
+                            src={category.charms?.[0]?.image || category.subcategories?.[0]?.charms?.[0]?.image || defaultSilverCharmImage} 
+                            alt={category.name}
+                            className="category-preview-image"
+                          />
+                        </div>
+                        <span className="category-name">{category.name.replace(' Charms', '')}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
-                // Skip rendering if no charms after filtering
-                if (
-                  (filteredCategory.charms && filteredCategory.charms.length === 0) &&
-                  (!filteredCategory.subcategories || 
-                   filteredCategory.subcategories.every(sub => sub.charms.length === 0))
-                ) {
-                  return null;
-                }
+            {/* Step 2: Subtype Selection (for Gold/Silver) */}
+            {selectedCategory && (selectedCategory.key === 'gold' || selectedCategory.key === 'silver') && !selectedSubtype && (
+              <motion.div 
+                className="selection-step"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.4 }}
+              >
+                <div className="step-header">
+                  <h3 className="step-title">Step 2: Choose {selectedCategory.name.replace(' Charms', '')} Type</h3>
+                  <button className="back-button" onClick={resetSelection}>
+                    ← Back to Categories
+                  </button>
+                </div>
+                <div className="category-cards-container">
+                  <div className="category-cards">
+                    {getAvailableSubtypes().map((subtype) => (
+                      <div 
+                        key={subtype.key}
+                        className="category-card"
+                        onClick={() => handleSubtypeSelect(subtype.key)}
+                      >
+                        <div className="category-image-container">
+                          <img 
+                            src={subtype.charms?.[0]?.image || defaultSilverCharmImage} 
+                            alt={subtype.name}
+                            className="category-preview-image"
+                          />
+                        </div>
+                        <span className="category-name">{subtype.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
-                return (
-                  <motion.div 
-                    key={key} 
-                    className="charm-category"
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.1, duration: 0.4 }}
+            {/* Step 3: Charm Selection */}
+            {selectedCategory && (
+              (selectedCategory.key !== 'gold' && selectedCategory.key !== 'silver') || 
+              (selectedSubtype)
+            ) && (
+              <motion.div 
+                className="selection-step"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.4 }}
+              >
+                <div className="step-header">
+                  <h3 className="step-title">
+                    Step {(selectedCategory.key === 'gold' || selectedCategory.key === 'silver') ? '3' : '2'}: Choose Your Charm
+                  </h3>
+                  <button 
+                    className="back-button" 
+                    onClick={() => {
+                      if (selectedSubtype) {
+                        setSelectedSubtype(null);
+                        setSelectedCharm(null);
+                      } else {
+                        resetSelection();
+                      }
+                    }}
                   >
-                    <h3>{category.name}</h3>
-                    
-                    <div className="charm-options">
-                      {filteredCategory.subcategories ? (
-                        filteredCategory.subcategories.map((subcategory, i) => (
-                          subcategory.charms.length > 0 && (
-                            <div key={i} className="charm-subcategory">
-                              <h4>{subcategory.name}</h4>
-                              <div className="subcategory-charms">
-                                {subcategory.charms.map((charm) => (
-                                  <motion.div 
-                                    key={charm.id} 
-                                    className={`charm-option ${selectedCharm && selectedCharm.id === charm.id ? 'selected' : ''}`}
-                                    onClick={() => selectCharm(charm)}
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    title={`${charm.name} - ₱${charm.price}`}
-                                  >
-                                    <img src={charm.image} alt={charm.name} />
-                                    <p>{charm.name} - ₱{charm.price}</p>
-                                  </motion.div>
-                                ))}
-                              </div>
+                    ← Back
+                  </button>
+                </div>
+
+                <div className="charm-selection-area">
+                  <div className="charm-options">
+                    {getCharmsToDisplay().map((item) => {
+                      // Handle subcategories (like letters)
+                      if (item.charms) {
+                        return (
+                          <div key={item.name} className="charm-subcategory">
+                            <h4>{item.name}</h4>
+                            <div className="subcategory-charms">
+                              {item.charms.map((charm) => (
+                                <motion.div 
+                                  key={charm.id} 
+                                  className={`charm-option ${selectedCharm && selectedCharm.id === charm.id ? 'selected' : ''}`}
+                                  onClick={() => selectCharm(charm)}
+                                  whileHover={{ scale: 1.02 }}
+                                  whileTap={{ scale: 0.98 }}
+                                  title={`${charm.name} - ₱${charm.price}`}
+                                >
+                                  <img src={charm.image} alt={charm.name} />
+                                </motion.div>
+                              ))}
                             </div>
-                          )
-                        ))
-                      ) : (
-                        filteredCategory.charms.map((charm) => (
-                          <motion.div 
-                            key={charm.id} 
-                            className={`charm-option ${selectedCharm && selectedCharm.id === charm.id ? 'selected' : ''}`}
-                            onClick={() => selectCharm(charm)}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            title={`${charm.name} - ₱${charm.price}`}
-                          >
-                            <img src={charm.image} alt={charm.name} />
-                            <p>{charm.name} - ₱{charm.price}</p>
-                          </motion.div>
-                        ))
-                      )}
-                    </div>
-                  </motion.div>
-                );
-              })
+                          </div>
+                        );
+                      }
+                      
+                      // Handle regular charms
+                      return (
+                        <motion.div 
+                          key={item.id} 
+                          className={`charm-option ${selectedCharm && selectedCharm.id === item.id ? 'selected' : ''}`}
+                          onClick={() => selectCharm(item)}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          title={`${item.name} - ₱${item.price}`}
+                        >
+                          <img src={item.image} alt={item.name} />
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </motion.div>
             )}
           </div>
         )}
@@ -447,8 +498,6 @@ const CustomizeBracelet = () => {
                 };
                 navigate('/checkout', { state: checkoutData });
               }}
-                // Here you would navigate to checkout page
-                // For now, we'll create a separate checkout component
             >
               <span className="checkout-text">Proceed to Checkout</span>
               <span className="checkout-icon">🛒</span>
