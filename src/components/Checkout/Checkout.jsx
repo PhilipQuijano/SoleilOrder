@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import './Checkout.css';
 import { useLocation } from 'react-router-dom';
-
+import { supabase } from '../../../api/supabaseClient';
 const CheckoutPage = () => {
   // Sample data - this would come from the customize page
 const location = useLocation();
@@ -80,16 +80,50 @@ const [orderData] = useState(() => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmitOrder = () => {
-    if (validateForm()) {
-      // Here you would submit the order
-      console.log('Order submitted:', {
-        customer: customerInfo,
-        order: orderData
-      });
-      alert('Order submitted successfully! (This is just a demo)');
+const handleSubmitOrder = async () => {
+  if (!validateForm()) return;
+
+  console.log('Order submitted:', {
+    customer: customerInfo,
+    order: orderData
+  });
+
+  // Step 1: Update stock in Supabase
+  for (const item of orderData.charms) {
+    const { data: currentData, error: fetchError } = await supabase
+      .from('charms')
+      .select('count')
+      .eq('id', item.id)
+      .single();
+
+    if (fetchError) {
+      console.error(`Failed to fetch stock for ${item.name}`, fetchError);
+      alert('Failed to complete order. Try again later.');
+      return;
     }
-  };
+
+    const updatedCount = currentData.count - item.count;
+
+    if (updatedCount < 0) {
+      alert(`Not enough stock for ${item.name}.`);
+      return;
+    }
+
+    const { error: updateError } = await supabase
+      .from('charms')
+      .update({ count: updatedCount })
+      .eq('id', item.id);
+
+    if (updateError) {
+      console.error(`Failed to update stock for ${item.name}`, updateError);
+      alert('Error updating stock. Try again later.');
+      return;
+    }
+  }
+
+  // Step 2: Confirm order
+  alert('Order placed successfully!');
+};
 
   return (
     <div className="checkout-page">
