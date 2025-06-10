@@ -23,13 +23,14 @@ const CustomizeBracelet = () => {
 
   // Size options with charm counts
   const sizeOptions = [
-    { value: 16.5, label: 'Small - 16.5 cm', charms: 17 },
-    { value: 17, label: 'Small - 17 cm', charms: 17 },
-    { value: 18, label: 'Medium - 18 cm', charms: 18 },
-    { value: 19, label: 'Medium - 19 cm', charms: 19 },
-    { value: 20, label: 'Large - 20 cm', charms: 20 },
-    { value: 21, label: 'Large - 21 cm', charms: 21 },
-    { value: 22, label: 'Extra Large - 22 cm', charms: 24 }
+    { value: 17, label: '17 Charms - 17 cm', charms: 17 },
+    { value: 18, label: '18 Charms - 18 cm', charms: 18 },
+    { value: 19, label: '19 Charms - 19 cm', charms: 19 },
+    { value: 20, label: '20 Charms - 20 cm', charms: 20 },
+    { value: 21, label: '21 Charms - 21 cm', charms: 21 },
+    { value: 22, label: '22 Charms - 22 cm', charms: 22 },
+    { value: 23, label: '23 Charms - 23 cm', charms: 23 },
+    { value: 24, label: '24 Charms - 24 cm', charms: 24 },
   ];
 
     // Handle drag start for selected charm
