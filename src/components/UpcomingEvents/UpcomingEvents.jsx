@@ -3,70 +3,60 @@ import { motion, AnimatePresence } from 'framer-motion';
 import './UpcomingEvents.css';
 import { supabase } from '../../../api/supabaseClient';
 
-// Sample event data - this would be replaced with actual data from a CMS or database
-const sampleEvents = [
-  {
-    id: 1,
-    title: "Summer Charm Collection Launch",
-    date: "July 15, 2025",
-    description: "Join us for the exclusive launch of our Summer Charm Collection featuring new designs inspired by ocean treasures.",
-    image: "https://images.unsplash.com/photo-1515377905703-c4788e51af15?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
-  },
-  {
-    id: 2,
-    title: "Bracelet Customization Workshop",
-    date: "August 5, 2025",
-    description: "Learn how to design your perfect bracelet with our expert craftspeople in this hands-on workshop.",
-    image: "https://images.unsplash.com/photo-1617038220319-276d3cfab638?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
-  },
-  {
-    id: 3,
-    title: "Holiday Gift Preview",
-    date: "September 20, 2025",
-    description: "Get an early look at our holiday collection and special gift sets perfect for the upcoming season.",
-    image: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
-  }
-];
-
 const UpcomingEvents = () => {
   const [events, setEvents] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchEvents();
   }, []);
 
-    const fetchEvents = async () => {
-    const { data, error } = await supabase
-      .from('events')
-      .select('*')
-      .order('date', { ascending: true });
-    
-    if (!error && data.length > 0) {
-      setEvents(data);
+  const fetchEvents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .order('date', { ascending: true });
+      
+      if (!error && data.length > 0) {
+        setEvents(data);
+      } else if (data.length === 0) {
+        // If no events in database, you can optionally show a message
+        setEvents([]);
+      }
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    } finally {
+      setLoading(false);
     }
   };
-  // Auto-advance the carousel every 5 seconds
+
+  // Auto-advance the carousel every 5 seconds (only if there are events)
   useEffect(() => {
+    if (events.length === 0) return;
+    
     const interval = setInterval(() => {
       nextSlide();
     }, 5000);
     
     return () => clearInterval(interval);
-  }, [currentIndex]);
+  }, [currentIndex, events.length]);
 
   const nextSlide = () => {
+    if (events.length === 0) return;
     setDirection(1);
     setCurrentIndex((prevIndex) => 
-      prevIndex === sampleEvents.length - 1 ? 0 : prevIndex + 1
+      prevIndex === events.length - 1 ? 0 : prevIndex + 1
     );
   };
 
   const prevSlide = () => {
+    if (events.length === 0) return;
     setDirection(-1);
     setCurrentIndex((prevIndex) => 
-      prevIndex === 0 ? sampleEvents.length - 1 : prevIndex - 1
+      prevIndex === 0 ? events.length - 1 : prevIndex - 1
     );
   };
 
@@ -84,6 +74,24 @@ const UpcomingEvents = () => {
       opacity: 0
     })
   };
+
+  if (loading) {
+    return (
+      <div className="upcoming-events-container">
+        <h2 className="section-title">Upcoming Events</h2>
+        <div className="loading-message">Loading events...</div>
+      </div>
+    );
+  }
+
+  if (events.length === 0) {
+    return (
+      <div className="upcoming-events-container">
+        <h2 className="section-title">Upcoming Events</h2>
+        <div className="no-events-message">No upcoming events at the moment.</div>
+      </div>
+    );
+  }
 
   return (
     <div className="upcoming-events-container">
@@ -112,12 +120,12 @@ const UpcomingEvents = () => {
               <div className="event-card">
                 <div 
                   className="event-image" 
-                  style={{ backgroundImage: `url(${sampleEvents[currentIndex].image})` }}
+                  style={{ backgroundImage: `url(${events[currentIndex].image})` }}
                 ></div>
                 <div className="event-details">
-                  <h3>{sampleEvents[currentIndex].title}</h3>
-                  <p className="event-date">{sampleEvents[currentIndex].date}</p>
-                  <p className="event-description">{sampleEvents[currentIndex].description}</p>
+                  <h3>{events[currentIndex].title}</h3>
+                  <p className="event-date">{events[currentIndex].date}</p>
+                  <p className="event-description">{events[currentIndex].description}</p>
                 </div>
               </div>
             </motion.div>
@@ -130,7 +138,7 @@ const UpcomingEvents = () => {
       </div>
       
       <div className="carousel-indicators">
-        {sampleEvents.map((_, index) => (
+        {events.map((_, index) => (
           <button
             key={index}
             className={`indicator ${index === currentIndex ? 'active' : ''}`}
