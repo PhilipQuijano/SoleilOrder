@@ -1,7 +1,7 @@
 .upcoming-events-container {
   width: 100%;
-  padding: 2rem 0;
-  background-color: rgba(0, 0, 0, 0.2);
+  padding: 4rem 0;
+  background-color: rgba(116, 3, 118, 0.2);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   margin-top: auto;
 }
@@ -16,10 +16,10 @@
 
 .section-title {
   font-family: var(--font-headline);
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-weight: 300;
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
   color: #fff;
   letter-spacing: 1px;
 }
@@ -29,13 +29,13 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
 .carousel-content {
   width: 100%;
-  height: 350px;
+  height: 450px;
   position: relative;
   overflow: hidden;
 }
@@ -57,13 +57,13 @@
 }
 
 .event-image {
-  height: 200px;
+  height: 280px;
   background-size: cover;
   background-position: center;
 }
 
 .event-details {
-  padding: 1.5rem;
+  padding: 2rem;
   flex-grow: 1;
   display: flex;
   flex-direction: column;
@@ -71,22 +71,22 @@
 
 .event-details h3 {
   font-family: var(--font-headline);
-  font-size: 1.5rem;
-  margin: 0 0 0.5rem;
+  font-size: 1.8rem;
+  margin: 0 0 0.75rem;
   color: #fff;
 }
 
 .event-date {
   font-family: var(--font-button);
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   color: #f0c3e2;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
   letter-spacing: 1px;
 }
 
 .event-description {
   font-family: var(--font-brand);
-  font-size: 0.9rem;
+  font-size: 1rem;
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.8);
 }
@@ -95,14 +95,14 @@
   background-color: rgba(255, 255, 255, 0.15);
   border: none;
   color: white;
-  width: 40px;
-  height: 40px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 1.2rem;
+  font-size: 1.5rem;
   position: absolute;
   z-index: 10;
   transition: all 0.3s ease;
@@ -113,11 +113,11 @@
 }
 
 .carousel-button.prev {
-  left: -20px;
+  left: -25px;
 }
 
 .carousel-button.next {
-  right: -20px;
+  right: -25px;
 }
 
 .carousel-indicators {
@@ -127,11 +127,11 @@
 }
 
 .indicator {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background-color: rgba(255, 255, 255, 0.3);
-  margin: 0 5px;
+  margin: 0 6px;
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;

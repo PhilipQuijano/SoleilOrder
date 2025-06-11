@@ -20,7 +20,7 @@ const CustomizeBracelet = () => {
   const [defaultSilverCharm, setDefaultSilverCharm] = useState(null);
   const [draggedCharm, setDraggedCharm] = useState(null);
   const [dragOverPosition, setDragOverPosition] = useState(null);
-
+  const [plainCharms, setPlainCharms] = useState([]);
   // Size options with charm counts
   const sizeOptions = [
     { value: 17, label: '17 Charms - 17 cm', charms: 17 },
@@ -82,10 +82,8 @@ const CustomizeBracelet = () => {
     if (defaultSilverCharm) {
       const selectedSize = sizeOptions.find(s => s.value === size);
       const initialCharmsCount = selectedSize ? selectedSize.charms : 17;
-      const defaultCharms = Array(initialCharmsCount).fill({
-        ...defaultSilverCharm,
-        type: 'default'
-      });
+      // Use the actual charm from database instead of adding a 'type' property
+      const defaultCharms = Array(initialCharmsCount).fill(defaultSilverCharm);
       setCharms(defaultCharms);
       calculateTotalPrice(defaultCharms);
     }
@@ -103,52 +101,50 @@ const CustomizeBracelet = () => {
           return;
         }
 
-        // Find the default silver charm from database
-        const silverCharm = charmsFromDB.find(charm => 
-          charm.name?.includes('Silver Plain') && 
-          charm.category?.includes('Plain Charms')
-        ) || {
-          id: 'default-silver',
-          name: 'Silver Plain',
-          price: 30,
-          image: defaultSilverCharmImage
-        };
-        
-        setDefaultSilverCharm(silverCharm);
+        // Get all plain charms for selection
+        const plainCharms = charmsFromDB.filter(charm => 
+          charm.category === 'Plain Charms'
+        );
 
-        // Organize charms into categories (exclude default charms from selection)
+        // Set default to Silver Plain (ID 146) initially
+        const defaultCharm = plainCharms.find(charm => charm.id === 146) || plainCharms[0];
+        setDefaultSilverCharm(defaultCharm);
+                
+
+        // Organize charms into categories (exclude the default silver charm from selection)
         const categoriesObj = {};
         
-        charmsFromDB.filter(charm => charm.category !== 'default').forEach((charm) => {
-          if (!charm) return;
-          
-          if (charm.category === 'letters' && charm.subcategory) {
-            if (!categoriesObj.letters) {
-              categoriesObj.letters = { name: 'Letters', subcategories: [] };
+        charmsFromDB
+          .filter(charm => charm && charm.category !== 'Plain Charms') // Exclude all plain charms from selection
+          .forEach((charm) => {
+            if (charm.category === 'letters' && charm.subcategory) {
+              if (!categoriesObj.letters) {
+                categoriesObj.letters = { name: 'Letters', subcategories: [] };
+              }
+              
+              let sub = categoriesObj.letters.subcategories.find(sc => sc.name === charm.subcategory);
+              if (!sub) {
+                sub = { name: charm.subcategory, charms: [] };
+                categoriesObj.letters.subcategories.push(sub);
+              }
+              
+              sub.charms.push(charm);
+            } else if (charm.category) {
+              const categoryKey = charm.category.toLowerCase();
+              
+              if (!categoriesObj[categoryKey]) {
+                categoriesObj[categoryKey] = {
+                  name: `${charm.category.charAt(0).toUpperCase()}${charm.category.slice(1)} Charms`,
+                  charms: [],
+                };
+              }
+              
+              categoriesObj[categoryKey].charms.push(charm);
             }
-            
-            let sub = categoriesObj.letters.subcategories.find(sc => sc.name === charm.subcategory);
-            if (!sub) {
-              sub = { name: charm.subcategory, charms: [] };
-              categoriesObj.letters.subcategories.push(sub);
-            }
-            
-            sub.charms.push(charm);
-          } else if (charm.category) {
-            const categoryKey = charm.category.toLowerCase();
-            
-            if (!categoriesObj[categoryKey]) {
-              categoriesObj[categoryKey] = {
-                name: `${charm.category.charAt(0).toUpperCase()}${charm.category.slice(1)} Charms`,
-                charms: [],
-              };
-            }
-            
-            categoriesObj[categoryKey].charms.push(charm);
-          }
-        });
+          });
         
         setAvailableCharms(categoriesObj);
+        setPlainCharms(plainCharms);
       } catch (error) {
         console.error('Error loading charms:', error);
       } finally {
@@ -170,6 +166,13 @@ const CustomizeBracelet = () => {
   const handleSubtypeSelect = (subtype) => {
     setSelectedSubtype(subtype);
     setSelectedCharm(null);
+  };
+
+  const handlePlainCharmChange = (charmId) => {
+  const selectedPlainCharm = plainCharms.find(charm => charm.id === parseInt(charmId));
+    if (selectedPlainCharm) {
+      setDefaultSilverCharm(selectedPlainCharm);
+    }
   };
 
   // Get available subtypes for Gold/Silver categories
@@ -289,17 +292,31 @@ const CustomizeBracelet = () => {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.1, duration: 0.6 }}
     >
-        <h2>Size</h2>
-        <div className="size-selector">
+    <div className="bracelet-controls">
+        <div className="control-group">
+            <h3>Size</h3>
             <select value={size} onChange={(e) => handleSizeChange(e.target.value)}>
                 {sizeOptions.map((sizeOption) => (
                     <option key={sizeOption.value} value={sizeOption.value}>
-                        {sizeOption.label.replace(/\(.*\)/, '')} {/* Remove charm count */}
+                        {sizeOption.label.replace(/\(.*\)/, '')}
                     </option>
                 ))}
             </select>
         </div>
-            
+        <div className="control-group">
+            <h3>Starting Charm</h3>
+            <select 
+                value={defaultSilverCharm?.id || ''} 
+                onChange={(e) => handlePlainCharmChange(e.target.value)}
+            >
+                {plainCharms.map((charm) => (
+                    <option key={charm.id} value={charm.id}>
+                        {charm.name}
+                    </option>
+                ))}
+            </select>
+        </div>
+    </div>
         <div className="bracelet-preview-section">
           <div className="bracelet-visual">
                   {charms.map((charm, index) => (
@@ -318,7 +335,7 @@ const CustomizeBracelet = () => {
                           <img 
                               src={charm.image || defaultSilverCharmImage} 
                               alt={charm.name} 
-                              className={charm.type === 'default' ? 'default-charm' : 'custom-charm'}
+                              className={charm.id === 146 || charm.id === 'fallback-silver' ? 'default-charm' : 'custom-charm'}
                           />
                       </div>
                 ))}
@@ -466,8 +483,8 @@ const CustomizeBracelet = () => {
                                   }}
                                 >
                                   <img 
-                                    src={item.image} 
-                                    alt={item.name} 
+                                    src={charm.image} 
+                                    alt={charm.name} 
                                     onDragStart={(e) => e.preventDefault()}
                                   />
                                 </motion.div>

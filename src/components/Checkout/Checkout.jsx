@@ -80,50 +80,174 @@ const [orderData] = useState(() => {
     return Object.keys(newErrors).length === 0;
   };
 
-const handleSubmitOrder = async () => {
-  if (!validateForm()) return;
+  const handleSubmitOrder = async () => {
+    if (!validateForm()) return;
 
-  console.log('Order submitted:', {
-    customer: customerInfo,
-    order: orderData
-  });
+    console.log('Order submitted:', {
+      customer: customerInfo,
+      order: orderData
+    });
 
-  // Step 1: Update stock in Supabase
-  for (const item of orderData.charms) {
-    const { data: currentData, error: fetchError } = await supabase
-      .from('charms')
-      .select('count')
-      .eq('id', item.id)
-      .single();
+    // DEBUG: Log the orderData structure
+    console.log('Order data charms:', orderData.charms);
+    console.log('Bracelet preview length:', orderData.braceletPreview?.length);
 
-    if (fetchError) {
-      console.error(`Failed to fetch stock for ${item.name}`, fetchError);
-      alert('Failed to complete order. Try again later.');
-      return;
+    try {
+      // Option 1: If orderData.charms represents individual quantities
+      if (orderData.charms && orderData.charms.length > 0) {
+        console.log('Using orderData.charms structure');
+        
+        // Group charms by ID and calculate total quantities needed
+        const charmQuantities = {};
+        
+        orderData.charms.forEach(item => {
+          console.log('Processing charm:', item);
+          
+          if (charmQuantities[item.id]) {
+            charmQuantities[item.id].totalCount += item.count;
+          } else {
+            charmQuantities[item.id] = {
+              id: item.id,
+              name: item.name,
+              totalCount: item.count
+            };
+          }
+        });
+
+        console.log('Grouped charm quantities:', charmQuantities);
+
+        // Check and update stock for each unique charm type
+        for (const charmId in charmQuantities) {
+          const charmData = charmQuantities[charmId];
+          
+          console.log(`Checking stock for ${charmData.name}, need ${charmData.totalCount}`);
+          console.log(`Using charm ID: ${charmId} (type: ${typeof charmId})`);
+          
+          // Convert charmId to number since your database uses int8
+          const numericCharmId = parseInt(charmId);
+          console.log(`Converted to numeric ID: ${numericCharmId}`);
+          
+          const { data: currentData, error: fetchError } = await supabase
+            .from('charms')
+            .select('*')
+            .eq('id', numericCharmId)
+            .single();
+
+          if (fetchError) {
+            console.error(`Failed to fetch stock for ${charmData.name}`, fetchError);
+            console.error('Fetch error details:', fetchError);
+            alert(`Failed to find charm ${charmData.name} in database. Try again later.`);
+            return;
+          }
+
+          console.log(`Current stock for ${charmData.name}:`, currentData);
+          console.log(`Available stock: ${currentData.stock}, Needed: ${charmData.totalCount}`);
+
+          const updatedStock = currentData.stock - charmData.totalCount;
+
+          if (updatedStock < 0) {
+            alert(`Not enough stock for ${charmData.name}. Available: ${currentData.stock}, Needed: ${charmData.totalCount}`);
+            return;
+          }
+
+          console.log(`Updating stock from ${currentData.stock} to ${updatedStock}`);
+
+          const { error: updateError } = await supabase
+            .from('charms')
+            .update({ stock: updatedStock })
+            .eq('id', numericCharmId);
+
+          if (updateError) {
+            console.error(`Failed to update stock for ${charmData.name}`, updateError);
+            console.error('Update error details:', updateError);
+            alert('Error updating stock. Try again later.');
+            return;
+          }
+          
+          console.log(`✅ Successfully updated ${charmData.name} stock from ${currentData.stock} to ${updatedStock}`);
+        }
+      } 
+      // Option 2: If we need to count from braceletPreview array
+      else if (orderData.braceletPreview && orderData.braceletPreview.length > 0) {
+        console.log('Using braceletPreview structure');
+        
+        // Count charms from braceletPreview
+        const charmCounts = {};
+        
+        orderData.braceletPreview.forEach(charm => {
+          if (charmCounts[charm.id]) {
+            charmCounts[charm.id].count++;
+          } else {
+            charmCounts[charm.id] = {
+              id: charm.id,
+              name: charm.name,
+              count: 1
+            };
+          }
+        });
+
+        console.log('Charm counts from braceletPreview:', charmCounts);
+
+        // Check and update stock
+        for (const charmId in charmCounts) {
+          const charmData = charmCounts[charmId];
+          
+          console.log(`Checking stock for ${charmData.name}, need ${charmData.count}`);
+          console.log(`Using charm ID: ${charmId} (type: ${typeof charmId})`);
+          
+          // Convert charmId to number since your database uses int8
+          const numericCharmId = parseInt(charmId);
+          console.log(`Converted to numeric ID: ${numericCharmId}`);
+          
+          const { data: currentData, error: fetchError } = await supabase
+            .from('charms')
+            .select('*')
+            .eq('id', numericCharmId)
+            .single();
+
+          if (fetchError) {
+            console.error(`Failed to fetch stock for ${charmData.name}`, fetchError);
+            console.error('Fetch error details:', fetchError);
+            alert(`Failed to find charm ${charmData.name} in database. Try again later.`);
+            return;
+          }
+
+          console.log(`Current stock for ${charmData.name}:`, currentData);
+          console.log(`Available stock: ${currentData.stock}, Needed: ${charmData.count}`);
+
+          const updatedStock = currentData.stock - charmData.count;
+
+          if (updatedStock < 0) {
+            alert(`Not enough stock for ${charmData.name}. Available: ${currentData.stock}, Needed: ${charmData.count}`);
+            return;
+          }
+
+          console.log(`Updating stock from ${currentData.stock} to ${updatedStock}`);
+
+          const { error: updateError } = await supabase
+            .from('charms')
+            .update({ stock: updatedStock })
+            .eq('id', numericCharmId);
+
+          if (updateError) {
+            console.error(`Failed to update stock for ${charmData.name}`, updateError);
+            console.error('Update error details:', updateError);
+            alert('Error updating stock. Try again later.');
+            return;
+          }
+          
+          console.log(`✅ Successfully updated ${charmData.name} stock from ${currentData.stock} to ${updatedStock}`);
+        }
+      }
+
+      // Step 3: Confirm order
+      alert('Order placed successfully!');
+      
+    } catch (error) {
+      console.error('Unexpected error in handleSubmitOrder:', error);
+      alert('An unexpected error occurred. Please try again.');
     }
-
-    const updatedCount = currentData.count - item.count;
-
-    if (updatedCount < 0) {
-      alert(`Not enough stock for ${item.name}.`);
-      return;
-    }
-
-    const { error: updateError } = await supabase
-      .from('charms')
-      .update({ count: updatedCount })
-      .eq('id', item.id);
-
-    if (updateError) {
-      console.error(`Failed to update stock for ${item.name}`, updateError);
-      alert('Error updating stock. Try again later.');
-      return;
-    }
-  }
-
-  // Step 2: Confirm order
-  alert('Order placed successfully!');
-};
+  };
 
   return (
     <div className="checkout-page">
