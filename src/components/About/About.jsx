@@ -1,31 +1,58 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './About.css';
 import { fetchCharms } from '../../../api/getCharms';
 import defaultSilverCharmImage from '../../assets/default-silver-charm.jpg';
 
 const About = () => {
+  const [allCharms, setAllCharms] = useState([]);
   const [displayCharms, setDisplayCharms] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [animationKey, setAnimationKey] = useState(0);
+  const animationInterval = useRef(null);
 
-  // Function to get random charms with IDs 1-130
+  // Function to get random charms from all available charms
   const getRandomCharms = (charms, count = 20) => {
-    // Filter charms with IDs 1-130
-    const validCharms = charms.filter(charm => charm.id >= 1 && charm.id <= 130);
+    if (!charms || charms.length === 0) return [];
     
-    // Shuffle the array and take the first 'count' items
-    const shuffled = [...validCharms].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, Math.min(count, validCharms.length));
+    // Create array of indices and shuffle them
+    const indices = Array.from({ length: charms.length }, (_, i) => i);
+    for (let i = indices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [indices[i], indices[j]] = [indices[j], indices[i]];
+    }
+    
+    // Take first 'count' items from shuffled indices
+    return indices.slice(0, Math.min(count, charms.length)).map(i => charms[i]);
+  };
+
+  // Function to get a completely new random set of charms
+  const refreshDisplayCharms = () => {
+    if (allCharms.length > 0) {
+      const newCharms = getRandomCharms(allCharms, 20);
+      setDisplayCharms(newCharms);
+      // Increment key to force re-animation of all items
+      setAnimationKey(prev => prev + 1);
+    }
   };
 
   useEffect(() => {
-    async function loadRandomCharms() {
+    async function loadAllCharms() {
       setLoading(true);
       try {
         const charmsFromDB = await fetchCharms();
         
         if (charmsFromDB && charmsFromDB.length > 0) {
-          const randomCharms = getRandomCharms(charmsFromDB, 20);
-          setDisplayCharms(randomCharms);
+          setAllCharms(charmsFromDB);
+          const initialCharms = getRandomCharms(charmsFromDB, 20);
+          setDisplayCharms(initialCharms);
+          
+          // Start the animation cycle after initial load
+          animationInterval.current = setInterval(() => {
+            // Always get a completely new random set
+            const newRandomCharms = getRandomCharms(charmsFromDB, 20);
+            setDisplayCharms(newRandomCharms);
+            setAnimationKey(prev => prev + 1);
+          }, 12000); // Change every 6 seconds for better visibility
         } else {
           console.error('No charms data received from database');
         }
@@ -36,7 +63,13 @@ const About = () => {
       }
     }
     
-    loadRandomCharms();
+    loadAllCharms();
+
+    return () => {
+      if (animationInterval.current) {
+        clearInterval(animationInterval.current);
+      }
+    };
   }, []);
 
   return (
@@ -45,23 +78,24 @@ const About = () => {
         <div className="about-content">
           <div className="about-text">
             <h2>Bringing <span className="italic">your vision</span> to life</h2>
-            <p>
-              What's special about your product, service or company? Use the space below to highlight things that set you apart from your competition, whether it's a special feature, a unique philosophy or awards and recognition that you have received. Think of this as your elevator pitch to get the reader's attention.
-            </p>
           </div>
           <div className="about-images">
             <div className="charms-grid">
               {loading ? (
-                // Show placeholder items while loading
                 [...Array(20)].map((_, i) => (
                   <div key={i} className="charm-item loading-charm">
                     <div className="loading-placeholder"></div>
                   </div>
                 ))
               ) : (
-                // Show actual charms
                 displayCharms.map((charm, i) => (
-                  <div key={`${charm.id}-${i}`} className="charm-item">
+                  <div 
+                    key={`${charm.id}-${animationKey}-${i}`}
+                    className="charm-item"
+                    style={{
+                      animationDelay: `${i * 0.05}s` // Stagger animation slightly for visual appeal
+                    }}
+                  >
                     <img 
                       src={charm.image || defaultSilverCharmImage} 
                       alt={charm.name}
