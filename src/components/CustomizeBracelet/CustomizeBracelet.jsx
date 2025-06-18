@@ -21,6 +21,8 @@ const CustomizeBracelet = () => {
   const [draggedCharm, setDraggedCharm] = useState(null);
   const [dragOverPosition, setDragOverPosition] = useState(null);
   const [plainCharms, setPlainCharms] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+
   // Size options with charm counts
   const sizeOptions = [
     { value: 17, label: '17 Charms - 17 cm', charms: 17 },
@@ -194,6 +196,76 @@ const CustomizeBracelet = () => {
     
     return [];
   };
+
+   const getPriceBreakdown = () => {
+        const breakdown = {};
+        charms.forEach(charm => {
+            if (charm) {
+                const key = `${charm.name}-${charm.price}`;
+                if (breakdown[key]) {
+                    breakdown[key].count++;
+                } else {
+                    breakdown[key] = {
+                        charm: charm,
+                        count: 1,
+                        totalPrice: charm.price
+                    };
+                }
+            }
+        });
+        
+        // Update total prices
+        Object.keys(breakdown).forEach(key => {
+            breakdown[key].totalPrice = breakdown[key].count * breakdown[key].charm.price;
+        });
+        
+        return Object.values(breakdown);
+    };
+
+    // Handle finalize button click
+    const handleFinalize = () => {
+        setShowModal(true);
+    };
+
+    // Handle checkout
+// Handle checkout
+const handleCheckout = () => {
+    // Process charms to get counts for checkout
+    const charmCounts = {};
+    
+    charms.forEach(charm => {
+        if (charm && charm.id) {
+            const key = charm.id;
+            if (charmCounts[key]) {
+                charmCounts[key].count++;
+            } else {
+                charmCounts[key] = {
+                    id: charm.id,
+                    name: charm.name,
+                    price: charm.price,
+                    image: charm.image,
+                    count: 1
+                };
+            }
+        }
+    });
+
+    // Navigate to checkout with properly formatted data
+    navigate('/checkout', {
+        state: {
+            bracelet: {
+                size: size,
+                charms: charms, // Keep original for braceletPreview
+                totalPrice: totalPrice
+            },
+            // Add the processed charms data that checkout expects
+            charms: Object.values(charmCounts),
+            totalPrice: totalPrice,
+            size: size,
+            braceletPreview: charms
+        }
+    });
+};
 
   // Get charms to display based on current selection
   const getCharmsToDisplay = () => {
@@ -527,74 +599,78 @@ const CustomizeBracelet = () => {
         )}
       </motion.div>
       
-      {/* Enhanced Price Summary Section */}
-      <motion.div 
-        className="price-summary-container"
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.4, duration: 0.6 }}
-      >
-        <div className="price-summary">
-          <div className="price-header">
-            <div className="price-divider"></div>
-          </div>
-          
-          <div className="price-content">
-            {getUniqueCharmsForPricing().map((charm, index) => (
-              <motion.div 
-                key={`${charm.id}-${index}`} 
-                className="price-item"
-                initial={{ x: -20, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.1 * index, duration: 0.3 }}
-              >
-                <div className="price-item-left">
-                  <img src={charm.image || defaultSilverCharmImage} alt={charm.name} className="price-charm-image" />
-                  <span className="price-charm-name">
-                    {charm.name} {charm.count > 1 && <span className="charm-count">x{charm.count}</span>}
-                  </span>
+            {/* Sticky Price Footer */}
+            <div className="price-footer">
+                <div className="price-info">
+                    <span className="price-label">Total Price:</span>
+                    <span className="price-amount">₱{totalPrice.toFixed(2)}</span>
                 </div>
-                <span className="price-value">₱{(charm.price * charm.count).toLocaleString()}</span>
-              </motion.div>
-            ))}
-            
-            <div className="price-divider"></div>
-            
-            <motion.div 
-              className="price-item price-total"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.5, duration: 0.4 }}
-            >
-              <span className="total-label">Total Amount</span>
-              <span className="total-value">₱{totalPrice.toLocaleString()}</span>
-            </motion.div>
-            
-            <motion.button 
-              className="checkout-button"
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.6, duration: 0.4 }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => {
-                const checkoutData = {
-                  charms: getUniqueCharmsForPricing(),
-                  totalPrice,
-                  size,
-                  braceletPreview: charms
-                };
-                navigate('/checkout', { state: checkoutData });
-              }}
-            >
-              <span className="checkout-text">Proceed to Checkout</span>
-              <span className="checkout-icon">🛒</span>
-            </motion.button>
-          </div>
-        </div>
+                <button className="finalize-button" onClick={handleFinalize}>
+                    Finalize your Bracelet
+                </button>
+            </div>
+
+            {/* Modal */}
+            {showModal && (
+                <div className="modal-overlay" onClick={() => setShowModal(false)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2 className="modal-title">Bracelet Summary</h2>
+                            <button className="close-button" onClick={() => setShowModal(false)}>
+                                ×
+                            </button>
+                        </div>
+                        
+                        <div className="modal-price-content">
+                            <div className="modal-price-item">
+                                <div className="modal-price-item-left">
+                                    <span className="modal-price-charm-name">Bracelet Size</span>
+                                </div>
+                                <div className="modal-price-value">{size} cm</div>
+                            </div>
+                            
+                            {getPriceBreakdown().map((item, index) => (
+                                <div key={index} className="modal-price-item">
+                                    <div className="modal-price-item-left">
+                                        <img
+                                            src={item.charm.image}
+                                            alt={item.charm.name}
+                                            className="modal-price-charm-image"
+                                        />
+                                        <div>
+                                            <div className="modal-price-charm-name">
+                                                {item.charm.name}
+                                                <span className="modal-charm-count">× {item.count}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="modal-price-value">₱{item.totalPrice.toFixed(2)}</div>
+                                </div>
+                            ))}
+                            
+                            <div className="modal-price-total">
+                                <div className="modal-price-item">
+                                    <div className="modal-total-label">Total</div>
+                                    <div className="modal-total-value">₱{totalPrice.toFixed(2)}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="modal-buttons">
+                            <button className="modal-cancel-button" onClick={() => setShowModal(false)}>
+                                Continue Editing
+                            </button>
+                            <button className="modal-checkout-button" onClick={handleCheckout}>
+                                <span className="modal-checkout-icon">🛒</span>
+                                Proceed to Checkout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
       </motion.div>
-    </motion.div>
-  );
+    );
 };
 
 export default CustomizeBracelet;
+
