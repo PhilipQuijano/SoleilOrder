@@ -9,6 +9,7 @@ const About = () => {
   const [loading, setLoading] = useState(true);
   const [animationKey, setAnimationKey] = useState(0);
   const animationInterval = useRef(null);
+  const isAnimating = useRef(false);
 
   // Function to get random charms from all available charms
   const getRandomCharms = (charms, count = 20) => {
@@ -25,14 +26,21 @@ const About = () => {
     return indices.slice(0, Math.min(count, charms.length)).map(i => charms[i]);
   };
 
-  // Function to get a completely new random set of charms
-  const refreshDisplayCharms = () => {
-    if (allCharms.length > 0) {
-      const newCharms = getRandomCharms(allCharms, 20);
-      setDisplayCharms(newCharms);
-      // Increment key to force re-animation of all items
-      setAnimationKey(prev => prev + 1);
-    }
+  // Function to cycle to new charms with proper timing
+  const cycleCharms = (charms) => {
+    if (isAnimating.current || !charms || charms.length === 0) return;
+    
+    isAnimating.current = true;
+    
+    // Get new random charms
+    const newCharms = getRandomCharms(charms, 20);
+    setDisplayCharms(newCharms);
+    setAnimationKey(prev => prev + 1);
+    
+    // Reset animation flag after animation completes
+    setTimeout(() => {
+      isAnimating.current = false;
+    }, 3000);
   };
 
   useEffect(() => {
@@ -41,18 +49,18 @@ const About = () => {
       try {
         const charmsFromDB = await fetchCharms();
         
-        if (charmsFromDB && charmsFromDB.length > 0) {
-          setAllCharms(charmsFromDB);
-          const initialCharms = getRandomCharms(charmsFromDB, 20);
-          setDisplayCharms(initialCharms);
+      if (charmsFromDB && charmsFromDB.length > 0) {
+        setAllCharms(charmsFromDB);
+        // Don't set initial charms here - let the interval handle everything
+        
+        // Start cycling immediately - first cycle will load the initial charms
+        animationInterval.current = setInterval(() => {
+          cycleCharms(charmsFromDB);
+        }, 4000);
+        
+        // Trigger first cycle immediately
+        cycleCharms(charmsFromDB);
           
-          // Start the animation cycle after initial load
-          animationInterval.current = setInterval(() => {
-            // Always get a completely new random set
-            const newRandomCharms = getRandomCharms(charmsFromDB, 20);
-            setDisplayCharms(newRandomCharms);
-            setAnimationKey(prev => prev + 1);
-          }, 12000); // Change every 6 seconds for better visibility
         } else {
           console.error('No charms data received from database');
         }
@@ -93,7 +101,7 @@ const About = () => {
                     key={`${charm.id}-${animationKey}-${i}`}
                     className="charm-item"
                     style={{
-                      animationDelay: `${i * 0.05}s` // Stagger animation slightly for visual appeal
+                      animationDelay: `${i * 0.02}s`
                     }}
                   >
                     <img 

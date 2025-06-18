@@ -54,7 +54,7 @@
   background-color: #f9e0e8;
   padding: 15px;
   border-radius: 5px;
-  overflow: hidden; /* Ensure animations stay within bounds */
+  overflow: hidden;
   position: relative;
 }
 
@@ -71,16 +71,21 @@
   overflow: hidden;
   position: relative;
   
-  /* Animation properties - Combined enter and exit animation */
-  animation: charmCycle 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  /* Smooth animation that cycles through enter -> visible -> exit */
+  animation: charmCycle 3s ease-in-out forwards;
   transform: translateX(100%);
   opacity: 0;
 }
 
 .charm-item:hover {
-  transform: translateY(-2px) translateX(0);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  /* Only apply hover effects when charm is visible (not during animation) */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.charm-item:hover:not(.loading-charm) {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
 }
 
 .charm-image {
@@ -117,33 +122,22 @@
     opacity: 0;
   }
   
-  /* Fully visible phase - most of the animation duration */
-  20% {
+  /* Quick entry */
+  10% {
     transform: translateX(0);
     opacity: 1;
   }
   
-  /* Stay visible */
-  80% {
+  /* Stay visible for most of the duration */
+  90% {
     transform: translateX(0);
     opacity: 1;
   }
   
-  /* Exit phase - slide out to left */
+  /* Quick exit - slide out to left */
   100% {
     transform: translateX(-100%);
     opacity: 0;
-  }
-}
-
-@keyframes slideInFromRight {
-  0% {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  100% {
-    transform: translateX(0);
-    opacity: 1;
   }
 }
 
