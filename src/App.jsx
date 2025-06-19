@@ -8,6 +8,7 @@ import InventoryManagement from './components/InventoryManagement/InventoryManag
 import EventsManagement from './components/AdminEvents/AdminEvents';
 import NavbarDebug from './components/Navbar/NavbarDebug';
 import Checkout from './components/Checkout/Checkout';
+import OrderTracking from './components/OrderTracking/OrderTracking';
 import { AnimatePresence } from 'framer-motion';
 import './components/GlobalTransitions.css';
 
@@ -21,8 +22,9 @@ const App = () => {
         <Route path="/customize" element={<CustomizeBracelet />} />
         <Route path="/admin/inventory" element={<InventoryManagement />} />
         <Route path="/admin/events" element={<EventsManagement />} />
-        <Route path ="/NavbarDebug" element={<NavbarDebug />} />
+        <Route path="/NavbarDebug" element={<NavbarDebug />} />
         <Route path="checkout" element={<Checkout />} />
+        <Route path= "/admin/orders" element={<OrderTracking />} />
         {/* Add more routes as needed */}
       </Routes>
       </AnimatePresence>

@@ -230,7 +230,7 @@ const CustomizeBracelet = () => {
     // Handle checkout
 // Handle checkout
 const handleCheckout = () => {
-    // Process charms to get counts for checkout
+    // Process charms to get counts for pricing/inventory
     const charmCounts = {};
     
     charms.forEach(charm => {
@@ -250,19 +250,21 @@ const handleCheckout = () => {
         }
     });
 
-    // Navigate to checkout with properly formatted data
+    // Navigate with cleaner data structure
     navigate('/checkout', {
         state: {
-            bracelet: {
-                size: size,
-                charms: charms, // Keep original for braceletPreview
-                totalPrice: totalPrice
-            },
-            // Add the processed charms data that checkout expects
+            // For pricing and inventory management
             charms: Object.values(charmCounts),
+            // For bracelet preview (IMPORTANT: This preserves the exact arrangement)
+            braceletPreview: charms.map((charm, index) => ({
+                position: index,
+                id: charm.id,
+                name: charm.name,
+                image: charm.image,
+                price: charm.price
+            })),
             totalPrice: totalPrice,
-            size: size,
-            braceletPreview: charms
+            size: size
         }
     });
 };

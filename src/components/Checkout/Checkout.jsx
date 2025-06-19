@@ -1,38 +1,38 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import './Checkout.css';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../../../api/supabaseClient';
+
 const CheckoutPage = () => {
-  // Sample data - this would come from the customize page
-const location = useLocation();
-const passedData = location.state;
+  const location = useLocation();
+  const navigate = useNavigate();
+  const passedData = location.state;
 
-const [orderData] = useState(() => {
-  if (passedData) return passedData;
+  const [orderData] = useState(() => {
+    if (passedData) return passedData;
 
-  // fallback demo data
-  return {
-        charms: [
+    // fallback demo data
+    return {
+      charms: [
         {
-            id: 'silver-plain',
-            name: 'Silver Plain',
-            price: 30,
-            count: 17,
-            image: '/api/placeholder/60/60'
+          id: 'silver-plain',
+          name: 'Silver Plain',
+          price: 30,
+          count: 17,
+          image: '/api/placeholder/60/60'
         }
-        ],
-        totalPrice: 510,
-        size: 17,
-        braceletPreview: Array(17).fill({
+      ],
+      totalPrice: 510,
+      size: 17,
+      braceletPreview: Array(17).fill({
         id: 'silver-plain',
         name: 'Silver Plain',
         price: 30,
         image: '/api/placeholder/60/60'
-        })
+      })
     };
-    });
-
+  });
 
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
@@ -43,6 +43,7 @@ const [orderData] = useState(() => {
   });
 
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (field, value) => {
     setCustomerInfo(prev => ({
@@ -82,170 +83,176 @@ const [orderData] = useState(() => {
 
   const handleSubmitOrder = async () => {
     if (!validateForm()) return;
+    
+    setIsSubmitting(true);
 
     console.log('Order submitted:', {
       customer: customerInfo,
       order: orderData
     });
 
-    // DEBUG: Log the orderData structure
-    console.log('Order data charms:', orderData.charms);
-    console.log('Bracelet preview length:', orderData.braceletPreview?.length);
-
     try {
-      // Option 1: If orderData.charms represents individual quantities
+      // Step 1: Prepare charm quantities
+      let charmQuantities = {};
+      
       if (orderData.charms && orderData.charms.length > 0) {
         console.log('Using orderData.charms structure');
         
-        // Group charms by ID and calculate total quantities needed
-        const charmQuantities = {};
-        
         orderData.charms.forEach(item => {
-          console.log('Processing charm:', item);
-          
           if (charmQuantities[item.id]) {
             charmQuantities[item.id].totalCount += item.count;
+            charmQuantities[item.id].price = item.price; // Keep price reference
           } else {
             charmQuantities[item.id] = {
               id: item.id,
               name: item.name,
-              totalCount: item.count
+              totalCount: item.count,
+              price: item.price
             };
           }
         });
-
-        console.log('Grouped charm quantities:', charmQuantities);
-
-        // Check and update stock for each unique charm type
-        for (const charmId in charmQuantities) {
-          const charmData = charmQuantities[charmId];
-          
-          console.log(`Checking stock for ${charmData.name}, need ${charmData.totalCount}`);
-          console.log(`Using charm ID: ${charmId} (type: ${typeof charmId})`);
-          
-          // Convert charmId to number since your database uses int8
-          const numericCharmId = parseInt(charmId);
-          console.log(`Converted to numeric ID: ${numericCharmId}`);
-          
-          const { data: currentData, error: fetchError } = await supabase
-            .from('charms')
-            .select('*')
-            .eq('id', numericCharmId)
-            .single();
-
-          if (fetchError) {
-            console.error(`Failed to fetch stock for ${charmData.name}`, fetchError);
-            console.error('Fetch error details:', fetchError);
-            alert(`Failed to find charm ${charmData.name} in database. Try again later.`);
-            return;
-          }
-
-          console.log(`Current stock for ${charmData.name}:`, currentData);
-          console.log(`Available stock: ${currentData.stock}, Needed: ${charmData.totalCount}`);
-
-          const updatedStock = currentData.stock - charmData.totalCount;
-
-          if (updatedStock < 0) {
-            alert(`Not enough stock for ${charmData.name}. Available: ${currentData.stock}, Needed: ${charmData.totalCount}`);
-            return;
-          }
-
-          console.log(`Updating stock from ${currentData.stock} to ${updatedStock}`);
-
-          const { error: updateError } = await supabase
-            .from('charms')
-            .update({ stock: updatedStock })
-            .eq('id', numericCharmId);
-
-          if (updateError) {
-            console.error(`Failed to update stock for ${charmData.name}`, updateError);
-            console.error('Update error details:', updateError);
-            alert('Error updating stock. Try again later.');
-            return;
-          }
-          
-          console.log(`✅ Successfully updated ${charmData.name} stock from ${currentData.stock} to ${updatedStock}`);
-        }
-      } 
-      // Option 2: If we need to count from braceletPreview array
-      else if (orderData.braceletPreview && orderData.braceletPreview.length > 0) {
+      } else if (orderData.braceletPreview && orderData.braceletPreview.length > 0) {
         console.log('Using braceletPreview structure');
         
-        // Count charms from braceletPreview
-        const charmCounts = {};
-        
         orderData.braceletPreview.forEach(charm => {
-          if (charmCounts[charm.id]) {
-            charmCounts[charm.id].count++;
+          if (charmQuantities[charm.id]) {
+            charmQuantities[charm.id].totalCount++;
           } else {
-            charmCounts[charm.id] = {
+            charmQuantities[charm.id] = {
               id: charm.id,
               name: charm.name,
-              count: 1
+              totalCount: 1,
+              price: charm.price
             };
           }
         });
-
-        console.log('Charm counts from braceletPreview:', charmCounts);
-
-        // Check and update stock
-        for (const charmId in charmCounts) {
-          const charmData = charmCounts[charmId];
-          
-          console.log(`Checking stock for ${charmData.name}, need ${charmData.count}`);
-          console.log(`Using charm ID: ${charmId} (type: ${typeof charmId})`);
-          
-          // Convert charmId to number since your database uses int8
-          const numericCharmId = parseInt(charmId);
-          console.log(`Converted to numeric ID: ${numericCharmId}`);
-          
-          const { data: currentData, error: fetchError } = await supabase
-            .from('charms')
-            .select('*')
-            .eq('id', numericCharmId)
-            .single();
-
-          if (fetchError) {
-            console.error(`Failed to fetch stock for ${charmData.name}`, fetchError);
-            console.error('Fetch error details:', fetchError);
-            alert(`Failed to find charm ${charmData.name} in database. Try again later.`);
-            return;
-          }
-
-          console.log(`Current stock for ${charmData.name}:`, currentData);
-          console.log(`Available stock: ${currentData.stock}, Needed: ${charmData.count}`);
-
-          const updatedStock = currentData.stock - charmData.count;
-
-          if (updatedStock < 0) {
-            alert(`Not enough stock for ${charmData.name}. Available: ${currentData.stock}, Needed: ${charmData.count}`);
-            return;
-          }
-
-          console.log(`Updating stock from ${currentData.stock} to ${updatedStock}`);
-
-          const { error: updateError } = await supabase
-            .from('charms')
-            .update({ stock: updatedStock })
-            .eq('id', numericCharmId);
-
-          if (updateError) {
-            console.error(`Failed to update stock for ${charmData.name}`, updateError);
-            console.error('Update error details:', updateError);
-            alert('Error updating stock. Try again later.');
-            return;
-          }
-          
-          console.log(`✅ Successfully updated ${charmData.name} stock from ${currentData.stock} to ${updatedStock}`);
-        }
       }
 
-      // Step 3: Confirm order
-      alert('Order placed successfully!');
+      console.log('Grouped charm quantities:', charmQuantities);
+
+      // Step 2: Check and update stock for each unique charm type
+      for (const charmId in charmQuantities) {
+        const charmData = charmQuantities[charmId];
+        
+        console.log(`Checking stock for ${charmData.name}, need ${charmData.totalCount}`);
+        
+        const numericCharmId = parseInt(charmId);
+        console.log(`Using numeric ID: ${numericCharmId}`);
+        
+        const { data: currentData, error: fetchError } = await supabase
+          .from('charms')
+          .select('*')
+          .eq('id', numericCharmId)
+          .single();
+
+        if (fetchError) {
+          console.error(`Failed to fetch stock for ${charmData.name}`, fetchError);
+          alert(`Failed to find charm ${charmData.name} in database. Try again later.`);
+          return;
+        }
+
+        console.log(`Current stock for ${charmData.name}: ${currentData.stock}, Needed: ${charmData.totalCount}`);
+
+        const updatedStock = currentData.stock - charmData.totalCount;
+
+        if (updatedStock < 0) {
+          alert(`Not enough stock for ${charmData.name}. Available: ${currentData.stock}, Needed: ${charmData.totalCount}`);
+          return;
+        }
+
+        const { error: updateError } = await supabase
+          .from('charms')
+          .update({ stock: updatedStock })
+          .eq('id', numericCharmId);
+
+        if (updateError) {
+          console.error(`Failed to update stock for ${charmData.name}`, updateError);
+          alert('Error updating stock. Try again later.');
+          return;
+        }
+        
+        console.log(`✅ Successfully updated ${charmData.name} stock from ${currentData.stock} to ${updatedStock}`);
+      }
+
+      // Step 3: Create the order record
+      console.log('Creating order record...');
+      
+      const orderRecord = {
+        customer_name: customerInfo.name.trim(),
+        customer_phone: customerInfo.phone.trim(),
+        customer_email: customerInfo.email.trim() || null,
+        customer_address: customerInfo.address.trim(),
+        payment_method: customerInfo.paymentMethod,
+        status: 'awaiting_payment',
+        total_amount: orderData.totalPrice,
+        bracelet_size: orderData.size || null,
+        bracelet_arrangement: JSON.stringify(orderData.braceletPreview), 
+        created_at: new Date().toISOString()
+      };
+      
+      console.log('Order record to insert:', orderRecord);
+
+      const { data: insertedOrder, error: orderError } = await supabase
+        .from('orders')
+        .insert([orderRecord])
+        .select()
+        .single();
+
+      if (orderError) {
+        console.error('Failed to create order:', orderError);
+        alert('Failed to create order. Please try again.');
+        return;
+      }
+
+      console.log('✅ Order created successfully:', insertedOrder);
+
+      // Step 4: Create order items
+      console.log('Creating order items...');
+      
+      const orderItems = [];
+      
+      for (const charmId in charmQuantities) {
+        const charmData = charmQuantities[charmId];
+        const numericCharmId = parseInt(charmId);
+        
+        orderItems.push({
+          order_id: insertedOrder.id,
+          charm_id: numericCharmId,
+          quantity: charmData.totalCount,
+          price: charmData.price
+        });
+      }
+
+      console.log('Order items to insert:', orderItems);
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems);
+
+      if (itemsError) {
+        console.error('Failed to create order items:', itemsError);
+        alert('Order created but failed to save items. Please contact support.');
+        return;
+      }
+
+      console.log('✅ Order items created successfully');
+
+      // Step 5: Success - show confirmation and redirect
+      alert(`Order #${insertedOrder.id.toString().padStart(4, '0')} placed successfully! You will be contacted shortly for payment instructions.`);
+      
+      // Redirect to home or order confirmation page
+      navigate('/', { 
+        state: { 
+          orderSuccess: true, 
+          orderId: insertedOrder.id 
+        } 
+      });
       
     } catch (error) {
       console.error('Unexpected error in handleSubmitOrder:', error);
       alert('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -344,6 +351,7 @@ const [orderData] = useState(() => {
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   className={errors.name ? 'error' : ''}
                   placeholder="Enter your full name"
+                  disabled={isSubmitting}
                 />
                 {errors.name && <span className="error-message">{errors.name}</span>}
               </div>
@@ -357,6 +365,7 @@ const [orderData] = useState(() => {
                   onChange={(e) => handleInputChange('phone', e.target.value)}
                   className={errors.phone ? 'error' : ''}
                   placeholder="09XXXXXXXXX"
+                  disabled={isSubmitting}
                 />
                 {errors.phone && <span className="error-message">{errors.phone}</span>}
               </div>
@@ -369,6 +378,7 @@ const [orderData] = useState(() => {
                   value={customerInfo.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
                   placeholder="your.email@example.com"
+                  disabled={isSubmitting}
                 />
               </div>
 
@@ -381,6 +391,7 @@ const [orderData] = useState(() => {
                   className={errors.address ? 'error' : ''}
                   placeholder="House/Unit Number, Street, Barangay, City, Province"
                   rows="3"
+                  disabled={isSubmitting}
                 />
                 {errors.address && <span className="error-message">{errors.address}</span>}
               </div>
@@ -395,6 +406,7 @@ const [orderData] = useState(() => {
                       value="gcash"
                       checked={customerInfo.paymentMethod === 'gcash'}
                       onChange={(e) => handleInputChange('paymentMethod', e.target.value)}
+                      disabled={isSubmitting}
                     />
                     <span className="payment-label">
                       <span className="payment-icon">📱</span>
@@ -409,6 +421,7 @@ const [orderData] = useState(() => {
                       value="bank"
                       checked={customerInfo.paymentMethod === 'bank'}
                       onChange={(e) => handleInputChange('paymentMethod', e.target.value)}
+                      disabled={isSubmitting}
                     />
                     <span className="payment-label">
                       <span className="payment-icon">🏦</span>
@@ -421,13 +434,16 @@ const [orderData] = useState(() => {
               <motion.button 
                 className="finalize-order-button"
                 onClick={handleSubmitOrder}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                disabled={isSubmitting}
+                whileHover={!isSubmitting ? { scale: 1.02 } : {}}
+                whileTap={!isSubmitting ? { scale: 0.98 } : {}}
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.5, duration: 0.4 }}
               >
-                <span className="button-text">Place Order</span>
+                <span className="button-text">
+                  {isSubmitting ? 'Processing...' : 'Place Order'}
+                </span>
                 <span className="button-price">₱{orderData.totalPrice.toLocaleString()}</span>
               </motion.button>
             </div>
