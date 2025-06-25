@@ -22,6 +22,7 @@ const CustomizeBracelet = () => {
   const [dragOverPosition, setDragOverPosition] = useState(null);
   const [plainCharms, setPlainCharms] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
 
   // Size options with charm counts
   const sizeOptions = [
@@ -116,34 +117,34 @@ const CustomizeBracelet = () => {
         // Organize charms into categories (exclude the default silver charm from selection)
         const categoriesObj = {};
         
-        charmsFromDB
-          .filter(charm => charm && charm.category !== 'Plain Charms') // Exclude all plain charms from selection
-          .forEach((charm) => {
-            if (charm.category === 'letters' && charm.subcategory) {
-              if (!categoriesObj.letters) {
-                categoriesObj.letters = { name: 'Letters', subcategories: [] };
-              }
-              
-              let sub = categoriesObj.letters.subcategories.find(sc => sc.name === charm.subcategory);
-              if (!sub) {
-                sub = { name: charm.subcategory, charms: [] };
-                categoriesObj.letters.subcategories.push(sub);
-              }
-              
-              sub.charms.push(charm);
-            } else if (charm.category) {
-              const categoryKey = charm.category.toLowerCase();
-              
-              if (!categoriesObj[categoryKey]) {
-                categoriesObj[categoryKey] = {
-                  name: `${charm.category.charAt(0).toUpperCase()}${charm.category.slice(1)} Charms`,
-                  charms: [],
-                };
-              }
-              
-              categoriesObj[categoryKey].charms.push(charm);
+       charmsFromDB
+        .filter(charm => charm) // Just filter out null/undefined charms
+        .forEach((charm) => {
+          if (charm.category === 'letters' && charm.subcategory) {
+            if (!categoriesObj.letters) {
+              categoriesObj.letters = { name: 'Letters', subcategories: [] };
             }
-          });
+            
+            let sub = categoriesObj.letters.subcategories.find(sc => sc.name === charm.subcategory);
+            if (!sub) {
+              sub = { name: charm.subcategory, charms: [] };
+              categoriesObj.letters.subcategories.push(sub);
+            }
+            
+            sub.charms.push(charm);
+          } else if (charm.category) {
+            const categoryKey = charm.category.toLowerCase().replace(/\s+/g, '');
+            
+            if (!categoriesObj[categoryKey]) {
+              categoriesObj[categoryKey] = {
+                name: charm.category === 'Plain Charms' ? 'Plain Charms' : `${charm.category.charAt(0).toUpperCase()}${charm.category.slice(1)} Charms`,
+                charms: [],
+              };
+            }
+            
+            categoriesObj[categoryKey].charms.push(charm);
+          }
+        });
         
         setAvailableCharms(categoriesObj);
         setPlainCharms(plainCharms);
@@ -156,6 +157,14 @@ const CustomizeBracelet = () => {
     
     loadCharms();
   }, []);
+
+  useEffect(() => {
+  const hasVisited = localStorage.getItem('soleil-bracelet-visited');
+  if (!hasVisited) {
+    setShowInstructions(true);
+    localStorage.setItem('soleil-bracelet-visited', 'true');
+  }
+}, []);
 
   // Handle category selection
   const handleCategorySelect = (categoryKey, categoryName) => {
@@ -669,6 +678,55 @@ const handleCheckout = () => {
                         </div>
                     </div>
                 </div>
+            )}
+            {showInstructions && (
+              <div className="modal-overlay" onClick={() => setShowInstructions(false)}>
+                <div className="instructions-modal" onClick={(e) => e.stopPropagation()}>
+                  <div className="instructions-header">
+                    <h2 className="instructions-title"> Welcome to Soleil !</h2>
+                  </div>
+                  
+                  <div className="instructions-content">
+                    <div className="instruction-step">
+                      <div className="step-number">1</div>
+                      <div className="step-text">
+                        <h3>Choose Your Category</h3>
+                        <p>Select from different charm categories like Letters, Gold, Silver, and more!</p>
+                      </div>
+                    </div>
+                    
+                    <div className="instruction-step">
+                      <div className="step-number">2</div>
+                      <div className="step-text">
+                        <h3>Pick Your Charm</h3>
+                        <p>Click on any charm to select it, then click on a position in your bracelet to place it.</p>
+                      </div>
+                    </div>
+                    
+                    <div className="instruction-step">
+                      <div className="step-number">3</div>
+                      <div className="step-text">
+                        <h3>Drag & Drop</h3>
+                        <p>You can also drag charms directly from the selection area to your bracelet!</p>
+                      </div>
+                    </div>
+                    
+                    <div className="instruction-step">
+                      <div className="step-number">4</div>
+                      <div className="step-text">
+                        <h3>Customize & Checkout</h3>
+                        <p>Adjust your bracelet size, change starting charms, and finalize when ready!</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="instructions-footer">
+                    <button className="charmed-button" onClick={() => setShowInstructions(false)}>
+                      I'm Charmed!
+                    </button>
+                  </div>
+                </div>
+              </div>
             )}
       </motion.div>
     );
