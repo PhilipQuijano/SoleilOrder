@@ -9,6 +9,27 @@ const CheckoutPage = () => {
   const navigate = useNavigate();
   const passedData = location.state;
 
+  // Philippine regions data
+  const philippineRegions = [
+    'National Capital Region (NCR)',
+    'Cordillera Administrative Region (CAR)',
+    'Region I - Ilocos Region',
+    'Region II - Cagayan Valley',
+    'Region III - Central Luzon',
+    'Region IV-A - CALABARZON',
+    'Region IV-B - MIMAROPA',
+    'Region V - Bicol Region',
+    'Region VI - Western Visayas',
+    'Region VII - Central Visayas',
+    'Region VIII - Eastern Visayas',
+    'Region IX - Zamboanga Peninsula',
+    'Region X - Northern Mindanao',
+    'Region XI - Davao Region',
+    'Region XII - SOCCSKSARGEN',
+    'Region XIII - Caraga',
+    'Bangsamoro Autonomous Region in Muslim Mindanao (BARMM)'
+  ];
+
   const [orderData] = useState(() => {
     if (passedData) return passedData;
 
@@ -38,7 +59,14 @@ const CheckoutPage = () => {
     name: '',
     phone: '',
     email: '',
-    address: '',
+    // Address fields
+    houseNumber: '',
+    street: '',
+    barangay: '',
+    city: '',
+    province: '',
+    region: '',
+    zipCode: '',
     paymentMethod: 'gcash'
   });
 
@@ -73,12 +101,43 @@ const CheckoutPage = () => {
       newErrors.phone = 'Please enter a valid phone number';
     }
     
-    if (!customerInfo.address.trim()) {
-      newErrors.address = 'Address is required';
+    // Address validation
+    if (!customerInfo.houseNumber.trim()) {
+      newErrors.houseNumber = 'House/Unit number is required';
+    }
+    
+    if (!customerInfo.barangay.trim()) {
+      newErrors.barangay = 'Barangay is required';
+    }
+    
+    if (!customerInfo.city.trim()) {
+      newErrors.city = 'City/Municipality is required';
+    }
+    
+    if (!customerInfo.province.trim()) {
+      newErrors.province = 'Province is required';
+    }
+    
+    if (!customerInfo.region.trim()) {
+      newErrors.region = 'Region is required';
     }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const getFullAddress = () => {
+    const addressParts = [
+      customerInfo.houseNumber,
+      customerInfo.street,
+      customerInfo.barangay,
+      customerInfo.city,
+      customerInfo.province,
+      customerInfo.region,
+      customerInfo.zipCode
+    ].filter(part => part.trim());
+    
+    return addressParts.join(', ');
   };
 
   const handleSubmitOrder = async () => {
@@ -86,8 +145,10 @@ const CheckoutPage = () => {
     
     setIsSubmitting(true);
 
+    const fullAddress = getFullAddress();
+
     console.log('Order submitted:', {
-      customer: customerInfo,
+      customer: { ...customerInfo, fullAddress },
       order: orderData
     });
 
@@ -101,7 +162,7 @@ const CheckoutPage = () => {
         orderData.charms.forEach(item => {
           if (charmQuantities[item.id]) {
             charmQuantities[item.id].totalCount += item.count;
-            charmQuantities[item.id].price = item.price; // Keep price reference
+            charmQuantities[item.id].price = item.price;
           } else {
             charmQuantities[item.id] = {
               id: item.id,
@@ -181,7 +242,7 @@ const CheckoutPage = () => {
         customer_name: customerInfo.name.trim(),
         customer_phone: customerInfo.phone.trim(),
         customer_email: customerInfo.email.trim() || null,
-        customer_address: customerInfo.address.trim(),
+        customer_address: fullAddress,
         payment_method: customerInfo.paymentMethod,
         status: 'awaiting_payment',
         total_amount: orderData.totalPrice,
@@ -264,16 +325,6 @@ const CheckoutPage = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        {/* Header */}
-        <motion.div 
-          className="checkout-header"
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.1, duration: 0.5 }}
-        >
-          <h1>Complete Your Order</h1>
-          <p>Review your work of art and fill in your details!</p>
-        </motion.div>
 
         <div className="checkout-content">
           {/* Left Column - Order Summary */}
@@ -382,70 +433,165 @@ const CheckoutPage = () => {
                 />
               </div>
 
-              <div className="form-group">
-                <label htmlFor="address">Complete Address *</label>
-                <textarea
-                  id="address"
-                  value={customerInfo.address}
-                  onChange={(e) => handleInputChange('address', e.target.value)}
-                  className={errors.address ? 'error' : ''}
-                  placeholder="House/Unit Number, Street, Barangay, City, Province"
-                  rows="3"
-                  disabled={isSubmitting}
-                />
-                {errors.address && <span className="error-message">{errors.address}</span>}
+              {/* Philippine Address Section */}
+              <div className="address-section">
+                <h3>🇵🇭 Delivery Address</h3>
+                
+                <div className="address-grid">
+                  <div className="form-group">
+                    <label htmlFor="houseNumber">House/Unit Number *</label>
+                    <input
+                      type="text"
+                      id="houseNumber"
+                      value={customerInfo.houseNumber}
+                      onChange={(e) => handleInputChange('houseNumber', e.target.value)}
+                      className={errors.houseNumber ? 'error' : ''}
+                      placeholder="123 or Blk 1 Lot 2"
+                      disabled={isSubmitting}
+                    />
+                    {errors.houseNumber && <span className="error-message">{errors.houseNumber}</span>}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="street">Street Name (Optional)</label>
+                    <input
+                      type="text"
+                      id="street"
+                      value={customerInfo.street}
+                      onChange={(e) => handleInputChange('street', e.target.value)}
+                      placeholder="e.g., Rizal Street"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                </div>
+
+                <div className="address-grid">
+                  <div className="form-group">
+                    <label htmlFor="barangay">Barangay *</label>
+                    <input
+                      type="text"
+                      id="barangay"
+                      value={customerInfo.barangay}
+                      onChange={(e) => handleInputChange('barangay', e.target.value)}
+                      className={errors.barangay ? 'error' : ''}
+                      placeholder="e.g., Barangay San Jose"
+                      disabled={isSubmitting}
+                    />
+                    {errors.barangay && <span className="error-message">{errors.barangay}</span>}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="city">City/Municipality *</label>
+                    <input
+                      type="text"
+                      id="city"
+                      value={customerInfo.city}
+                      onChange={(e) => handleInputChange('city', e.target.value)}
+                      className={errors.city ? 'error' : ''}
+                      placeholder="e.g., Quezon City"
+                      disabled={isSubmitting}
+                    />
+                    {errors.city && <span className="error-message">{errors.city}</span>}
+                  </div>
+                </div>
+
+                <div className="address-grid">
+                  <div className="form-group">
+                    <label htmlFor="province">Province *</label>
+                    <input
+                      type="text"
+                      id="province"
+                      value={customerInfo.province}
+                      onChange={(e) => handleInputChange('province', e.target.value)}
+                      className={errors.province ? 'error' : ''}
+                      placeholder="e.g., Metro Manila"
+                      disabled={isSubmitting}
+                    />
+                    {errors.province && <span className="error-message">{errors.province}</span>}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="region">Region *</label>
+                    <select
+                      id="region"
+                      value={customerInfo.region}
+                      onChange={(e) => handleInputChange('region', e.target.value)}
+                      className={errors.region ? 'error' : ''}
+                      disabled={isSubmitting}
+                    >
+                      <option value="">Select a region</option>
+                      {philippineRegions.map((region, index) => (
+                        <option key={index} value={region}>
+                          {region}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.region && <span className="error-message">{errors.region}</span>}
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="zipCode">ZIP Code (Optional)</label>
+                  <input
+                    type="text"
+                    id="zipCode"
+                    value={customerInfo.zipCode}
+                    onChange={(e) => handleInputChange('zipCode', e.target.value)}
+                    placeholder="e.g., 1100"
+                    maxLength="4"
+                    disabled={isSubmitting}
+                  />
+                </div>
               </div>
 
-              <div className="form-group">
-                <label>Payment Method *</label>
+              {/* Payment Method Section */}
+              <div className="payment-section">
+                <h3>💳 Payment Method</h3>
                 <div className="payment-options">
                   <label className="payment-option">
                     <input
                       type="radio"
-                      name="payment"
+                      name="paymentMethod"
                       value="gcash"
                       checked={customerInfo.paymentMethod === 'gcash'}
                       onChange={(e) => handleInputChange('paymentMethod', e.target.value)}
                       disabled={isSubmitting}
                     />
-                    <span className="payment-label">
+                    <div className="payment-label">
                       <span className="payment-icon">📱</span>
                       GCash
-                    </span>
+                    </div>
                   </label>
                   
                   <label className="payment-option">
                     <input
                       type="radio"
-                      name="payment"
-                      value="bank"
-                      checked={customerInfo.paymentMethod === 'bank'}
+                      name="paymentMethod"
+                      value="paymaya"
+                      checked={customerInfo.paymentMethod === 'paymaya'}
                       onChange={(e) => handleInputChange('paymentMethod', e.target.value)}
                       disabled={isSubmitting}
                     />
-                    <span className="payment-label">
-                      <span className="payment-icon">🏦</span>
-                      Bank Transfer
-                    </span>
+                    <div className="payment-label">
+                      <span className="payment-icon">💎</span>
+                      PayMaya
+                    </div>
                   </label>
                 </div>
               </div>
 
-              <motion.button 
+              {/* Submit Button */}
+              <button 
                 className="finalize-order-button"
                 onClick={handleSubmitOrder}
                 disabled={isSubmitting}
-                whileHover={!isSubmitting ? { scale: 1.02 } : {}}
-                whileTap={!isSubmitting ? { scale: 0.98 } : {}}
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.5, duration: 0.4 }}
+                type="button"
               >
                 <span className="button-text">
-                  {isSubmitting ? 'Processing...' : 'Place Order'}
+                  {isSubmitting ? 'Processing Order...' : 'Finalize Order'}
                 </span>
                 <span className="button-price">₱{orderData.totalPrice.toLocaleString()}</span>
-              </motion.button>
+              </button>
             </div>
           </motion.div>
         </div>

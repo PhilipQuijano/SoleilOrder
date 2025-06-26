@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Instagram, Facebook } from 'lucide-react';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -41,11 +42,37 @@ const Navbar = () => {
       transition={{ duration: 0.5 }}
     >
       <div className="navbar-content">
-        <motion.div whileHover={{ scale: 1.05 }}>
-          <Link to="/" className="logo hover-underline">
-            SOLEIL
-          </Link>
-        </motion.div>
+        <div className="navbar-left">
+          <div className="social-icons">
+            <motion.a
+              href="https://www.instagram.com/soleilphl/" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="social-link"
+              variants={linkVariants}
+              whileHover="hover"
+              whileTap="tap"
+            >
+              <Instagram size={18} />
+            </motion.a>
+            <motion.a
+              href="https://www.facebook.com/profile.php?id=61567161596724" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="social-link"
+              variants={linkVariants}
+              whileHover="hover"
+              whileTap="tap"
+            >
+              <Facebook size={18} />
+            </motion.a>
+          </div>
+          <motion.div whileHover={{ scale: 1.05 }}>
+            <Link to="/" className="logo hover-underline">
+              SOLEIL
+            </Link>
+          </motion.div>
+        </div>
         <div className="nav-links">
           {['About', 'Customize', 'Contact'].map((item) => (
             <motion.div

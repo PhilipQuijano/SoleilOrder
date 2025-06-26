@@ -1,82 +1,53 @@
-
 .checkout-page {
     min-height: 100vh;
     background: linear-gradient(135deg, #f8f9ff 0%, #fdf8ff 100%);
     padding: 20px;
-    margin-top: 50px;
+    margin-top: 37px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .checkout-container {
-    max-width: 1200px;
     margin: 0 auto;
-}
-
-.checkout-header {
-    text-align: center;
-    margin-bottom: 40px;
-    padding: 30px 20px;
-    background: linear-gradient(135deg, #582e4e 0%, #6d3a60 100%);
-    border-radius: 20px;
-    color: white;
-    box-shadow: 0 10px 30px rgba(88, 46, 78, 0.2);
-}
-
-.checkout-header h1 {
-    font-size: 2.5rem;
-    margin: 0 0 10px 0;
-    font-weight: 700;
-}
-
-.checkout-header p {
-    font-size: 1.1rem;
-    margin: 0;
-    opacity: 0.9;
+    margin-top: 30px;
+    max-width: 1200px;
 }
 
 .checkout-content {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 40px;
+    grid-template-columns: 1fr; 
+    gap: 30px;
     align-items: start;
 }
 
-.order-summary-section {
-    background: white;
-    border-radius: 20px;
-    padding: 30px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(88, 46, 78, 0.1);
-}
-
 .bracelet-final-preview {
-    margin-bottom: 30px;
+    margin-bottom: 22px;
     text-align: center;
 }
 
 .bracelet-final-preview h2 {
     color: #582e4e;
     font-weight: 600;
-    margin-bottom: 20px;
-    font-size: 1.3rem;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
 }
 
 .final-bracelet-visual {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 20px 0;
+    margin: 15px 0;
     padding: 20px;
     background: linear-gradient(145deg, #f8f9ff 0%, #fdf8ff 100%);
-    border-radius: 15px;
+    border-radius: 11px;
     overflow-x: auto;
-    gap: -8px;
+    gap: -6px;
+    min-height: 60px;
 }
 
 .final-bracelet-charm {
-    width: 45px;
-    height: 45px;
-    margin: 0 -5px;
+    width: 40px;
+    height: 40px;
+    margin: 0 -4px;
     flex-shrink: 0;
 }
 
@@ -84,20 +55,21 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
-    border-radius: 4px;
+    border-radius: 3px;
 }
 
 .bracelet-size {
     color: #666;
     font-weight: 500;
     margin-top: 10px;
+    font-size: 0.95rem;
 }
 
 .order-details h2 {
     color: #582e4e;
     font-weight: 600;
     margin-bottom: 20px;
-    font-size: 1.3rem;
+    font-size: 1.1rem;
 }
 
 .order-items {
@@ -114,12 +86,14 @@
     background: #fafafa;
     border-radius: 12px;
     border: 1px solid #f0f0f0;
+    min-height: 60px;
 }
 
 .item-info {
     display: flex;
     align-items: center;
     gap: 12px;
+    flex: 1;
 }
 
 .item-image {
@@ -128,27 +102,32 @@
     object-fit: contain;
     border-radius: 6px;
     border: 1px solid #e8e8e8;
-    padding: 3px;
+    padding: 4px;
     background: white;
+    flex-shrink: 0;
 }
 
 .item-details {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
 }
 
 .item-name {
     font-weight: 500;
     color: #333;
+    font-size: 0.9rem;
+    word-wrap: break-word;
 }
 
 .item-quantity {
     background: linear-gradient(135deg, #582e4e 0%, #6d3a60 100%);
     color: white;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 0.7rem;
     font-weight: 600;
     width: fit-content;
 }
@@ -156,7 +135,8 @@
 .item-price {
     font-weight: 600;
     color: #582e4e;
-    font-size: 1rem;
+    font-size: 0.9rem;
+    flex-shrink: 0;
 }
 
 .order-total {
@@ -176,35 +156,39 @@
     align-items: center;
     padding: 20px 15px;
     background: linear-gradient(135deg, #582e4e 0%, #6d3a60 100%);
-    border-radius: 15px;
+    border-radius: 12px;
     color: white;
-    box-shadow: 0 5px 15px rgba(88, 46, 78, 0.3);
+    box-shadow: 0 4px 15px rgba(88, 46, 78, 0.3);
 }
 
 .total-label {
-    font-size: 1.1rem;
+    font-size: 0.9rem;
     font-weight: 600;
 }
 
 .total-amount {
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     font-weight: 700;
 }
 
+.order-summary-section,
 .customer-info-section {
     background: white;
-    border-radius: 20px;
+    border-radius: 16px;
     padding: 30px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
     border: 1px solid rgba(88, 46, 78, 0.1);
-    height: fit-content;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    box-sizing: border-box;
 }
 
 .customer-form h2 {
     color: #582e4e;
     font-weight: 600;
     margin-bottom: 25px;
-    font-size: 1.3rem;
+    font-size: 1.1rem;
 }
 
 .form-group {
@@ -216,53 +200,105 @@
     margin-bottom: 8px;
     font-weight: 600;
     color: #333;
+    font-size: 0.9rem;
 }
 
 .form-group input,
-.form-group textarea {
+.form-group textarea,
+.form-group select {
     width: 100%;
     padding: 12px 15px;
     border: 2px solid #e8e8e8;
-    border-radius: 10px;
-    font-size: 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
     transition: all 0.3s ease;
     box-sizing: border-box;
+    background: white;
+    min-height: 44px;
 }
 
 .form-group input:focus,
-.form-group textarea:focus {
+.form-group textarea:focus,
+.form-group select:focus {
     outline: none;
     border-color: #582e4e;
     box-shadow: 0 0 0 3px rgba(88, 46, 78, 0.1);
 }
 
 .form-group input.error,
-.form-group textarea.error {
+.form-group textarea.error,
+.form-group select.error {
     border-color: #dc3545;
 }
 
 .error-message {
     color: #dc3545;
-    font-size: 0.85rem;
-    margin-top: 5px;
+    font-size: 0.8rem;
+    margin-top: 6px;
     display: block;
+}
+
+/* Address Section Styling */
+.address-section {
+    background: #f8f9ff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #e8e8e8;
+}
+
+.address-section h3 {
+    color: #582e4e;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 15px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.address-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.address-grid-full {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+}
+
+.region-note {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 0.8rem;
+    color: #856404;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .payment-options {
     display: flex;
     gap: 15px;
-    margin-top: 10px;
+    margin-top: 15px;
 }
 
 .payment-option {
     display: flex;
     align-items: center;
     cursor: pointer;
-    padding: 12px 18px;
+    padding: 15px;
     border: 2px solid #e8e8e8;
     border-radius: 10px;
     transition: all 0.3s ease;
     flex: 1;
+    min-height: 44px;
 }
 
 .payment-option:hover {
@@ -280,10 +316,11 @@
     align-items: center;
     gap: 8px;
     font-weight: 500;
+    font-size: 0.9rem;
 }
 
 .payment-icon {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
 }
 
 .finalize-order-button {
@@ -292,18 +329,19 @@
     background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
     color: white;
     border: none;
-    border-radius: 15px;
-    font-size: 1.1rem;
+    border-radius: 12px;
+    font-size: 1rem;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
     margin-top: 30px;
     position: relative;
     overflow: hidden;
+    min-height: 56px;
 }
 
 .finalize-order-button::before {
@@ -324,7 +362,7 @@
 .finalize-order-button:hover {
     background: linear-gradient(135deg, #218838 0%, #1aa085 100%);
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
 }
 
 .button-text {
@@ -334,52 +372,178 @@
 }
 
 .button-price {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 800;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
+/* Desktop - Large screens */
+@media (min-width: 1200px) {
     .checkout-content {
-    grid-template-columns: 1fr;
-    gap: 20px;
+        grid-template-columns: 1fr;
+        gap: 40px;
     }
+    
+    .order-summary-section,
+    .customer-info-section {
+        width: 100%;
+        max-width: 900px;
+    }
+}
 
-    .checkout-header h1 {
-    font-size: 2rem;
+/* Tablet - Medium screens */
+@media (max-width: 768px) {
+    .checkout-page {
+        padding: 15px;
+        margin-top: 20px;
+    }
+    
+    .checkout-container {
+        margin-top: 20px;
+    }
+    
+    .checkout-content {
+        gap: 25px;
     }
 
     .final-bracelet-charm {
-    width: 35px;
-    height: 35px;
-    margin: 0 -3px;
+        width: 35px;
+        height: 35px;
+        margin: 0 -3px;
+    }
+
+    .final-bracelet-visual {
+        padding: 15px;
+    }
+
+    .address-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
     }
 
     .payment-options {
-    flex-direction: column;
+        flex-direction: column;
+        gap: 12px;
     }
 
     .order-summary-section,
     .customer-info-section {
-    padding: 20px;
+        padding: 25px;
+        border-radius: 12px;
+    }
+
+    .address-section {
+        padding: 15px;
+    }
+    
+    .order-item {
+        padding: 12px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .item-info {
+        width: 100%;
+    }
+    
+    .item-price {
+        align-self: flex-end;
+        font-size: 1rem;
     }
 }
 
+/* Mobile - Small screens */
 @media (max-width: 480px) {
     .checkout-page {
-    padding: 15px;
+        padding: 10px;
+        margin-top: 15px;
+    }
+    
+    .checkout-container {
+        margin-top: 15px;
     }
 
     .final-bracelet-charm {
-    width: 30px;
-    height: 30px;
+        width: 30px;
+        height: 30px;
+        margin: 0 -2px;
     }
 
-    .checkout-header {
-    padding: 20px 15px;
+    .final-bracelet-visual {
+        padding: 12px;
+        margin: 10px 0;
     }
 
-    .checkout-header h1 {
-    font-size: 1.8rem;
+    .order-summary-section,
+    .customer-info-section {
+        padding: 20px;
+        border-radius: 10px;
+    }
+
+    .address-section {
+        padding: 15px;
+        border-radius: 10px;
+    }
+
+    .address-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        padding: 10px 12px;
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+    
+    .payment-option {
+        padding: 12px;
+    }
+    
+    .finalize-order-button {
+        padding: 15px 20px;
+        font-size: 0.9rem;
+    }
+    
+    .total-row {
+        padding: 15px 12px;
+    }
+    
+    .total-amount {
+        font-size: 1.1rem;
+    }
+    
+    .button-price {
+        font-size: 1rem;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 320px) {
+    .checkout-page {
+        padding: 8px;
+    }
+    
+    .order-summary-section,
+    .customer-info-section {
+        padding: 15px;
+    }
+    
+    .final-bracelet-charm {
+        width: 25px;
+        height: 25px;
+    }
+    
+    .item-name {
+        font-size: 0.8rem;
+    }
+    
+    .item-price {
+        font-size: 0.85rem;
     }
 }
