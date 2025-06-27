@@ -4,12 +4,19 @@ import defaultSilverCharmImage from '../../assets/default-silver-charm.jpg';
 import { fetchCharms } from '../../../api/getCharms';
 import { motion, AnimatePresence } from 'framer-motion';
 import '../GlobalTransitions.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useCart } from '../../contexts/CartContext';
 
 const CustomizeBracelet = () => {
-  // State for bracelet size
   const navigate = useNavigate();
-  const [size, setSize] = useState(17);
+  const location = useLocation();
+  
+  // Check if we're editing an existing bracelet
+  const editData = location.state?.editBracelet;
+  const isEditing = !!editData;
+
+  // State for bracelet size
+  const [size, setSize] = useState(editData?.size || 17);
   const [charms, setCharms] = useState([]);
   const [selectedCharm, setSelectedCharm] = useState(null);
   const [totalPrice, setTotalPrice] = useState(0);
@@ -23,6 +30,7 @@ const CustomizeBracelet = () => {
   const [plainCharms, setPlainCharms] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
+  const { addBraceletToCart, getBraceletCount, editBracelet } = useCart();
 
   // Size options with charm counts
   const sizeOptions = [
@@ -36,12 +44,11 @@ const CustomizeBracelet = () => {
     { value: 24, label: '24 Charms - 24 cm', charms: 24 },
   ];
 
-    // Handle drag start for selected charm
+  // Handle drag start for selected charm
   const handleDragStart = (e, charm) => {
     setDraggedCharm(charm);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/html', '');
-    // Also select the charm when dragging starts
     setSelectedCharm(charm);
   };
 
@@ -54,7 +61,6 @@ const CustomizeBracelet = () => {
 
   // Handle drag leave
   const handleDragLeave = (e) => {
-    // Only clear if we're actually leaving the drop zone
     if (!e.currentTarget.contains(e.relatedTarget)) {
       setDragOverPosition(null);
     }
@@ -80,17 +86,18 @@ const CustomizeBracelet = () => {
     setDragOverPosition(null);
   };
 
-  // Initialize with default silver charms
   useEffect(() => {
-    if (defaultSilverCharm) {
+    if (isEditing && editData && editData.charms) {
+      setCharms(editData.charms);
+      calculateTotalPrice(editData.charms);
+    } else if (defaultSilverCharm) {
       const selectedSize = sizeOptions.find(s => s.value === size);
       const initialCharmsCount = selectedSize ? selectedSize.charms : 17;
-      // Use the actual charm from database instead of adding a 'type' property
       const defaultCharms = Array(initialCharmsCount).fill(defaultSilverCharm);
       setCharms(defaultCharms);
       calculateTotalPrice(defaultCharms);
     }
-  }, [size, defaultSilverCharm]);
+  }, [size, defaultSilverCharm, isEditing, editData]);
 
   useEffect(() => {
     async function loadCharms() {
@@ -112,39 +119,38 @@ const CustomizeBracelet = () => {
         // Set default to Silver Plain (ID 146) initially
         const defaultCharm = plainCharms.find(charm => charm.id === 146) || plainCharms[0];
         setDefaultSilverCharm(defaultCharm);
-                
 
-        // Organize charms into categories (exclude the default silver charm from selection)
+        // Organize charms into categories
         const categoriesObj = {};
         
-       charmsFromDB
-        .filter(charm => charm) // Just filter out null/undefined charms
-        .forEach((charm) => {
-          if (charm.category === 'letters' && charm.subcategory) {
-            if (!categoriesObj.letters) {
-              categoriesObj.letters = { name: 'Letters', subcategories: [] };
+        charmsFromDB
+          .filter(charm => charm)
+          .forEach((charm) => {
+            if (charm.category === 'letters' && charm.subcategory) {
+              if (!categoriesObj.letters) {
+                categoriesObj.letters = { name: 'Letters', subcategories: [] };
+              }
+              
+              let sub = categoriesObj.letters.subcategories.find(sc => sc.name === charm.subcategory);
+              if (!sub) {
+                sub = { name: charm.subcategory, charms: [] };
+                categoriesObj.letters.subcategories.push(sub);
+              }
+              
+              sub.charms.push(charm);
+            } else if (charm.category) {
+              const categoryKey = charm.category.toLowerCase().replace(/\s+/g, '');
+              
+              if (!categoriesObj[categoryKey]) {
+                categoriesObj[categoryKey] = {
+                  name: charm.category === 'Plain Charms' ? 'Plain Charms' : `${charm.category.charAt(0).toUpperCase()}${charm.category.slice(1)} Charms`,
+                  charms: [],
+                };
+              }
+              
+              categoriesObj[categoryKey].charms.push(charm);
             }
-            
-            let sub = categoriesObj.letters.subcategories.find(sc => sc.name === charm.subcategory);
-            if (!sub) {
-              sub = { name: charm.subcategory, charms: [] };
-              categoriesObj.letters.subcategories.push(sub);
-            }
-            
-            sub.charms.push(charm);
-          } else if (charm.category) {
-            const categoryKey = charm.category.toLowerCase().replace(/\s+/g, '');
-            
-            if (!categoriesObj[categoryKey]) {
-              categoriesObj[categoryKey] = {
-                name: charm.category === 'Plain Charms' ? 'Plain Charms' : `${charm.category.charAt(0).toUpperCase()}${charm.category.slice(1)} Charms`,
-                charms: [],
-              };
-            }
-            
-            categoriesObj[categoryKey].charms.push(charm);
-          }
-        });
+          });
         
         setAvailableCharms(categoriesObj);
         setPlainCharms(plainCharms);
@@ -158,13 +164,16 @@ const CustomizeBracelet = () => {
     loadCharms();
   }, []);
 
+  // Show instructions only for new bracelets, not when editing
   useEffect(() => {
-  const hasVisited = localStorage.getItem('soleil-bracelet-visited');
-  if (!hasVisited) {
-    setShowInstructions(true);
-    localStorage.setItem('soleil-bracelet-visited', 'true');
-  }
-}, []);
+    if (!isEditing) {
+      const hasVisited = localStorage.getItem('soleil-bracelet-visited');
+      if (!hasVisited) {
+        setShowInstructions(true);
+        localStorage.setItem('soleil-bracelet-visited', 'true');
+      }
+    }
+  }, [isEditing]);
 
   // Handle category selection
   const handleCategorySelect = (categoryKey, categoryName) => {
@@ -180,7 +189,7 @@ const CustomizeBracelet = () => {
   };
 
   const handlePlainCharmChange = (charmId) => {
-  const selectedPlainCharm = plainCharms.find(charm => charm.id === parseInt(charmId));
+    const selectedPlainCharm = plainCharms.find(charm => charm.id === parseInt(charmId));
     if (selectedPlainCharm) {
       setDefaultSilverCharm(selectedPlainCharm);
     }
@@ -193,7 +202,6 @@ const CustomizeBracelet = () => {
     const category = availableCharms[selectedCategory.key];
     if (!category || !category.charms) return [];
     
-    // For Gold/Silver categories, extract Plain/Special subtypes
     if (selectedCategory.key === 'gold' || selectedCategory.key === 'silver') {
       const subtypes = [...new Set(category.charms.map(charm => charm.type || 'Plain'))];
       return subtypes.map(type => ({
@@ -206,77 +214,83 @@ const CustomizeBracelet = () => {
     return [];
   };
 
-   const getPriceBreakdown = () => {
-        const breakdown = {};
-        charms.forEach(charm => {
-            if (charm) {
-                const key = `${charm.name}-${charm.price}`;
-                if (breakdown[key]) {
-                    breakdown[key].count++;
-                } else {
-                    breakdown[key] = {
-                        charm: charm,
-                        count: 1,
-                        totalPrice: charm.price
-                    };
-                }
-            }
-        });
-        
-        // Update total prices
-        Object.keys(breakdown).forEach(key => {
-            breakdown[key].totalPrice = breakdown[key].count * breakdown[key].charm.price;
-        });
-        
-        return Object.values(breakdown);
+  const getPriceBreakdown = () => {
+    const breakdown = {};
+    charms.forEach(charm => {
+      if (charm) {
+        const key = `${charm.name}-${charm.price}`;
+        if (breakdown[key]) {
+          breakdown[key].count++;
+        } else {
+          breakdown[key] = {
+            charm: charm,
+            count: 1,
+            totalPrice: charm.price
+          };
+        }
+      }
+    });
+    
+    Object.keys(breakdown).forEach(key => {
+      breakdown[key].totalPrice = breakdown[key].count * breakdown[key].charm.price;
+    });
+    
+    return Object.values(breakdown);
+  };
+
+  // Handle finalize button click
+  const handleFinalize = () => {
+    setShowModal(true);
+  };
+
+  // Handle checkout/save
+  const handleCheckout = () => {
+    const braceletData = {
+      size: size,
+      charms: charms,
+      totalPrice: totalPrice,
+      charmCounts: processCharmsForCheckout()
     };
 
-    // Handle finalize button click
-    const handleFinalize = () => {
-        setShowModal(true);
-    };
+    if (isEditing) {
+      // Update existing bracelet
+      editBracelet(editData.id, braceletData);
+      setShowModal(false);
+      navigate('/cart', { 
+        state: { 
+          message: 'Bracelet updated successfully!' 
+        }
+      });
+    } else {
+      // Add new bracelet
+      addBraceletToCart(braceletData);
+      setShowModal(false);
+      navigate('/cart');
+    }
+  };
 
-    // Handle checkout
-// Handle checkout
-const handleCheckout = () => {
-    // Process charms to get counts for pricing/inventory
+  const processCharmsForCheckout = () => {
     const charmCounts = {};
     
     charms.forEach(charm => {
-        if (charm && charm.id) {
-            const key = charm.id;
-            if (charmCounts[key]) {
-                charmCounts[key].count++;
-            } else {
-                charmCounts[key] = {
-                    id: charm.id,
-                    name: charm.name,
-                    price: charm.price,
-                    image: charm.image,
-                    count: 1
-                };
-            }
+      if (charm && charm.id) {
+        const key = charm.id;
+        if (charmCounts[key]) {
+          charmCounts[key].count++;
+        } else {
+          charmCounts[key] = {
+            id: charm.id,
+            name: charm.name,
+            price: charm.price,
+            image: charm.image,
+            count: 1
+          };
         }
+      }
     });
 
-    // Navigate with cleaner data structure
-    navigate('/checkout', {
-        state: {
-            // For pricing and inventory management
-            charms: Object.values(charmCounts),
-            // For bracelet preview (IMPORTANT: This preserves the exact arrangement)
-            braceletPreview: charms.map((charm, index) => ({
-                position: index,
-                id: charm.id,
-                name: charm.name,
-                image: charm.image,
-                price: charm.price
-            })),
-            totalPrice: totalPrice,
-            size: size
-        }
-    });
-};
+    return Object.values(charmCounts);
+  };
 
   // Get charms to display based on current selection
   const getCharmsToDisplay = () => {
@@ -285,17 +299,14 @@ const handleCheckout = () => {
     const category = availableCharms[selectedCategory.key];
     if (!category) return [];
     
-    // For Gold/Silver with subtype selection
     if ((selectedCategory.key === 'gold' || selectedCategory.key === 'silver') && selectedSubtype) {
       return category.charms.filter(charm => (charm.type || 'Plain').toLowerCase() === selectedSubtype);
     }
     
-    // For Gold/Silver without subtype selection, don't show charms yet
     if (selectedCategory.key === 'gold' || selectedCategory.key === 'silver') {
       return [];
     }
     
-    // For other categories, return all charms or subcategories
     if (category.subcategories) {
       return category.subcategories;
     }
@@ -332,27 +343,6 @@ const handleCheckout = () => {
     setTotalPrice(charmsPrice);
   };
 
-  // Get unique charms for price breakdown
-  const getUniqueCharmsForPricing = () => {
-    const charmCounts = {};
-    
-    charms.forEach(charm => {
-      if (charm) {
-        const key = `${charm.id}-${charm.name}`;
-        if (charmCounts[key]) {
-          charmCounts[key].count++;
-        } else {
-          charmCounts[key] = {
-            ...charm,
-            count: 1
-          };
-        }
-      }
-    });
-    
-    return Object.values(charmCounts);
-  };
-
   // Reset selection flow
   const resetSelection = () => {
     setSelectedCategory(null);
@@ -368,63 +358,96 @@ const handleCheckout = () => {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
-    {/* Sticky Bracelet Display */}
-    <motion.div 
+      {/* Edit Mode Indicator */}
+      {isEditing && (
+        <motion.div 
+          className="edit-mode-banner"
+          initial={{ y: -50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="edit-banner-content">
+            <span className="edit-icon">✏️</span>
+            <span>Editing Bracelet</span>
+            <button 
+              className="cancel-edit-button"
+              onClick={() => navigate('/cart')}
+            >
+              Cancel
+            </button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Sticky Bracelet Display */}
+      <motion.div 
         className="bracelet-display"
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.1, duration: 0.6 }}
-    >
-    <div className="bracelet-controls">
-        <div className="control-group">
+      >
+        <div className="bracelet-controls">
+          <div className="control-group">
             <h3>Size</h3>
             <select value={size} onChange={(e) => handleSizeChange(e.target.value)}>
-                {sizeOptions.map((sizeOption) => (
-                    <option key={sizeOption.value} value={sizeOption.value}>
-                        {sizeOption.label.replace(/\(.*\)/, '')}
-                    </option>
-                ))}
+              {sizeOptions.map((sizeOption) => (
+                <option key={sizeOption.value} value={sizeOption.value}>
+                  {sizeOption.label.replace(/\(.*\)/, '')}
+                </option>
+              ))}
             </select>
-        </div>
-        <div className="control-group">
+          </div>
+          <div className="control-group">
             <h3>Starting Charm</h3>
             <select 
-                value={defaultSilverCharm?.id || ''} 
-                onChange={(e) => handlePlainCharmChange(e.target.value)}
+              value={defaultSilverCharm?.id || ''} 
+              onChange={(e) => handlePlainCharmChange(e.target.value)}
             >
-                {plainCharms.map((charm) => (
-                    <option key={charm.id} value={charm.id}>
-                        {charm.name}
-                    </option>
-                ))}
+              {plainCharms.map((charm) => (
+                <option key={charm.id} value={charm.id}>
+                  {charm.name}
+                </option>
+              ))}
             </select>
+          </div>
         </div>
-    </div>
+        
         <div className="bracelet-preview-section">
           <div className="bracelet-visual">
-                  {charms.map((charm, index) => (
-                          <div 
-                              key={index} 
-                              className={`bracelet-charm ${selectedCharm ? 'selectable' : ''} ${dragOverPosition === index ? 'drag-over' : ''}`}
-                              onClick={() => selectedCharm && applyCharmToPosition(index)}
-                              onDragOver={(e) => handleDragOver(e, index)}
-                              onDragLeave={handleDragLeave}
-                              onDrop={(e) => handleDrop(e, index)}
-                              title={selectedCharm ? 'Click to place charm here or drag a charm here' : charm.name}
-                              style={{
-                                  zIndex: selectedCharm ? 10 : 1
-                              }}
-                          >
-                          <img 
-                              src={charm.image || defaultSilverCharmImage} 
-                              alt={charm.name} 
-                              className={charm.id === 146 || charm.id === 'fallback-silver' ? 'default-charm' : 'custom-charm'}
-                          />
-                      </div>
-                ))}
-            </div>
+            {charms.map((charm, index) => (
+              <div 
+                key={index} 
+                className={`bracelet-charm ${selectedCharm ? 'selectable' : ''} ${dragOverPosition === index ? 'drag-over' : ''}`}
+                onClick={() => selectedCharm && applyCharmToPosition(index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, index)}
+                title={selectedCharm ? 'Click to place charm here or drag a charm here' : charm.name}
+                style={{
+                  zIndex: selectedCharm ? 10 : 1
+                }}
+              >
+                <img 
+                  src={charm.image || defaultSilverCharmImage} 
+                  alt={charm.name} 
+                  className={charm.id === 146 || charm.id === 'fallback-silver' ? 'default-charm' : 'custom-charm'}
+                />
+              </div>
+            ))}
+          </div>
         </div>
-    </motion.div>
+      </motion.div>
+
+      {getBraceletCount() > 0 && (
+        <div className="cart-indicator">
+          <button 
+            className="cart-button"
+            onClick={() => navigate('/cart')}
+          >
+            Cart ({getBraceletCount()})
+          </button>
+        </div>
+      )}
 
       {/* Charm Selection Section */}
       <motion.div 
@@ -435,7 +458,6 @@ const handleCheckout = () => {
       >
         <h2>Select Your Charms</h2>
         
-        {/* Step-by-step selection process */}
         {loading ? (
           <div className="loading">
             Loading charms...
@@ -550,7 +572,7 @@ const handleCheckout = () => {
                             <h4>{item.name}</h4>
                             <div className="subcategory-charms">
                               {item.charms.map((charm) => (
-                               <motion.div 
+                                <motion.div 
                                   key={charm.id} 
                                   className={`charm-option ${selectedCharm && selectedCharm.id === charm.id ? 'selected' : ''}`}
                                   onClick={() => selectCharm(charm)}
@@ -577,29 +599,28 @@ const handleCheckout = () => {
                         );
                       }
                       
-                      // Handle regular charms
                       return (
                         <motion.div 
-                            key={item.id} 
-                            className={`charm-option ${selectedCharm && selectedCharm.id === item.id ? 'selected' : ''}`}
-                            onClick={() => selectCharm(item)}
-                            draggable={true}
-                            onDragStart={(e) => handleDragStart(e, item)}
-                            onDragEnd={handleDragEnd}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            title={`${item.name} - ₱${item.price}`}
-                            style={{
-                              cursor: 'grab',
-                              opacity: draggedCharm && draggedCharm.id === item.id ? 0.5 : 1
-                            }}
-                          >
-                            <img 
-                              src={item.image} 
-                              alt={item.name} 
-                              onDragStart={(e) => e.preventDefault()}
-                            />
-                          </motion.div>
+                          key={item.id} 
+                          className={`charm-option ${selectedCharm && selectedCharm.id === item.id ? 'selected' : ''}`}
+                          onClick={() => selectCharm(item)}
+                          draggable={true}
+                          onDragStart={(e) => handleDragStart(e, item)}
+                          onDragEnd={handleDragEnd}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          title={`${item.name} - ₱${item.price}`}
+                          style={{
+                            cursor: 'grab',
+                            opacity: draggedCharm && draggedCharm.id === item.id ? 0.5 : 1
+                          }}
+                        >
+                          <img 
+                            src={item.image} 
+                            alt={item.name} 
+                            onDragStart={(e) => e.preventDefault()}
+                          />
+                        </motion.div>
                       );
                     })}
                   </div>
@@ -610,127 +631,132 @@ const handleCheckout = () => {
         )}
       </motion.div>
       
-            {/* Sticky Price Footer */}
-            <div className="price-footer">
-                <div className="price-info">
-                    <span className="price-label">Total Price:</span>
-                    <span className="price-amount">₱{totalPrice.toFixed(2)}</span>
-                </div>
-                <button className="finalize-button" onClick={handleFinalize}>
-                    Finalize your Bracelet
-                </button>
-            </div>
+      {/* Sticky Price Footer */}
+      <div className="price-footer">
+        <div className="price-info">
+          <span className="price-label">Total Price:</span>
+          <span className="price-amount">₱{totalPrice.toFixed(2)}</span>
+        </div>
+        <button className="finalize-button" onClick={handleFinalize}>
+          {isEditing ? 'Update Bracelet' : 'Finalize your Bracelet'}
+        </button>
+      </div>
 
-            {/* Modal */}
-            {showModal && (
-                <div className="modal-overlay" onClick={() => setShowModal(false)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h2 className="modal-title">Bracelet Summary</h2>
-                            <button className="close-button" onClick={() => setShowModal(false)}>
-                                ×
-                            </button>
-                        </div>
-                        
-                        <div className="modal-price-content">
-                            <div className="modal-price-item">
-                                <div className="modal-price-item-left">
-                                    <span className="modal-price-charm-name">Bracelet Size</span>
-                                </div>
-                                <div className="modal-price-value">{size} cm</div>
-                            </div>
-                            
-                            {getPriceBreakdown().map((item, index) => (
-                                <div key={index} className="modal-price-item">
-                                    <div className="modal-price-item-left">
-                                        <img
-                                            src={item.charm.image}
-                                            alt={item.charm.name}
-                                            className="modal-price-charm-image"
-                                        />
-                                        <div>
-                                            <div className="modal-price-charm-name">
-                                                {item.charm.name}
-                                                <span className="modal-charm-count">× {item.count}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="modal-price-value">₱{item.totalPrice.toFixed(2)}</div>
-                                </div>
-                            ))}
-                            
-                            <div className="modal-price-total">
-                                <div className="modal-price-item">
-                                    <div className="modal-total-label">Total</div>
-                                    <div className="modal-total-value">₱{totalPrice.toFixed(2)}</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div className="modal-buttons">
-                            <button className="modal-cancel-button" onClick={() => setShowModal(false)}>
-                                Continue Editing
-                            </button>
-                            <button className="modal-checkout-button" onClick={handleCheckout}>
-                                <span className="modal-checkout-icon">🛒</span>
-                                Proceed to Checkout
-                            </button>
-                        </div>
-                    </div>
+      {/* Modal */}
+      {showModal && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">
+                {isEditing ? 'Update Bracelet' : 'Bracelet Summary'}
+              </h2>
+              <button className="close-button" onClick={() => setShowModal(false)}>
+                ×
+              </button>
+            </div>
+            
+            <div className="modal-price-content">
+              <div className="modal-price-item">
+                <div className="modal-price-item-left">
+                  <span className="modal-price-charm-name">Bracelet Size</span>
                 </div>
-            )}
-            {showInstructions && (
-              <div className="modal-overlay" onClick={() => setShowInstructions(false)}>
-                <div className="instructions-modal" onClick={(e) => e.stopPropagation()}>
-                  <div className="instructions-header">
-                    <h2 className="instructions-title"> Welcome to Soleil !</h2>
-                  </div>
-                  
-                  <div className="instructions-content">
-                    <div className="instruction-step">
-                      <div className="step-number">1</div>
-                      <div className="step-text">
-                        <h3>Choose Your Category</h3>
-                        <p>Select from different charm categories like Letters, Gold, Silver, and more!</p>
-                      </div>
-                    </div>
-                    
-                    <div className="instruction-step">
-                      <div className="step-number">2</div>
-                      <div className="step-text">
-                        <h3>Pick Your Charm</h3>
-                        <p>Click on any charm to select it, then click on a position in your bracelet to place it.</p>
-                      </div>
-                    </div>
-                    
-                    <div className="instruction-step">
-                      <div className="step-number">3</div>
-                      <div className="step-text">
-                        <h3>Drag & Drop</h3>
-                        <p>You can also drag charms directly from the selection area to your bracelet!</p>
-                      </div>
-                    </div>
-                    
-                    <div className="instruction-step">
-                      <div className="step-number">4</div>
-                      <div className="step-text">
-                        <h3>Customize & Checkout</h3>
-                        <p>Adjust your bracelet size, change starting charms, and finalize when ready!</p>
+                <div className="modal-price-value">{size} cm</div>
+              </div>
+              
+              {getPriceBreakdown().map((item, index) => (
+                <div key={index} className="modal-price-item">
+                  <div className="modal-price-item-left">
+                    <img
+                      src={item.charm.image}
+                      alt={item.charm.name}
+                      className="modal-price-charm-image"
+                    />
+                    <div>
+                      <div className="modal-price-charm-name">
+                        {item.charm.name}
+                        <span className="modal-charm-count">× {item.count}</span>
                       </div>
                     </div>
                   </div>
-                  
-                  <div className="instructions-footer">
-                    <button className="charmed-button" onClick={() => setShowInstructions(false)}>
-                      I'm Charmed!
-                    </button>
-                  </div>
+                  <div className="modal-price-value">₱{item.totalPrice.toFixed(2)}</div>
+                </div>
+              ))}
+              
+              <div className="modal-price-total">
+                <div className="modal-price-item">
+                  <div className="modal-total-label">Total</div>
+                  <div className="modal-total-value">₱{totalPrice.toFixed(2)}</div>
                 </div>
               </div>
-            )}
-      </motion.div>
-    );
+            </div>
+            
+            <div className="modal-buttons">
+              <button className="modal-cancel-button" onClick={() => setShowModal(false)}>
+                Continue Editing
+              </button>
+              <button className="modal-checkout-button" onClick={handleCheckout}>
+                <span className="modal-checkout-icon">
+                  {isEditing ? '💾' : '🛒'}
+                </span>
+                {isEditing ? 'Save Changes' : 'Add to Cart'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Instructions Modal - only show for new bracelets */}
+      {showInstructions && !isEditing && (
+        <div className="modal-overlay" onClick={() => setShowInstructions(false)}>
+          <div className="instructions-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="instructions-header">
+              <h2 className="instructions-title">Welcome to Soleil!</h2>
+            </div>
+            
+            <div className="instructions-content">
+              <div className="instruction-step">
+                <div className="step-number">1</div>
+                <div className="step-text">
+                  <h3>Choose Your Category</h3>
+                  <p>Select from different charm categories like Letters, Gold, Silver, and more!</p>
+                </div>
+              </div>
+              
+              <div className="instruction-step">
+                <div className="step-number">2</div>
+                <div className="step-text">
+                  <h3>Pick Your Charm</h3>
+                  <p>Click on any charm to select it, then click on a position in your bracelet to place it.</p>
+                </div>
+              </div>
+              
+              <div className="instruction-step">
+                <div className="step-number">3</div>
+                <div className="step-text">
+                  <h3>Drag & Drop</h3>
+                  <p>You can also drag charms directly from the selection area to your bracelet!</p>
+                </div>
+              </div>
+              
+              <div className="instruction-step">
+                <div className="step-number">4</div>
+                <div className="step-text">
+                  <h3>Customize & Checkout</h3>
+                  <p>Adjust your bracelet size, change starting charms, and finalize when ready!</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="instructions-footer">
+              <button className="charmed-button" onClick={() => setShowInstructions(false)}>
+                I'm Charmed!
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </motion.div>
+  );
 };
 
 export default CustomizeBracelet;
-

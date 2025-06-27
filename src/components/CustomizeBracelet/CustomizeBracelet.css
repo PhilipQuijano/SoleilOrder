@@ -730,6 +730,36 @@
 .modal-checkout-button:active {
     transform: translateY(0);
 }
+.edit-mode-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  padding: 12px 20px;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.edit-banner-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-weight: 600;
+}
+
+.edit-icon {
+  font-size: 18px;
+}
+
+.cancel-edit-button {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  padding: 6px 12px;
+}
 
 /* Mobile Responsiveness */
 @media (max-width: 768px) {

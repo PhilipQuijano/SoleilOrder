@@ -31,27 +31,39 @@ const CheckoutPage = () => {
   ];
 
   const [orderData] = useState(() => {
-    if (passedData) return passedData;
+    if (passedData?.bracelets) {
+      // New multiple bracelet structure from cart
+      return {
+        bracelets: passedData.bracelets,
+        totalPrice: passedData.totalPrice
+      };
+    } else if (passedData?.charms) {
+      // Legacy single bracelet structure
+      return {
+        bracelets: [{
+          id: 'single-bracelet',
+          charms: passedData.braceletPreview || [],
+          totalPrice: passedData.totalPrice,
+          size: passedData.size
+        }],
+        totalPrice: passedData.totalPrice
+      };
+    }
 
-    // fallback demo data
+    // Fallback demo data
     return {
-      charms: [
-        {
+      bracelets: [{
+        id: 'demo-bracelet',
+        charms: Array(17).fill({
           id: 'silver-plain',
           name: 'Silver Plain',
           price: 30,
-          count: 17,
           image: '/api/placeholder/60/60'
-        }
-      ],
-      totalPrice: 510,
-      size: 17,
-      braceletPreview: Array(17).fill({
-        id: 'silver-plain',
-        name: 'Silver Plain',
-        price: 30,
-        image: '/api/placeholder/60/60'
-      })
+        }),
+        totalPrice: 510,
+        size: 17
+      }],
+      totalPrice: 510
     };
   });
 
@@ -140,6 +152,30 @@ const CheckoutPage = () => {
     return addressParts.join(', ');
   };
 
+  // Helper function to get charm quantities across all bracelets
+  const getCharmQuantities = () => {
+    const charmQuantities = {};
+    
+    orderData.bracelets.forEach(bracelet => {
+      bracelet.charms.forEach(charm => {
+        if (charm && charm.id) {
+          if (charmQuantities[charm.id]) {
+            charmQuantities[charm.id].totalCount++;
+          } else {
+            charmQuantities[charm.id] = {
+              id: charm.id,
+              name: charm.name,
+              totalCount: 1,
+              price: charm.price
+            };
+          }
+        }
+      });
+    });
+    
+    return charmQuantities;
+  };
+
   const handleSubmitOrder = async () => {
     if (!validateForm()) return;
     
@@ -153,42 +189,8 @@ const CheckoutPage = () => {
     });
 
     try {
-      // Step 1: Prepare charm quantities
-      let charmQuantities = {};
-      
-      if (orderData.charms && orderData.charms.length > 0) {
-        console.log('Using orderData.charms structure');
-        
-        orderData.charms.forEach(item => {
-          if (charmQuantities[item.id]) {
-            charmQuantities[item.id].totalCount += item.count;
-            charmQuantities[item.id].price = item.price;
-          } else {
-            charmQuantities[item.id] = {
-              id: item.id,
-              name: item.name,
-              totalCount: item.count,
-              price: item.price
-            };
-          }
-        });
-      } else if (orderData.braceletPreview && orderData.braceletPreview.length > 0) {
-        console.log('Using braceletPreview structure');
-        
-        orderData.braceletPreview.forEach(charm => {
-          if (charmQuantities[charm.id]) {
-            charmQuantities[charm.id].totalCount++;
-          } else {
-            charmQuantities[charm.id] = {
-              id: charm.id,
-              name: charm.name,
-              totalCount: 1,
-              price: charm.price
-            };
-          }
-        });
-      }
-
+      // Step 1: Get charm quantities across all bracelets
+      const charmQuantities = getCharmQuantities();
       console.log('Grouped charm quantities:', charmQuantities);
 
       // Step 2: Check and update stock for each unique charm type
@@ -235,77 +237,98 @@ const CheckoutPage = () => {
         console.log(`✅ Successfully updated ${charmData.name} stock from ${currentData.stock} to ${updatedStock}`);
       }
 
-      // Step 3: Create the order record
-      console.log('Creating order record...');
+      // Step 3: Create order records for each bracelet
+      const orderRecords = [];
       
-      const orderRecord = {
-        customer_name: customerInfo.name.trim(),
-        customer_phone: customerInfo.phone.trim(),
-        customer_email: customerInfo.email.trim() || null,
-        customer_address: fullAddress,
-        payment_method: customerInfo.paymentMethod,
-        status: 'awaiting_payment',
-        total_amount: orderData.totalPrice,
-        bracelet_size: orderData.size || null,
-        bracelet_arrangement: JSON.stringify(orderData.braceletPreview), 
-        created_at: new Date().toISOString()
-      };
-      
-      console.log('Order record to insert:', orderRecord);
-
-      const { data: insertedOrder, error: orderError } = await supabase
-        .from('orders')
-        .insert([orderRecord])
-        .select()
-        .single();
-
-      if (orderError) {
-        console.error('Failed to create order:', orderError);
-        alert('Failed to create order. Please try again.');
-        return;
-      }
-
-      console.log('✅ Order created successfully:', insertedOrder);
-
-      // Step 4: Create order items
-      console.log('Creating order items...');
-      
-      const orderItems = [];
-      
-      for (const charmId in charmQuantities) {
-        const charmData = charmQuantities[charmId];
-        const numericCharmId = parseInt(charmId);
+      for (let i = 0; i < orderData.bracelets.length; i++) {
+        const bracelet = orderData.bracelets[i];
         
-        orderItems.push({
-          order_id: insertedOrder.id,
-          charm_id: numericCharmId,
-          quantity: charmData.totalCount,
-          price: charmData.price
+        const orderRecord = {
+          customer_name: customerInfo.name.trim(),
+          customer_phone: customerInfo.phone.trim(),
+          customer_email: customerInfo.email.trim() || null,
+          customer_address: fullAddress,
+          payment_method: customerInfo.paymentMethod,
+          status: 'awaiting_payment',
+          total_amount: bracelet.totalPrice,
+          bracelet_size: bracelet.size || null,
+          bracelet_arrangement: JSON.stringify(bracelet.charms),
+          created_at: new Date().toISOString()
+        };
+        
+        console.log(`Order record ${i + 1} to insert:`, orderRecord);
+
+        const { data: insertedOrder, error: orderError } = await supabase
+          .from('orders')
+          .insert([orderRecord])
+          .select()
+          .single();
+
+        if (orderError) {
+          console.error(`Failed to create order ${i + 1}:`, orderError);
+          alert(`Failed to create order ${i + 1}. Please try again.`);
+          return;
+        }
+
+        console.log(`✅ Order ${i + 1} created successfully:`, insertedOrder);
+        orderRecords.push(insertedOrder);
+
+        // Step 4: Create order items for this bracelet
+        const braceletCharmQuantities = {};
+        
+        bracelet.charms.forEach(charm => {
+          if (charm && charm.id) {
+            if (braceletCharmQuantities[charm.id]) {
+              braceletCharmQuantities[charm.id].totalCount++;
+            } else {
+              braceletCharmQuantities[charm.id] = {
+                id: charm.id,
+                name: charm.name,
+                totalCount: 1,
+                price: charm.price
+              };
+            }
+          }
         });
+
+        const orderItems = [];
+        
+        for (const charmId in braceletCharmQuantities) {
+          const charmData = braceletCharmQuantities[charmId];
+          const numericCharmId = parseInt(charmId);
+          
+          orderItems.push({
+            order_id: insertedOrder.id,
+            charm_id: numericCharmId,
+            quantity: charmData.totalCount,
+            price: charmData.price
+          });
+        }
+
+        console.log(`Order items for bracelet ${i + 1}:`, orderItems);
+
+        const { error: itemsError } = await supabase
+          .from('order_items')
+          .insert(orderItems);
+
+        if (itemsError) {
+          console.error(`Failed to create order items for bracelet ${i + 1}:`, itemsError);
+          alert(`Order ${i + 1} created but failed to save items. Please contact support.`);
+          return;
+        }
+
+        console.log(`✅ Order items for bracelet ${i + 1} created successfully`);
       }
-
-      console.log('Order items to insert:', orderItems);
-
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
-
-      if (itemsError) {
-        console.error('Failed to create order items:', itemsError);
-        alert('Order created but failed to save items. Please contact support.');
-        return;
-      }
-
-      console.log('✅ Order items created successfully');
 
       // Step 5: Success - show confirmation and redirect
-      alert(`Order #${insertedOrder.id.toString().padStart(4, '0')} placed successfully! You will be contacted shortly for payment instructions.`);
+      const orderIds = orderRecords.map(order => order.id.toString().padStart(4, '0')).join(', ');
+      alert(`Orders ${orderIds} placed successfully! You will be contacted shortly for payment instructions.`);
       
       // Redirect to home or order confirmation page
       navigate('/', { 
         state: { 
           orderSuccess: true, 
-          orderId: insertedOrder.id 
+          orderIds: orderRecords.map(order => order.id)
         } 
       });
       
@@ -334,43 +357,77 @@ const CheckoutPage = () => {
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.5 }}
           >
-            {/* Bracelet Preview */}
-            <div className="bracelet-final-preview">
-              <h2>Your Bracelet Design</h2>
-              <div className="final-bracelet-visual">
-                {orderData.braceletPreview.map((charm, index) => (
-                  <div key={index} className="final-bracelet-charm">
-                    <img src={charm.image} alt={charm.name} />
+            {/* Multiple Bracelets Preview */}
+            <div className="bracelets-preview">
+              <h2>Your Bracelet{orderData.bracelets.length > 1 ? 's' : ''} ({orderData.bracelets.length})</h2>
+              
+              {orderData.bracelets.map((bracelet, braceletIndex) => (
+                <div key={bracelet.id || braceletIndex} className="bracelet-final-preview">
+                  <h3>Bracelet #{braceletIndex + 1}</h3>
+                  <div className="final-bracelet-visual">
+                    {bracelet.charms.map((charm, charmIndex) => (
+                      <div key={charmIndex} className="final-bracelet-charm">
+                        <img src={charm?.image} alt={charm?.name} />
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              <p className="bracelet-size">Size: {orderData.size} cm</p>
+                  <div className="bracelet-info">
+                    <p className="bracelet-size">Size: {bracelet.size} cm</p>
+                    <p className="bracelet-price">₱{bracelet.totalPrice.toLocaleString()}</p>
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Order Details */}
             <div className="order-details">
               <h2>Order Summary</h2>
               <div className="order-items">
-                {orderData.charms.map((charm, index) => (
-                  <motion.div 
-                    key={index}
-                    className="order-item"
-                    initial={{ x: -10, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: 0.1 * index, duration: 0.3 }}
-                  >
-                    <div className="item-info">
-                      <img src={charm.image} alt={charm.name} className="item-image" />
-                      <div className="item-details">
-                        <span className="item-name">{charm.name}</span>
-                        {charm.count > 1 && (
-                          <span className="item-quantity">x{charm.count}</span>
-                        )}
+                {orderData.bracelets.map((bracelet, braceletIndex) => {
+                  // Get charm breakdown for this bracelet
+                  const charmBreakdown = {};
+                  bracelet.charms.forEach(charm => {
+                    if (charm && charm.id) {
+                      if (charmBreakdown[charm.id]) {
+                        charmBreakdown[charm.id].count++;
+                      } else {
+                        charmBreakdown[charm.id] = {
+                          ...charm,
+                          count: 1
+                        };
+                      }
+                    }
+                  });
+
+                  return (
+                    <div key={bracelet.id || braceletIndex} className="bracelet-order-section">
+                      <h4>Bracelet #{braceletIndex + 1} - {bracelet.size}cm</h4>
+                      {Object.values(charmBreakdown).map((charm, index) => (
+                        <motion.div 
+                          key={`${bracelet.id}-${charm.id}-${index}`}
+                          className="order-item"
+                          initial={{ x: -10, opacity: 0 }}
+                          animate={{ x: 0, opacity: 1 }}
+                          transition={{ delay: 0.1 * index, duration: 0.3 }}
+                        >
+                          <div className="item-info">
+                            <img src={charm.image} alt={charm.name} className="item-image" />
+                            <div className="item-details">
+                              <span className="item-name">{charm.name}</span>
+                              {charm.count > 1 && (
+                                <span className="item-quantity">x{charm.count}</span>
+                              )}
+                            </div>
+                          </div>
+                          <span className="item-price">₱{(charm.price * charm.count).toLocaleString()}</span>
+                        </motion.div>
+                      ))}
+                      <div className="bracelet-subtotal">
+                        <span>Subtotal: ₱{bracelet.totalPrice.toLocaleString()}</span>
                       </div>
                     </div>
-                    <span className="item-price">₱{(charm.price * charm.count).toLocaleString()}</span>
-                  </motion.div>
-                ))}
+                  );
+                })}
                 
                 <div className="order-total">
                   <div className="total-divider"></div>
@@ -588,7 +645,7 @@ const CheckoutPage = () => {
                 type="button"
               >
                 <span className="button-text">
-                  {isSubmitting ? 'Processing Order...' : 'Finalize Order'}
+                  {isSubmitting ? 'Processing Order...' : `Finalize Order${orderData.bracelets.length > 1 ? 's' : ''}`}
                 </span>
                 <span className="button-price">₱{orderData.totalPrice.toLocaleString()}</span>
               </button>
