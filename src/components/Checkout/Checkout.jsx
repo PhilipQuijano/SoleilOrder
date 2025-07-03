@@ -133,6 +133,13 @@ const CheckoutPage = () => {
     if (!customerInfo.region.trim()) {
       newErrors.region = 'Region is required';
     }
+
+    if (!customerInfo.zipCode.trim()) {
+      newErrors.zipCode = 'ZIP code is required';
+    } else if (!/^\d{4}$/.test(customerInfo.zipCode.trim())) {
+      newErrors.zipCode = 'Please enter a valid 4-digit ZIP code';
+    }
+
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -176,6 +183,70 @@ const CheckoutPage = () => {
     return charmQuantities;
   };
 
+  // Helper function to validate stock availability without updating
+  const validateStockAvailability = async () => {
+    const charmQuantities = getCharmQuantities();
+    const stockValidation = [];
+    
+    for (const charmId in charmQuantities) {
+      const charmData = charmQuantities[charmId];
+      const numericCharmId = parseInt(charmId);
+      
+      console.log(`Checking stock availability for ${charmData.name}, need ${charmData.totalCount}`);
+      
+      const { data: currentData, error: fetchError } = await supabase
+        .from('charms')
+        .select('*')
+        .eq('id', numericCharmId)
+        .single();
+
+      if (fetchError) {
+        console.error(`Failed to fetch stock for ${charmData.name}`, fetchError);
+        throw new Error(`Failed to find charm ${charmData.name} in database. Try again later.`);
+      }
+
+      console.log(`Current stock for ${charmData.name}: ${currentData.stock}, Needed: ${charmData.totalCount}`);
+
+      const updatedStock = currentData.stock - charmData.totalCount;
+
+      if (updatedStock < 0) {
+        throw new Error(`Not enough stock for ${charmData.name}. Available: ${currentData.stock}, Needed: ${charmData.totalCount}`);
+      }
+
+      stockValidation.push({
+        charmId: numericCharmId,
+        charmName: charmData.name,
+        currentStock: currentData.stock,
+        neededQuantity: charmData.totalCount,
+        newStock: updatedStock
+      });
+    }
+    
+    return stockValidation;
+  };
+
+  // Helper function to update stock after successful order creation
+  const updateCharmStock = async (stockValidation) => {
+    console.log('Updating charm stock after successful order creation...');
+    
+    for (const stockItem of stockValidation) {
+      const { error: updateError } = await supabase
+        .from('charms')
+        .update({ stock: stockItem.newStock })
+        .eq('id', stockItem.charmId);
+
+      if (updateError) {
+        console.error(`Failed to update stock for ${stockItem.charmName}`, updateError);
+        // This is a critical error - the order was created but stock wasn't updated
+        // In a production environment, you might want to implement a rollback mechanism
+        // or send an alert to administrators
+        throw new Error(`Order created but failed to update stock for ${stockItem.charmName}. Please contact support immediately.`);
+      }
+      
+      console.log(`✅ Successfully updated ${stockItem.charmName} stock from ${stockItem.currentStock} to ${stockItem.newStock}`);
+    }
+  };
+
   const handleSubmitOrder = async () => {
     if (!validateForm()) return;
     
@@ -189,70 +260,27 @@ const CheckoutPage = () => {
     });
 
     try {
-      // Step 1: Get charm quantities across all bracelets
-      const charmQuantities = getCharmQuantities();
-      console.log('Grouped charm quantities:', charmQuantities);
+      // Step 1: Validate stock availability without updating
+      console.log('Step 1: Validating stock availability...');
+      const stockValidation = await validateStockAvailability();
+      console.log('✅ Stock validation passed:', stockValidation);
 
-      // Step 2: Check and update stock for each unique charm type
-      for (const charmId in charmQuantities) {
-        const charmData = charmQuantities[charmId];
-        
-        console.log(`Checking stock for ${charmData.name}, need ${charmData.totalCount}`);
-        
-        const numericCharmId = parseInt(charmId);
-        console.log(`Using numeric ID: ${numericCharmId}`);
-        
-        const { data: currentData, error: fetchError } = await supabase
-          .from('charms')
-          .select('*')
-          .eq('id', numericCharmId)
-          .single();
-
-        if (fetchError) {
-          console.error(`Failed to fetch stock for ${charmData.name}`, fetchError);
-          alert(`Failed to find charm ${charmData.name} in database. Try again later.`);
-          return;
-        }
-
-        console.log(`Current stock for ${charmData.name}: ${currentData.stock}, Needed: ${charmData.totalCount}`);
-
-        const updatedStock = currentData.stock - charmData.totalCount;
-
-        if (updatedStock < 0) {
-          alert(`Not enough stock for ${charmData.name}. Available: ${currentData.stock}, Needed: ${charmData.totalCount}`);
-          return;
-        }
-
-        const { error: updateError } = await supabase
-          .from('charms')
-          .update({ stock: updatedStock })
-          .eq('id', numericCharmId);
-
-        if (updateError) {
-          console.error(`Failed to update stock for ${charmData.name}`, updateError);
-          alert('Error updating stock. Try again later.');
-          return;
-        }
-        
-        console.log(`✅ Successfully updated ${charmData.name} stock from ${currentData.stock} to ${updatedStock}`);
-      }
-
-      // Step 3: Create order records for each bracelet
+      // Step 2: Create order records for each bracelet
+      console.log('Step 2: Creating order records...');
       const orderRecords = [];
-      
+
       for (let i = 0; i < orderData.bracelets.length; i++) {
         const bracelet = orderData.bracelets[i];
         
+        // Create the main order record
         const orderRecord = {
           customer_name: customerInfo.name.trim(),
           customer_phone: customerInfo.phone.trim(),
           customer_email: customerInfo.email.trim() || null,
           customer_address: fullAddress,
           payment_method: customerInfo.paymentMethod,
-          status: 'awaiting_payment',
+          status: 'pending_confirmation',
           total_amount: bracelet.totalPrice,
-          bracelet_size: bracelet.size || null,
-          bracelet_arrangement: JSON.stringify(bracelet.charms),
           created_at: new Date().toISOString()
         };
         
@@ -266,14 +294,34 @@ const CheckoutPage = () => {
 
         if (orderError) {
           console.error(`Failed to create order ${i + 1}:`, orderError);
-          alert(`Failed to create order ${i + 1}. Please try again.`);
-          return;
+          throw new Error(`Failed to create order ${i + 1}. Please try again.`);
         }
 
         console.log(`✅ Order ${i + 1} created successfully:`, insertedOrder);
         orderRecords.push(insertedOrder);
+        
+        // Create bracelet record linked to this order
+        const braceletRecord = {
+          order_id: insertedOrder.id,
+          size: bracelet.size || null,
+          total_price: bracelet.totalPrice,
+          bracelet_arrangement: bracelet.charms.map(charm => charm.id.toString())
+        };
 
-        // Step 4: Create order items for this bracelet
+        const { data: insertedBracelet, error: braceletError } = await supabase
+          .from('bracelets')
+          .insert([braceletRecord])
+          .select()
+          .single();
+
+        if (braceletError) {
+          console.error(`Failed to create bracelet ${i + 1}:`, braceletError);
+          throw new Error(`Order ${i + 1} created but failed to save bracelet. Please contact support.`);
+        }
+
+        console.log(`✅ Bracelet ${i + 1} created successfully:`, insertedBracelet);
+
+        // Step 3: Create order items for this bracelet
         const braceletCharmQuantities = {};
         
         bracelet.charms.forEach(charm => {
@@ -313,31 +361,141 @@ const CheckoutPage = () => {
 
         if (itemsError) {
           console.error(`Failed to create order items for bracelet ${i + 1}:`, itemsError);
-          alert(`Order ${i + 1} created but failed to save items. Please contact support.`);
-          return;
+          throw new Error(`Order ${i + 1} created but failed to save items. Please contact support.`);
         }
 
         console.log(`✅ Order items for bracelet ${i + 1} created successfully`);
       }
 
-      // Step 5: Success - show confirmation and redirect
-      const orderIds = orderRecords.map(order => order.id.toString().padStart(4, '0')).join(', ');
-      alert(`Orders ${orderIds} placed successfully! You will be contacted shortly for payment instructions.`);
+      // Step 3: Update stock ONLY after all orders are successfully created
+      console.log('Step 3: Updating charm stock after successful order creation...');
+      await updateCharmStock(stockValidation);
+      console.log('✅ All stock updates completed successfully');
+
+      // Step 4: Generate pre-filled message and redirect to Messenger
+      console.log('Step 4: Generating messenger message and redirecting...');
+      const orderIds = orderRecords.map(order => order.id.toString().padStart(4, '0')).join(', #');
+      const totalBracelets = orderData.bracelets.length;
       
-      // Redirect to home or order confirmation page
-      navigate('/', { 
-        state: { 
-          orderSuccess: true, 
-          orderIds: orderRecords.map(order => order.id)
-        } 
-      });
+      // Generate message content
+      const messageContent = generateMessengerMessage(orderRecords, customerInfo, fullAddress, orderIds, totalBracelets);
+      
+      // Redirect to Messenger with pre-filled message
+      redirectToMessenger(messageContent, orderRecords, orderIds);
       
     } catch (error) {
-      console.error('Unexpected error in handleSubmitOrder:', error);
-      alert('An unexpected error occurred. Please try again.');
+      console.error('Error in handleSubmitOrder:', error);
+      alert(error.message || 'An unexpected error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const generateMessengerMessage = (orderRecords, customerInfo, fullAddress, orderIds, totalBracelets) => {
+    const formatDate = (dateString) => {
+      return new Date(dateString).toLocaleDateString('en-PH', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    };
+
+    const getCharmSummary = () => {
+      const charmQuantities = getCharmQuantities();
+      return Object.values(charmQuantities)
+        .map(charm => `• ${charm.name} (x${charm.totalCount}) - ₱${(charm.price * charm.totalCount).toLocaleString()}`)
+        .join('\n');
+    };
+
+    const message = ` *ORDER CONFIRMATION REQUEST*
+
+*Order Details:*
+Order ID(s): #${orderIds}
+Date: ${formatDate(orderRecords[0].created_at)}
+Total Bracelets: ${totalBracelets}
+Total Amount: ₱${orderData.totalPrice.toLocaleString()}
+
+*Customer Information:*
+Name: ${customerInfo.name}
+Phone: ${customerInfo.phone}
+Email: ${customerInfo.email || 'Not provided'}
+
+*Delivery Address:*
+${fullAddress}
+
+*Charm Summary:*
+${getCharmSummary()}
+
+*Payment Method:* ${customerInfo.paymentMethod.toUpperCase()}
+
+---
+Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the payment details so I can proceed with the payment. Thank you! < 3`;
+
+    return message;
+  };
+
+  const redirectToMessenger = (message, orderRecords, orderIds) => {
+    // Replace with your actual Facebook Page ID or Messenger link
+    const FACEBOOK_PAGE_ID = 'YOUR_FACEBOOK_PAGE_ID'; // You need to replace this
+    
+    // Option 1: Direct Messenger link (if you have Facebook Page ID)
+    const messengerUrl = `https://m.me/61567161596724?text=${encodeURIComponent(message)}`;
+  
+    
+    // Option 3: Facebook Messenger link with pre-filled text (if you have page username)
+    // const messengerUrl = `https://m.me/YOUR_PAGE_USERNAME?text=${encodeURIComponent(message)}`;
+
+    const showSuccessPrompt = () => {
+      const promptDiv = document.createElement('div');
+      promptDiv.innerHTML = `
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 10000;">
+          <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+            <div style="color: #28a745; font-size: 2rem; margin-bottom: 15px;">✓</div>
+            <h3 style="color: #333; margin-bottom: 15px;">Order #${orderIds} created successfully!</h3>
+            <p style="color: #666; margin-bottom: 10px;">Your order details have been copied to your clipboard.</p>
+            <p style="color: #666; margin-bottom: 20px;">You will now be redirected to Messenger to send your order confirmation to SOLEIL.</p>
+            <p style="color: #582e4e; font-weight: 600;">Simply paste the message and send it to complete your order!</p>
+            <button onclick="this.parentElement.parentElement.remove()" style="background: #582e4e; color: white; border: none; padding: 12px 24px; border-radius: 8px; margin-top: 15px; cursor: pointer;">Continue</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(promptDiv);
+    };
+
+    navigator.clipboard.writeText(message).then(() => {
+      showSuccessPrompt();
+    }).catch(() => {
+      const promptDiv = document.createElement('div');
+      promptDiv.innerHTML = `
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 10000;">
+          <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+            <div style="color: #28a745; font-size: 2rem; margin-bottom: 15px;">✓</div>
+            <h3 style="color: #333; margin-bottom: 15px;">Order #${orderIds} created successfully!</h3>
+            <p style="color: #666; margin-bottom: 10px;">You will now be redirected to Messenger to send your order confirmation to SOLEIL.</p>
+            <p style="color: #666; margin-bottom: 20px;">Please copy and send the following message:</p>
+            <textarea readonly style="width: 100%; height: 150px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 12px; margin-bottom: 15px; resize: none;">${message}</textarea>
+            <button onclick="this.parentElement.parentElement.remove()" style="background: #582e4e; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer;">Continue</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(promptDiv);
+    });
+
+    // Open Messenger in a new window/tab
+    window.open(messengerUrl, '_blank');
+    
+    // Redirect current page to home after a short delay
+    setTimeout(() => {
+      navigate('/', { 
+        state: { 
+          orderSuccess: true, 
+          orderIds: orderRecords.map(order => order.id),
+          redirectedToMessenger: true
+        } 
+      });
+    }, 2000);
   };
 
   return (
@@ -587,18 +745,20 @@ const CheckoutPage = () => {
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="zipCode">ZIP Code (Optional)</label>
-                  <input
-                    type="text"
-                    id="zipCode"
-                    value={customerInfo.zipCode}
-                    onChange={(e) => handleInputChange('zipCode', e.target.value)}
-                    placeholder="e.g., 1100"
-                    maxLength="4"
-                    disabled={isSubmitting}
-                  />
-                </div>
+              <div className="form-group">
+                <label htmlFor="zipCode">ZIP Code *</label>
+                <input
+                  type="text"
+                  id="zipCode"
+                  value={customerInfo.zipCode}
+                  onChange={(e) => handleInputChange('zipCode', e.target.value)}
+                  className={errors.zipCode ? 'error' : ''}
+                  placeholder="e.g., 1100"
+                  maxLength="4"
+                  disabled={isSubmitting}
+                />
+                {errors.zipCode && <span className="error-message">{errors.zipCode}</span>}
+              </div>
               </div>
 
               {/* Payment Method Section */}
@@ -645,7 +805,7 @@ const CheckoutPage = () => {
                 type="button"
               >
                 <span className="button-text">
-                  {isSubmitting ? 'Processing Order...' : `Finalize Order${orderData.bracelets.length > 1 ? 's' : ''}`}
+                  {isSubmitting ? 'Processing Order...' : `Place Order & Contact SOLEIL`}
                 </span>
                 <span className="button-price">₱{orderData.totalPrice.toLocaleString()}</span>
               </button>
