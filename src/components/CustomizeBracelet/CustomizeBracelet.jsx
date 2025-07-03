@@ -31,6 +31,7 @@ const CustomizeBracelet = () => {
   const [showModal, setShowModal] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
   const { addBraceletToCart, getBraceletCount, editBracelet } = useCart();
+  const [showTermsModal, setShowTermsModal] = useState(false);  
 
   // Size options with charm counts
   const sizeOptions = [
@@ -111,21 +112,66 @@ const CustomizeBracelet = () => {
           return;
         }
 
-        // Get all plain charms for selection
-        const plainCharms = charmsFromDB.filter(charm => 
-          charm.category === 'Plain Charms'
-        );
+        const plainCharms = charmsFromDB
+          .filter(charm => 
+            charm.category === 'Plain Charms' && (charm.stock > 0 || charm.stock === undefined)
+          )
+          .sort((a, b) => {
+            // Define the order we want
+            const order = ['Silver', 'Gold', 'Rose Gold', 'Bronze (Matte)', 'Black (Matte)', 'Pink'];
+            const aIndex = order.indexOf(a.name);
+            const bIndex = order.indexOf(b.name);
+            
+            // If both are in the order array, sort by that order
+            if (aIndex !== -1 && bIndex !== -1) {
+              return aIndex - bIndex;
+            }
+            
+            // If only one is in the order array, prioritize it
+            if (aIndex !== -1) return -1;
+            if (bIndex !== -1) return 1;
+            
+            // If neither is in the order array, sort alphabetically
+            return a.name.localeCompare(b.name);
+          });
 
-        // Set default to Silver Plain (ID 146) initially
-        const defaultCharm = plainCharms.find(charm => charm.id === 146) || plainCharms[0];
+        // Set default charm with stock consideration
+        const findDefaultCharm = (requiredStock) => {
+          // First try Silver (ID 155 based on your table)
+          const silverCharm = plainCharms.find(charm => 
+            charm.name === 'Silver' && (charm.stock >= requiredStock || charm.stock === undefined)
+          );
+          if (silverCharm) return silverCharm;
+
+          // If Silver doesn't have enough stock, try other plain charms in order of preference
+          const preferredOrder = ['Gold', 'Rose Gold', 'Bronze (Matte)', 'Black (Matte)', 'Pink'];
+          
+          for (const charmName of preferredOrder) {
+            const charm = plainCharms.find(c => 
+              c.name === charmName && (c.stock >= requiredStock || c.stock === undefined)
+            );
+            if (charm) return charm;
+          }
+
+          // Fallback: any available charm with enough stock
+          return plainCharms.find(charm => 
+            charm.stock >= requiredStock || charm.stock === undefined
+          ) || plainCharms[0];
+        };
+
+        // Get the current size's charm count
+        const currentSize = sizeOptions.find(s => s.value === size) || sizeOptions[0];
+        const requiredStock = currentSize.charms;
+
+        const defaultCharm = findDefaultCharm(requiredStock);
         setDefaultSilverCharm(defaultCharm);
 
         // Organize charms into categories
         const categoriesObj = {};
         
-        charmsFromDB
-          .filter(charm => charm)
-          .forEach((charm) => {
+          charmsFromDB
+            .filter(charm => charm && (charm.stock > 0 || charm.stock === undefined))
+            .forEach((charm) => {
             if (charm.category === 'letters' && charm.subcategory) {
               if (!categoriesObj.letters) {
                 categoriesObj.letters = { name: 'Letters', subcategories: [] };
@@ -316,7 +362,41 @@ const CustomizeBracelet = () => {
 
   // Handle size change
   const handleSizeChange = (newSize) => {
-    setSize(parseFloat(newSize));
+    const parsedSize = parseFloat(newSize);
+    setSize(parsedSize);
+    
+    // Check if current default charm has enough stock for new size
+    const newSizeOption = sizeOptions.find(s => s.value === parsedSize);
+    const requiredStock = newSizeOption ? newSizeOption.charms : 17;
+    
+    if (defaultSilverCharm && defaultSilverCharm.stock !== undefined && defaultSilverCharm.stock < requiredStock) {
+      // Find a new default charm with sufficient stock
+      const findDefaultCharm = (requiredStock) => {
+        // First try Silver
+        const silverCharm = plainCharms.find(charm => 
+          charm.name === 'Silver' && (charm.stock >= requiredStock || charm.stock === undefined)
+        );
+        if (silverCharm) return silverCharm;
+
+        // Try other charms in preference order
+        const preferredOrder = ['Gold', 'Rose Gold', 'Bronze (Matte)', 'Black (Matte)', 'Pink'];
+        
+        for (const charmName of preferredOrder) {
+          const charm = plainCharms.find(c => 
+            c.name === charmName && (c.stock >= requiredStock || c.stock === undefined)
+          );
+          if (charm) return charm;
+        }
+
+        // Fallback
+        return plainCharms.find(charm => 
+          charm.stock >= requiredStock || charm.stock === undefined
+        ) || plainCharms[0];
+      };
+
+      const newDefaultCharm = findDefaultCharm(requiredStock);
+      setDefaultSilverCharm(newDefaultCharm);
+    }
   };
 
   // Handle charm selection
@@ -637,9 +717,18 @@ const CustomizeBracelet = () => {
           <span className="price-label">Total Price:</span>
           <span className="price-amount">₱{totalPrice.toFixed(2)}</span>
         </div>
-        <button className="finalize-button" onClick={handleFinalize}>
-          {isEditing ? 'Update Bracelet' : 'Finalize your Bracelet'}
-        </button>
+        <div className="footer-actions">
+          <button 
+            className="terms-button" 
+            onClick={() => setShowTermsModal(true)}
+            title="View Terms and Conditions"
+          >
+            📋 Terms
+          </button>
+          <button className="finalize-button" onClick={handleFinalize}>
+            {isEditing ? 'Update Bracelet' : 'Finalize your Bracelet'}
+          </button>
+        </div>
       </div>
 
       {/* Modal */}
@@ -755,6 +844,78 @@ const CustomizeBracelet = () => {
           </div>
         </div>
       )}
+      {/* Terms and Conditions Modal */}
+        {showTermsModal && (
+          <div className="modal-overlay" onClick={() => setShowTermsModal(false)}>
+            <div className="terms-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="terms-header">
+                <h2 className="terms-title">Terms and Conditions</h2>
+                <button className="close-button" onClick={() => setShowTermsModal(false)}>
+                  ×
+                </button>
+              </div>
+              
+              <div className="terms-content">
+                <div className="terms-section">
+                  <h3>1. Product Information</h3>
+                  <p>All charm bracelets are handcrafted with care. Product images are for reference only and actual products may vary slightly in appearance.</p>
+                </div>
+                
+                <div className="terms-section">
+                  <h3>2. Customization Policy</h3>
+                  <p>Custom bracelets are made to order based on your selections. Once an order is placed, modifications may not be possible. Please review your bracelet carefully before finalizing.</p>
+                </div>
+                
+                <div className="terms-section">
+                  <h3>3. Pricing and Payment</h3>
+                  <p>All prices are displayed in Philippine Peso (₱) and are inclusive of applicable taxes. Payment is required in full before processing your order.</p>
+                </div>
+                
+                <div className="terms-section">
+                  <h3>4. Processing Time</h3>
+                  <p>Custom bracelets typically require 3-5 business days for processing before shipping. Rush orders may be available upon request for an additional fee.</p>
+                </div>
+                
+                <div className="terms-section">
+                  <h3>5. Shipping and Delivery</h3>
+                  <p>Shipping times vary by location. We are not responsible for delays caused by courier services or customs procedures. Please provide accurate shipping information.</p>
+                </div>
+                
+                <div className="terms-section">
+                  <h3>6. Returns and Exchanges</h3>
+                  <p>Due to the custom nature of our products, returns and exchanges are only accepted for defective items within 7 days of delivery. Items must be unused and in original condition.</p>
+                </div>
+                
+                <div className="terms-section">
+                  <h3>7. Care Instructions</h3>
+                  <p>To maintain the quality of your bracelet, avoid exposure to water, perfumes, and harsh chemicals. Store in a dry place when not in use.</p>
+                </div>
+                
+                <div className="terms-section">
+                  <h3>8. Limitation of Liability</h3>
+                  <p>Soleil's liability is limited to the purchase price of the item. We are not responsible for any indirect, incidental, or consequential damages.</p>
+                </div>
+                
+                <div className="terms-section">
+                  <h3>9. Privacy Policy</h3>
+                  <p>We respect your privacy and will not share your personal information with third parties except as necessary to fulfill your order.</p>
+                </div>
+                
+                <div className="terms-section">
+                  <h3>10. Contact Information</h3>
+                  <p>For questions about these terms or your order, please contact us through our customer service channels.</p>
+                </div>
+              </div>
+              
+              <div className="terms-footer">
+                <p className="terms-last-updated">Last updated: July 2025</p>
+                <button className="terms-close-button" onClick={() => setShowTermsModal(false)}>
+                  I Understand
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
     </motion.div>
   );
 };
