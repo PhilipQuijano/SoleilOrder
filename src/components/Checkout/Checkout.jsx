@@ -79,7 +79,8 @@ const CheckoutPage = () => {
     province: '',
     region: '',
     zipCode: '',
-    paymentMethod: 'gcash'
+    paymentMethod: 'gcash',
+    deliveryMethod: 'jnt'
   });
 
   const [errors, setErrors] = useState({});
@@ -138,6 +139,9 @@ const CheckoutPage = () => {
       newErrors.zipCode = 'ZIP code is required';
     } else if (!/^\d{4}$/.test(customerInfo.zipCode.trim())) {
       newErrors.zipCode = 'Please enter a valid 4-digit ZIP code';
+    }
+    if (!customerInfo.deliveryMethod.trim()) {
+  newErrors.deliveryMethod = 'Delivery method is required';
     }
 
     
@@ -279,6 +283,7 @@ const CheckoutPage = () => {
           customer_email: customerInfo.email.trim() || null,
           customer_address: fullAddress,
           payment_method: customerInfo.paymentMethod,
+          delivery_method: customerInfo.deliveryMethod,
           status: 'pending_confirmation',
           total_amount: bracelet.totalPrice,
           created_at: new Date().toISOString()
@@ -409,6 +414,15 @@ const CheckoutPage = () => {
         .join('\n');
     };
 
+      const getDeliveryMethodName = (method) => {
+        switch(method) {
+          case 'jnt': return 'J&T Express (Cheapest Option)';
+          case 'lbc': return 'LBC (COD/COP Available)';
+          case 'lalamove': return 'Lalamove (Same Day Delivery)';
+          default: return method;
+        }
+      };
+
     const message = ` *ORDER CONFIRMATION REQUEST*
 
 *Order Details:*
@@ -424,6 +438,8 @@ Email: ${customerInfo.email || 'Not provided'}
 
 *Delivery Address:*
 ${fullAddress}
+
+*Delivery Method:* ${getDeliveryMethodName(customerInfo.deliveryMethod)}
 
 *Charm Summary:*
 ${getCharmSummary()}
@@ -795,6 +811,66 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
                     </div>
                   </label>
                 </div>
+              </div>
+
+              <div className="delivery-section">
+                <h3>🚚 Delivery Method</h3>
+                <div className="delivery-options">
+                  <label className="delivery-option">
+                    <input
+                      type="radio"
+                      name="deliveryMethod"
+                      value="jnt"
+                      checked={customerInfo.deliveryMethod === 'jnt'}
+                      onChange={(e) => handleInputChange('deliveryMethod', e.target.value)}
+                      disabled={isSubmitting}
+                    />
+                    <div className="delivery-label">
+                      <span className="delivery-icon">📦</span>
+                      <div className="delivery-details">
+                        <div className="delivery-name">J&T Express</div>
+                        <div className="delivery-desc">Cheapest Option</div>
+                      </div>
+                    </div>
+                  </label>
+                  
+                  <label className="delivery-option">
+                    <input
+                      type="radio"
+                      name="deliveryMethod"
+                      value="lbc"
+                      checked={customerInfo.deliveryMethod === 'lbc'}
+                      onChange={(e) => handleInputChange('deliveryMethod', e.target.value)}
+                      disabled={isSubmitting}
+                    />
+                    <div className="delivery-label">
+                      <span className="delivery-icon">💰</span>
+                      <div className="delivery-details">
+                        <div className="delivery-name">LBC</div>
+                        <div className="delivery-desc">COD/COP Available</div>
+                      </div>
+                    </div>
+                  </label>
+                  
+                  <label className="delivery-option">
+                    <input
+                      type="radio"
+                      name="deliveryMethod"
+                      value="lalamove"
+                      checked={customerInfo.deliveryMethod === 'lalamove'}
+                      onChange={(e) => handleInputChange('deliveryMethod', e.target.value)}
+                      disabled={isSubmitting}
+                    />
+                    <div className="delivery-label">
+                      <span className="delivery-icon">⚡</span>
+                      <div className="delivery-details">
+                        <div className="delivery-name">Lalamove</div>
+                        <div className="delivery-desc">Same Day Delivery</div>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+                {errors.deliveryMethod && <span className="error-message">{errors.deliveryMethod}</span>}
               </div>
 
               {/* Submit Button */}

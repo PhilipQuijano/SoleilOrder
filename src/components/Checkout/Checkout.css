@@ -376,6 +376,121 @@
     font-weight: 800;
 }
 
+.delivery-section {
+    background: #f0f8ff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #e8e8e8;
+}
+
+.delivery-section h3 {
+    color: #582e4e;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 15px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.delivery-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.delivery-option {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 15px;
+    border: 2px solid #e8e8e8;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    min-height: 60px;
+}
+
+.delivery-option:hover {
+    border-color: #582e4e;
+    background: #fdf9fd;
+}
+
+.delivery-option input[type="radio"] {
+    margin-right: 12px;
+    width: auto;
+    min-height: auto;
+}
+
+.delivery-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    width: 100%;
+}
+
+.delivery-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.delivery-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.delivery-name {
+    font-weight: 600;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+.delivery-desc {
+    font-size: 0.8rem;
+    color: #666;
+    font-weight: 400;
+}
+
+/* Mobile responsive for delivery options */
+@media (max-width: 768px) {
+    .delivery-section {
+        padding: 15px;
+    }
+    
+    .delivery-option {
+        padding: 12px;
+        min-height: 50px;
+    }
+    
+    .delivery-label {
+        gap: 10px;
+    }
+    
+    .delivery-icon {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .delivery-option {
+        padding: 10px;
+        min-height: 45px;
+    }
+    
+    .delivery-name {
+        font-size: 0.9rem;
+    }
+    
+    .delivery-desc {
+        font-size: 0.75rem;
+    }
+}
+
 /* Desktop - Large screens */
 @media (min-width: 1200px) {
     .checkout-content {
