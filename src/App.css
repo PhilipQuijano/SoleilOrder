@@ -31,6 +31,27 @@ body {
   text-align: center;
 }
 
+.hero + .about {
+  margin-top: -2px; /* Negative margin to overlap slightly */
+}
+
+.section-container {
+  display: block;
+  margin: 0;
+  padding: 0;
+  line-height: 0; /* Remove any line height gaps */
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+.upcoming-events-container {
+  margin-top: -1px; /* Negative margin to overlap and hide any line */
+}
+
 /* Responsive padding adjustments */
 @media (max-width: 768px) {
   .section {
