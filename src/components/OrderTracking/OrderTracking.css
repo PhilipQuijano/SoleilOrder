@@ -290,7 +290,7 @@
   overflow: hidden;
 }
 
-.charm-preview {
+.OrderTracking .charm-preview {
   width: 20px !important; /* Make charms smaller */
   height: 20px !important;
   min-width: 20px;
@@ -623,7 +623,7 @@
   color: #6b7280;
 }
 
-.total-amount {
+.OrderTracking .total-amount {
   font-size: 1.125rem;
   font-weight: 700;
   color: #059669;

@@ -8,9 +8,14 @@ const Cart = () => {
   const { cartBracelets, totalCartPrice, removeBraceletFromCart, clearCart } = useCart();
   const navigate = useNavigate();
 
-  const handleEditBracelet = (braceletId) => {
-    navigate('/customize', { state: { editBraceletId: braceletId } });
-  };
+const handleEditBracelet = (braceletId) => {
+  const braceletToEdit = cartBracelets.find(b => b.id === braceletId);
+  navigate('/customize', { 
+    state: { 
+      editBracelet: braceletToEdit
+    } 
+  });
+};
 
   const handleCheckout = () => {
     if (cartBracelets.length === 0) return;
@@ -145,13 +150,13 @@ const Cart = () => {
                       className="edit-button"
                       onClick={() => handleEditBracelet(bracelet.id)}
                     >
-                      ✏️ Edit Bracelet
+                      Edit Bracelet
                     </button>
                     <button 
                       className="remove-button"
                       onClick={() => removeBraceletFromCart(bracelet.id)}
                     >
-                      🗑️ Remove
+                      Remove
                     </button>
                   </div>
                 </motion.div>

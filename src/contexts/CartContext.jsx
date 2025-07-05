@@ -56,12 +56,12 @@ export const CartProvider = ({ children }) => {
   const getBraceletCount = () => cartBracelets.length;
 
   const editBracelet = (braceletId, updatedBracelet) => {
-  setBracelets(prevBracelets => 
-    prevBracelets.map(bracelet => 
-      bracelet.id === braceletId ? { ...updatedBracelet, id: braceletId } : bracelet
-    )
-  );
-};
+    setCartBracelets(prevBracelets => 
+      prevBracelets.map(bracelet => 
+        bracelet.id === braceletId ? { ...updatedBracelet, id: braceletId } : bracelet
+      )
+    );
+  };
 
 
   const value = {

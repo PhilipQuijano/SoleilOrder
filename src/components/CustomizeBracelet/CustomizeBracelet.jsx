@@ -299,7 +299,7 @@ const CustomizeBracelet = () => {
     };
 
     if (isEditing) {
-      // Update existing bracelet
+      // Update existing bracelet - pass the original bracelet ID
       editBracelet(editData.id, braceletData);
       setShowModal(false);
       navigate('/cart', { 
@@ -536,7 +536,6 @@ const CustomizeBracelet = () => {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3, duration: 0.6 }}
       >
-        <h2>Select Your Charms</h2>
         
         {loading ? (
           <div className="loading">
@@ -552,7 +551,7 @@ const CustomizeBracelet = () => {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.4 }}
               >
-                <h3 className="step-title">Step 1: Choose Category</h3>
+                <h3 className="step-title">CHOOSE A CATEGORY</h3>
                 <div className="category-cards-container">
                   <div className="category-cards">
                     {Object.entries(availableCharms).map(([key, category]) => (
