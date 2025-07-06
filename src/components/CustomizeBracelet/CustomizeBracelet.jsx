@@ -45,47 +45,156 @@ const CustomizeBracelet = () => {
     { value: 24, label: '24 Charms - 24 cm', charms: 24 },
   ];
 
-  // Handle drag start for selected charm
-  const handleDragStart = (e, charm) => {
-    setDraggedCharm(charm);
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/html', '');
-    setSelectedCharm(charm);
-  };
-
-  // Handle drag over bracelet positions
-  const handleDragOver = (e, position) => {
+  const handleDragOver = (e, index) => {
     e.preventDefault();
+    e.stopPropagation();
     e.dataTransfer.dropEffect = 'move';
-    setDragOverPosition(position);
+    
+    // Keep cursor as grabbing
+    document.body.style.cursor = 'grabbing';
+    
+    // Set drag over position if not already set
+    if (dragOverPosition !== index) {
+      setDragOverPosition(index);
+    }
   };
 
-  // Handle drag leave
+  const handleDragEnter = (e, index) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Set drag over position
+    setDragOverPosition(index);
+    
+    // Ensure cursor stays as grabbing
+    document.body.style.cursor = 'grabbing';
+  };
+
   const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (!e.currentTarget.contains(e.relatedTarget)) {
       setDragOverPosition(null);
     }
   };
 
-  // Handle drop on bracelet position
-  const handleDrop = (e, position) => {
+  const handleDrop = (e, index) => {
     e.preventDefault();
+    e.stopPropagation();
+    
+    // Clear drag over position
+    setDragOverPosition(null);
+    
+    // Apply the dragged charm to this position
     if (draggedCharm) {
-      const newCharms = [...charms];
-      newCharms[position] = draggedCharm;
-      setCharms(newCharms);
-      calculateTotalPrice(newCharms);
-      setSelectedCharm(null);
+      applyCharmToPosition(index);
+      setDraggedCharm(null);
     }
+    
+    // Reset cursor
+    document.body.style.cursor = 'default';
+  };
+
+  // Updated drag start handler for charm options
+  const handleDragStart = (e, charm) => {
+    setDraggedCharm(charm);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', '');
+    setSelectedCharm(charm);
+    
+    // Add dragging class to body for global cursor control
+    document.body.classList.add('dragging-active');
+    document.body.style.cursor = 'grabbing';
+    
+    // Add dragging class to the original element
+    e.currentTarget.classList.add('dragging');
+    
+    // Create clean drag image (same as before)
+    const dragContainer = document.createElement('div');
+    dragContainer.style.width = '80px';
+    dragContainer.style.height = '80px';
+    dragContainer.style.background = 'transparent';
+    dragContainer.style.border = 'none';
+    dragContainer.style.borderRadius = '0';
+    dragContainer.style.boxShadow = 'none';
+    dragContainer.style.position = 'absolute';
+    dragContainer.style.top = '-1000px';
+    dragContainer.style.left = '-1000px';
+    dragContainer.style.display = 'flex';
+    dragContainer.style.alignItems = 'center';
+    dragContainer.style.justifyContent = 'center';
+    dragContainer.style.zIndex = '9999';
+    dragContainer.style.pointerEvents = 'none';
+    
+    const img = e.currentTarget.querySelector('img');
+    if (img) {
+      const clonedImg = img.cloneNode(true);
+      clonedImg.style.width = '70px';
+      clonedImg.style.height = '70px';
+      clonedImg.style.objectFit = 'contain';
+      clonedImg.style.padding = '0';
+      clonedImg.style.margin = '0';
+      clonedImg.style.border = 'none';
+      clonedImg.style.borderRadius = '0';
+      clonedImg.style.background = 'transparent';
+      clonedImg.style.boxShadow = 'none';
+      clonedImg.style.pointerEvents = 'none';
+      clonedImg.style.userSelect = 'none';
+      clonedImg.style.webkitUserDrag = 'none';
+      dragContainer.appendChild(clonedImg);
+    }
+    
+    document.body.appendChild(dragContainer);
+    e.dataTransfer.setDragImage(dragContainer, 40, 40);
+    
+    setTimeout(() => {
+      if (document.body.contains(dragContainer)) {
+        document.body.removeChild(dragContainer);
+      }
+    }, 0);
+  };
+
+  // Updated drag end handler
+  const handleDragEnd = (e) => {
+    e.currentTarget.classList.remove('dragging');
+    document.body.classList.remove('dragging-active');
+    document.body.style.cursor = 'default';
+    
+    // Clean up drag state
     setDraggedCharm(null);
     setDragOverPosition(null);
   };
 
-  // Handle drag end
-  const handleDragEnd = () => {
-    setDraggedCharm(null);
-    setDragOverPosition(null);
+  useEffect(() => {
+  // Global drag over handler to prevent stop sign cursor
+  const handleGlobalDragOver = (e) => {
+    if (document.body.classList.contains('dragging-active')) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      document.body.style.cursor = 'grabbing';
+    }
   };
+
+  // Global drag enter handler
+  const handleGlobalDragEnter = (e) => {
+    if (document.body.classList.contains('dragging-active')) {
+      e.preventDefault();
+      document.body.style.cursor = 'grabbing';
+    }
+  };
+
+  // Attach global listeners
+  document.addEventListener('dragover', handleGlobalDragOver);
+  document.addEventListener('dragenter', handleGlobalDragEnter);
+
+  // Cleanup
+  return () => {
+    document.removeEventListener('dragover', handleGlobalDragOver);
+    document.removeEventListener('dragenter', handleGlobalDragEnter);
+  };
+}, []);
+
 
   useEffect(() => {
     if (isEditing && editData && editData.charms) {
@@ -227,37 +336,11 @@ const CustomizeBracelet = () => {
     setSelectedSubtype(null);
     setSelectedCharm(null);
   };
-
-  // Handle subtype selection for Gold/Silver categories
-  const handleSubtypeSelect = (subtype) => {
-    setSelectedSubtype(subtype);
-    setSelectedCharm(null);
-  };
-
   const handlePlainCharmChange = (charmId) => {
     const selectedPlainCharm = plainCharms.find(charm => charm.id === parseInt(charmId));
     if (selectedPlainCharm) {
       setDefaultSilverCharm(selectedPlainCharm);
     }
-  };
-
-  // Get available subtypes for Gold/Silver categories
-  const getAvailableSubtypes = () => {
-    if (!selectedCategory) return [];
-    
-    const category = availableCharms[selectedCategory.key];
-    if (!category || !category.charms) return [];
-    
-    if (selectedCategory.key === 'gold' || selectedCategory.key === 'silver') {
-      const subtypes = [...new Set(category.charms.map(charm => charm.type || 'Plain'))];
-      return subtypes.map(type => ({
-        key: type.toLowerCase(),
-        name: type,
-        charms: category.charms.filter(charm => (charm.type || 'Plain') === type)
-      }));
-    }
-    
-    return [];
   };
 
   const getPriceBreakdown = () => {
@@ -500,6 +583,7 @@ const CustomizeBracelet = () => {
                 className={`bracelet-charm ${selectedCharm ? 'selectable' : ''} ${dragOverPosition === index ? 'drag-over' : ''}`}
                 onClick={() => selectedCharm && applyCharmToPosition(index)}
                 onDragOver={(e) => handleDragOver(e, index)}
+                onDragEnter={(e) => handleDragEnter(e, index)}
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, index)}
                 title={selectedCharm ? 'Click to place charm here or drag a charm here' : charm.name}
@@ -511,6 +595,7 @@ const CustomizeBracelet = () => {
                   src={charm.image || defaultSilverCharmImage} 
                   alt={charm.name} 
                   className={charm.id === 146 || charm.id === 'fallback-silver' ? 'default-charm' : 'custom-charm'}
+                  draggable={false}
                 />
               </div>
             ))}
@@ -574,44 +659,7 @@ const CustomizeBracelet = () => {
                 </div>
               </motion.div>
             )}
-
-            {/* Step 2: Subtype Selection (for Gold/Silver) */}
-            {selectedCategory && (selectedCategory.key === 'gold' || selectedCategory.key === 'silver') && !selectedSubtype && (
-              <motion.div 
-                className="selection-step"
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.4 }}
-              >
-                <div className="step-header">
-                  <h3 className="step-title">Step 2: Choose {selectedCategory.name.replace(' Charms', '')} Type</h3>
-                  <button className="back-button" onClick={resetSelection}>
-                    ← Back to Categories
-                  </button>
-                </div>
-                <div className="category-cards-container">
-                  <div className="category-cards">
-                    {getAvailableSubtypes().map((subtype) => (
-                      <div 
-                        key={subtype.key}
-                        className="category-card"
-                        onClick={() => handleSubtypeSelect(subtype.key)}
-                      >
-                        <div className="category-image-container">
-                          <img 
-                            src={subtype.charms?.[0]?.image || defaultSilverCharmImage} 
-                            alt={subtype.name}
-                            className="category-preview-image"
-                          />
-                        </div>
-                        <span className="category-name">{subtype.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
+            
             {/* Step 3: Charm Selection */}
             {selectedCategory && (
               (selectedCategory.key !== 'gold' && selectedCategory.key !== 'silver') || 
@@ -671,6 +719,7 @@ const CustomizeBracelet = () => {
                                     alt={charm.name} 
                                     onDragStart={(e) => e.preventDefault()}
                                   />
+                                  <div className="price-tooltip">₱{charm.price}</div>
                                 </motion.div>
                               ))}
                             </div>
@@ -699,6 +748,7 @@ const CustomizeBracelet = () => {
                             alt={item.name} 
                             onDragStart={(e) => e.preventDefault()}
                           />
+                          <div className="price-tooltip">₱{item.price}</div> 
                         </motion.div>
                       );
                     })}

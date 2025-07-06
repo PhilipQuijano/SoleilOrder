@@ -2,39 +2,54 @@
 .customize-bracelet-page {
     width: 100%;
     max-width: 100%;
-    margin: 0;
-    margin-top: 20px;
-    padding: 0;
+    margin: 0; /* Remove any margin */
+    padding: 0; /* Remove initial padding */
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    padding-top: 54px; /* 80px * 0.67 */
-    padding: 0 13px 67px 13px; /* 20px * 0.67, 100px * 0.67 */
+    padding-top: 74px;
+    padding-left: 13px;
+    padding-right: 13px;
+    padding-bottom: 67px;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+    background-color: #f7f1fd;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; /* Prevent horizontal scroll on body */
+}
+
+html {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; /* Prevent horizontal scroll on html */
 }
 
 /* Sticky bracelet display */
 .bracelet-display {
     position: sticky;
-    top: 60px; /* 60px * 0.67 */
     z-index: 90;
-    background-color: white;
-    padding: 7px 13px; /* 10px * 0.67, 20px * 0.67 */
-    margin-bottom: 13px; /* 20px * 0.67 */
+    background-color: rgb(255, 251, 247);
+    padding: 13px;
+    margin-bottom: 20px;
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
     border-bottom: 1px solid #f0f0f0;
-    box-shadow: 0 1px 7px rgba(0,0,0,0.05); /* 2px * 0.67, 10px * 0.67 */
-    backdrop-filter: blur(7px); /* 10px * 0.67 */
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    backdrop-filter: blur(10px);
+    border-radius: 20px; /* Add this line */
 }
 
 .bracelet-controls {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 27px; /* 40px * 0.67 */
-    margin-bottom: 10px; /* 15px * 0.67 */
+    gap: 20px; /* Reduced gap for better spacing */
+    margin-bottom: 15px;
     width: 100%;
 }
 
@@ -42,14 +57,16 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px; /* 12px * 0.67 */
-    padding: 10px; /* 15px * 0.67 */
-    background: linear-gradient(145deg, #fdfcfd 0%, #f9f7f9 100%);
-    border-radius: 10px; /* 15px * 0.67 */
+    gap: 8px;
+    padding: 12px 16px;
+    background-color: rgb(255, 251, 247); 
+    border-radius: 10px;
     border: 1px solid rgba(88, 46, 78, 0.1);
-    box-shadow: 0 2px 8px rgba(88, 46, 78, 0.08); /* 3px * 0.67, 12px * 0.67 */
+    box-shadow: 0 2px 8px rgba(88, 46, 78, 0.08);
     transition: all 0.3s ease;
 }
+
+
 
 .control-group h3 {
     margin: 0;
@@ -133,21 +150,20 @@
 
 .bracelet-visual {
     display: flex;
-    justify-content: center; /* Changed from flex-start to center */
+    justify-content: center;
     align-items: center;
     margin: 0 auto;
-    padding: 3px 7px; /* 5px * 0.67, 10px * 0.67 */
+    padding: 8px 15px; /* Adjusted padding */
     background: white;
     width: 100%;
-    min-height: 47px; /* 70px * 0.67 */
+    min-height: 80px; /* Slightly increased height */
     overflow-x: auto;
-    overflow-y: hidden; 
-    scrollbar-width: thin; 
+    overflow-y: hidden;
+    scrollbar-width: thin;
     scrollbar-color: rgba(88, 46, 78, 0.3) transparent;
-    border-radius: 5px; /* 8px * 0.67 */
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); /* 2px * 0.67, 4px * 0.67 */
+    border-radius: 8px;
+    box-shadow: inset 0 1px 4px rgba(0,0,0,0.05);
 }
-
 
 .bracelet-visual::-webkit-scrollbar {
     height: 4px; /* 6px * 0.67 */
@@ -168,12 +184,12 @@
 }
 
 .bracelet-charm {
-    width: 47px; /* 70px * 0.67 */
-    height: 47px; /* 70px * 0.67 */
+    width: 75px; /* 70px * 0.67 */
+    height: 75px; /* 70px * 0.67 */
     background-color: transparent;
     position: relative;
     border: none;
-    margin: 0 -5px; /* -8px * 0.67 */
+    margin: 0 -8px; /* -8px * 0.67 */
     z-index: 1;
     transition: all 0.2s ease;
     flex-shrink: 0;
@@ -182,6 +198,17 @@
     align-items: center;
     justify-content: center;
     white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.bracelet-charm.drag-over {
+    transform: translateY(-20px);
+    transition: all 0.3s ease;
+}
+
+.bracelet-charm.selectable:hover {
+    transform: translateY(-3px);
+    transition: all 0.2s ease;
 }
 
 .bracelet-charm:first-child {
@@ -197,10 +224,9 @@
 .bracelet-charm.selectable:hover::before {
     content: '';
     position: absolute;
-    top: 5px; /* 8px * 0.67 */
-    left: 5px; /* 8px * 0.67 */
-    width: 34px; /* 50px * 0.67 */
-    height: 34px; /* 50px * 0.67 */
+    left: 10px;
+    width: 55px; /* 50px * 0.67 */
+    height: 55px; /* 50px * 0.67 */
     border: 2px solid #582e4e;
     border-radius: 3px; /* 4px * 0.67 */
     pointer-events: none;
@@ -220,11 +246,10 @@
 
 /* Charm Selection Section */
 .charm-selection {
-    margin-top: 27px; /* 40px * 0.67 */
+    margin-top: 0; /* Remove top margin since bracelet display handles spacing */
     flex-grow: 1;
-    padding: 13px 13px 0 13px; /* 20px * 0.67 */
+    padding: 20px 13px 0 13px;
 }
-
 .charm-selection h2 {
     margin-bottom: 17px; /* 25px * 0.67 */
     color: #582e4e;
@@ -305,42 +330,66 @@
     transform: translateY(-50%) translateY(0);
 }
 
-/* Category Cards */
-.category-cards-container {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    padding: 0 13px; /* 20px * 0.67 */
-}
+    /* Category Cards */
+    .category-cards-container {
+        display: flex;
+        justify-content: center; /* Center the container */
+        width: 100%;
+        padding: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(88, 46, 78, 0.3) transparent;
+    }
 
-.category-cards {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 13px; /* 20px * 0.67 */
-    max-width: 603px; /* 900px * 0.67 */
-    padding: 13px; /* 20px * 0.67 */
-    background-color: transparent;
-    border-radius: 8px; /* 12px * 0.67 */
-}
+    .category-cards {
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: center; /* Center the cards */
+        gap: 15px; /* Slightly increased gap */
+        padding: 15px 20px; /* Added horizontal padding */
+        background-color: transparent;
+        border-radius: 8px;
+        min-width: max-content;
+    }
 
-.category-card {
-    background-color: white;
-    border-radius: 10px; /* 15px * 0.67 */
-    padding: 13px; /* 20px * 0.67 */
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border: 2px solid transparent;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.08); /* 4px * 0.67, 15px * 0.67 */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px; /* 12px * 0.67 */
-    min-height: 107px; /* 160px * 0.67 */
-    min-width: 94px; /* 140px * 0.67 */
-    position: relative;
-    overflow: hidden;
-}
+    .category-card {
+        background-color: white;
+        border-radius: 12px;
+        padding: 15px; /* Increased padding */
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+        min-width: 100px; /* Slightly increased width */
+        min-height: 115px; /* Slightly increased height */
+        position: relative;
+        overflow: hidden;
+    }
+
+    .category-cards-container::-webkit-scrollbar {
+        height: 4px;
+    }
+
+    .category-cards-container::-webkit-scrollbar-track {
+        background: rgba(88, 46, 78, 0.1);
+        border-radius: 2px;
+    }
+
+    .category-cards-container::-webkit-scrollbar-thumb {
+        background: rgba(88, 46, 78, 0.3);
+        border-radius: 2px;
+    }
+
+    .category-cards-container::-webkit-scrollbar-thumb:hover {
+        background: rgba(88, 46, 78, 0.5);
+    }
+
 
 .category-card::before {
     content: '';
@@ -435,12 +484,60 @@
 .charm-option {
     aspect-ratio: 1;
     background: white;
-    border-radius: 8px; /* 12px * 0.67 */
-    cursor: pointer;
+    border-radius: 8px;
+    cursor: grab;
     transition: all 0.3s ease;
-    overflow: hidden;
+    overflow: visible;
     position: relative;
-    box-shadow: 0 1px 7px rgba(0,0,0,0.08); /* 2px * 0.67, 10px * 0.67 */
+    box-shadow: 0 1px 7px rgba(0,0,0,0.08);
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+
+.charm-option:active,
+.charm-option.dragging {
+    cursor: grabbing !important;
+}
+
+
+.charm-option .price-tooltip {
+    position: absolute;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #582e4e 0%, #6d3a60 100%);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(88, 46, 78, 0.3);
+}
+
+.charm-option .price-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #582e4e;
+}
+
+.charm-option:hover .price-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(-5px);
 }
 
 .charm-option:hover {
@@ -458,13 +555,21 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
-    padding: 7px; /* 10px * 0.67 */
+    padding: 7px;
     display: block;
     pointer-events: none;
     user-select: none;
     -webkit-user-drag: none;
     -moz-user-select: none;
     -ms-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+    border: none;
+    /* Remove any default image selection styling */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
 }
 
 /* Subcategory Charms */
@@ -494,6 +599,26 @@
     justify-items: center;
 }
 
+body.dragging-active,
+body.dragging-active * {
+    cursor: grabbing !important;
+}
+
+/* Ensure drop zones show proper cursor */
+.bracelet-charm {
+    cursor: inherit;
+}
+
+.bracelet-charm.drag-over {
+    cursor: grabbing !important;
+}
+
+/* Make sure images don't interfere with cursor */
+.bracelet-charm img {
+    cursor: inherit;
+    pointer-events: none;
+}
+
 /* NEW: Sticky Footer with Price */
 .price-footer {
     position: fixed;
@@ -502,7 +627,7 @@
     right: 0;
     background: linear-gradient(135deg, #582e4e 0%, #6d3a60 100%);
     color: white;
-    padding: 10px 13px; /* 15px * 0.67, 20px * 0.67 */
+    padding: 7px 13px; /* 15px * 0.67, 20px * 0.67 */
     box-shadow: 0 -3px 13px rgba(88, 46, 78, 0.3); /* 5px * 0.67, 20px * 0.67 */
     z-index: 100;
     display: flex;
@@ -518,13 +643,13 @@
 }
 
 .price-label {
-    font-size: 0.67rem; /* 1rem * 0.67 */
+    font-size: 0.6rem; /* 1rem * 0.67 */
     font-weight: 500;
     opacity: 0.9;
 }
 
 .price-amount {
-    font-size: 0.94rem; /* 1.4rem * 0.67 */
+    font-size: 0.85rem; /* 1.4rem * 0.67 */
     font-weight: 700;
     color: #fff;
 }
@@ -533,7 +658,7 @@
     background: rgba(255, 255, 255, 0.15);
     color: white;
     border: 2px solid rgba(255, 255, 255, 0.3);
-    padding: 8px 17px; /* 12px * 0.67, 25px * 0.67 */
+    padding: 6px 17px; /* 12px * 0.67, 25px * 0.67 */
     border-radius: 17px; /* 25px * 0.67 */
     font-size: 0.67rem; /* 1rem * 0.67 */
     font-weight: 600;
@@ -774,10 +899,9 @@
   background: rgba(255, 255, 255, 0.2);
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 8px 12px;
+  padding: 4px 10px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 0.9rem;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
 }
@@ -1707,6 +1831,8 @@
     100% { transform: translateY(-50%) rotate(360deg); }
 }
 
+
+
 /* Accessibility improvements */
 .charm-option:focus,
 .category-card:focus,
@@ -1748,5 +1874,48 @@
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .bracelet-charm {
+        width: 45px; /* Increased from 34px */
+        height: 45px; /* Increased from 34px */
+        margin: 0 -2px; /* Adjusted from -3px */
+    }
+
+    .bracelet-visual {
+        min-height: 55px; /* Increased from 34px */
+        padding: 3px 8px; /* Adjusted padding */
+    }
+
+    .bracelet-charm.selectable:hover::before {
+        top: 5px; /* Adjusted from 3px */
+        left: 5px; /* Adjusted from 3px */
+        width: 35px; /* Adjusted from 24px */
+        height: 35px; /* Adjusted from 24px */
+    }
+
+    .category-cards-container {
+        padding: 0 7px; /* Adjusted for mobile */
+    }
+
+    .category-cards {
+        padding: 7px 0; /* Removed horizontal padding */
+        gap: 7px; /* Reduced gap for mobile */
+    }
+
+    .category-card {
+        min-width: 67px;
+        min-height: 74px;
+    }
+
+    .price-footer {
+        padding: 6px 10px; /* Further reduced for mobile */
+    }
+
+    .finalize-button {
+        padding: 4px 8px; /* Further reduced for mobile */
+        font-size: 0.55rem; /* Smaller on mobile */
     }
 }

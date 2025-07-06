@@ -173,12 +173,7 @@ const handleEditBracelet = (braceletId) => {
           >
             <div className="summary-card">
               <h3>Order Summary</h3>
-              
-              <div className="summary-line">
-                <span>Bracelets ({cartBracelets.length})</span>
-                <span>₱{totalCartPrice.toLocaleString()}</span>
-              </div>
-              
+
               <div className="summary-total">
                 <span className="total-label">Total Amount</span>
                 <span className="total-amount">₱{totalCartPrice.toLocaleString()}</span>
