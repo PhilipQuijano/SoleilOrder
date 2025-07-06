@@ -530,7 +530,6 @@ const CustomizeBracelet = () => {
           transition={{ duration: 0.5 }}
         >
           <div className="edit-banner-content">
-            <span className="edit-icon">✏️</span>
             <span>Editing Bracelet</span>
             <button 
               className="cancel-edit-button"
