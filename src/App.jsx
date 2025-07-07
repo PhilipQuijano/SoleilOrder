@@ -10,6 +10,7 @@ import { AnimatePresence } from 'framer-motion';
 import './components/GlobalTransitions.css';
 import { CartProvider } from './contexts/CartContext';
 import Cart from './components/Cart/Cart';
+import Contact from './components/Contact/Contact';
 
 const App = () => {
   return (
@@ -20,6 +21,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="/customize" element={<CustomizeBracelet />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/cart" element={<Cart />} />

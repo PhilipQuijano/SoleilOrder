@@ -108,6 +108,7 @@
 .cart-bracelets {
   display: flex;
   flex-direction: column;
+  max-width: 750px;
   gap: 20px;
 }
 

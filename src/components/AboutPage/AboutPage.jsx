@@ -15,32 +15,24 @@ const AboutPage = () => {
 
   const fetchAboutImages = async () => {
     try {
-      console.log('Fetching about images from Supabase...');
       setLoading(true);
       setError(null);
       
       // First, let's check if the bucket exists and is accessible
       const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
-      console.log('Available buckets:', buckets);
       
       if (bucketError) {
-        console.error('Error listing buckets:', bucketError);
-        // Don't return here - try to access the bucket anyway
-        console.log('Proceeding despite bucket listing error...');
       }
       
       // Check if about-images bucket exists (but don't fail if we can't list buckets)
       if (buckets) {
         const aboutBucket = buckets?.find(bucket => bucket.name === 'about-images');
         if (!aboutBucket) {
-          console.error('about-images bucket not found in bucket list');
-          console.log('Available bucket names:', buckets.map(b => b.name));
+         
           // Don't return here - try to access it anyway
         }
       }
       
-      // Try different approaches to list files
-      console.log('Attempting to list files in about-images bucket...');
       
       // Method 1: List with different parameters
       let { data, error } = await supabase
@@ -53,7 +45,6 @@ const AboutPage = () => {
         });
       
       if (error) {
-        console.error('Method 1 failed:', error);
         // Method 2: Try without parameters
         const result2 = await supabase
           .storage
@@ -65,7 +56,6 @@ const AboutPage = () => {
       }
       
       if (error) {
-        console.error('Method 2 failed:', error);
         // Method 3: Try listing root directory explicitly
         const result3 = await supabase
           .storage
@@ -85,7 +75,6 @@ const AboutPage = () => {
         return;
       }
       
-      console.log('Raw data from Supabase:', data);
       
       if (data && data.length > 0) {
         // Filter out directories and system files, keep only image files
@@ -100,12 +89,10 @@ const AboutPage = () => {
                              !file.name.endsWith('/') &&
                              file.id; // Files should have an ID
           
-          console.log(`File: ${file.name}, isImage: ${!!isImage}, isNotFolder: ${isNotFolder}, file object:`, file);
           
           return isImage && isNotFolder;
         });
         
-        console.log('Filtered image files:', imageFiles);
         
         if (imageFiles.length > 0) {
           // Get public URLs for the images
@@ -115,7 +102,6 @@ const AboutPage = () => {
               .from('about-images')
               .getPublicUrl(file.name);
             
-            console.log(`Generated URL for ${file.name}:`, urlData.publicUrl);
             
             return {
               id: file.id || file.name,
@@ -125,19 +111,15 @@ const AboutPage = () => {
               lastModified: file.updated_at || file.created_at
             };
           });
-          
-          console.log('About images found:', imageUrls);
           setImages(imageUrls);
         } else {
-          console.log('No valid image files found after filtering');
+        
           setImages([]);
         }
       } else {
-        console.log('No files found in about-images bucket');
         setImages([]);
       }
     } catch (error) {
-      console.error('Error fetching about images:', error);
       setError(`Failed to load images: ${error.message}`);
       setImages([]);
     } finally {
@@ -268,28 +250,6 @@ const AboutPage = () => {
 {/* Main Content Section */}
       <section className="main-content">
         <div className="container">
-          {/* Brand Description */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true, margin: "-100px" }}
-            className="description-content"
-          >
-            <h2 className="section-title">Our Story</h2>
-            <div className="description-text">
-              <p>
-                Welcome to <strong>Soleil</strong>, where every accessory tells a story and every charm holds a memory. 
-                We are passionate about creating beautiful, personalized jewelry that reflects your unique style and celebrates life's special moments.
-              </p>
-              <p>
-                Our carefully curated collection features high-quality charms, bracelets, and accessories designed to inspire and delight. 
-                Whether you're commemorating a milestone, expressing your personality, or finding the perfect gift, 
-                Soleil is here to help you shine bright.
-              </p>
-            </div>
-          </motion.div>
-
           {/* Customization Experience */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -297,7 +257,7 @@ const AboutPage = () => {
             transition={{ duration: 0.6 }}
             viewport={{ once: true, margin: "-100px" }}
             className="experience-content"
-            style={{ marginTop: '80px' }}
+            style={{ marginTop: '30px' }}
           >
             <h2 className="section-title">Your Personalized Experience</h2>
             <div className="experience-grid">

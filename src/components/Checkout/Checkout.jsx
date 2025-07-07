@@ -87,10 +87,18 @@ const CheckoutPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (field, value) => {
-    setCustomerInfo(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setCustomerInfo(prev => {
+      const updated = {
+        ...prev,
+        [field]: value
+      };
+      
+      if (field === 'paymentMethod' && value === 'cash') {
+        updated.deliveryMethod = 'lbc';
+      }
+      
+      return updated;
+    });
     
     // Clear error when user starts typing
     if (errors[field]) {
@@ -396,6 +404,16 @@ const CheckoutPage = () => {
     }
   };
 
+  const getPaymentMethodName = (method) => {
+    switch(method) {
+      case 'gcash': return 'GCash';
+      case 'paymaya': return 'PayMaya';
+      case 'cash': return 'Cash';
+      case 'bank': return 'Bank Transfer';
+      default: return method.toUpperCase();
+    }
+  };
+
   const generateMessengerMessage = (orderRecords, customerInfo, fullAddress, orderIds, totalBracelets) => {
     const formatDate = (dateString) => {
       return new Date(dateString).toLocaleDateString('en-PH', {
@@ -444,7 +462,7 @@ ${fullAddress}
 *Charm Summary:*
 ${getCharmSummary()}
 
-*Payment Method:* ${customerInfo.paymentMethod.toUpperCase()}
+*Payment Method:* ${getPaymentMethodName(customerInfo.paymentMethod)}
 
 ---
 Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the payment details so I can proceed with the payment. Thank you! < 3`;
@@ -453,15 +471,9 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
   };
 
   const redirectToMessenger = (message, orderRecords, orderIds) => {
-    // Replace with your actual Facebook Page ID or Messenger link
-    const FACEBOOK_PAGE_ID = 'YOUR_FACEBOOK_PAGE_ID'; // You need to replace this
-    
+
     // Option 1: Direct Messenger link (if you have Facebook Page ID)
     const messengerUrl = `https://m.me/61567161596724?text=${encodeURIComponent(message)}`;
-  
-    
-    // Option 3: Facebook Messenger link with pre-filled text (if you have page username)
-    // const messengerUrl = `https://m.me/YOUR_PAGE_USERNAME?text=${encodeURIComponent(message)}`;
 
     const showSuccessPrompt = () => {
       const promptDiv = document.createElement('div');
@@ -470,48 +482,75 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
           <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
             <div style="color: #28a745; font-size: 2rem; margin-bottom: 15px;">✓</div>
             <h3 style="color: #333; margin-bottom: 15px;">Order #${orderIds} created successfully!</h3>
-            <p style="color: #666; margin-bottom: 10px;">Your order details have been copied to your clipboard.</p>
-            <p style="color: #666; margin-bottom: 20px;">You will now be redirected to Messenger to send your order confirmation to SOLEIL.</p>
-            <p style="color: #582e4e; font-weight: 600;">Simply paste the message and send it to complete your order!</p>
-            <button onclick="this.parentElement.parentElement.remove()" style="background: #582e4e; color: white; border: none; padding: 12px 24px; border-radius: 8px; margin-top: 15px; cursor: pointer;">Continue</button>
+            <p style="color: #666; margin-bottom: 15px;">Your order details have been prepared and copied to your clipboard.</p>
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #582e4e;">
+              <h4 style="color: #582e4e; margin-bottom: 10px;">📋 Next Steps:</h4>
+              <p style="color: #333; margin-bottom: 8px; text-align: left;">1. Click "Send Message to SOLEIL" below</p>
+              <p style="color: #333; margin-bottom: 8px; text-align: left;">2. You'll be redirected to Messenger</p>
+              <p style="color: #333; margin-bottom: 8px; text-align: left;">3. Paste the message and send it</p>
+              <p style="color: #333; margin-bottom: 0; text-align: left;">4. Wait for SOLEIL to confirm and send payment details</p>
+            </div>
+            <p style="color: #e74c3c; font-weight: 600; margin-bottom: 20px;">⚠️ Important: You must send the message to SOLEIL to complete your order!</p>
+            <button onclick="window.openMessenger('${messengerUrl}', '${orderIds}'); this.parentElement.parentElement.remove();" style="background: #582e4e; color: white; border: none; padding: 15px 30px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%; margin-bottom: 10px;">
+              📱 Send Message to SOLEIL
+            </button>
+            <button onclick="this.parentElement.parentElement.remove()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
+              Cancel (Order will be incomplete)
+            </button>
           </div>
         </div>
       `;
       document.body.appendChild(promptDiv);
     };
 
+    // Create a global function to handle the messenger opening
+    window.openMessenger = (url, orderIds) => {
+      // Open Messenger in a new window/tab
+      window.open(url, '_blank');
+      
+    //Redirect current page to contact page after a short delay
+        setTimeout(() => {
+          navigate('/contact', { 
+            state: { 
+              orderSuccess: true, 
+              orderIds: orderRecords.map(order => order.id),
+              redirectedToMessenger: true
+            } 
+          });
+        }, 2000);
+      };
+
+    // Try to copy to clipboard, then show prompt regardless of success
     navigator.clipboard.writeText(message).then(() => {
       showSuccessPrompt();
     }).catch(() => {
+      // If clipboard fails, show prompt with textarea
       const promptDiv = document.createElement('div');
       promptDiv.innerHTML = `
         <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 10000;">
           <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
             <div style="color: #28a745; font-size: 2rem; margin-bottom: 15px;">✓</div>
             <h3 style="color: #333; margin-bottom: 15px;">Order #${orderIds} created successfully!</h3>
-            <p style="color: #666; margin-bottom: 10px;">You will now be redirected to Messenger to send your order confirmation to SOLEIL.</p>
-            <p style="color: #666; margin-bottom: 20px;">Please copy and send the following message:</p>
-            <textarea readonly style="width: 100%; height: 150px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 12px; margin-bottom: 15px; resize: none;">${message}</textarea>
-            <button onclick="this.parentElement.parentElement.remove()" style="background: #582e4e; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer;">Continue</button>
+            <p style="color: #666; margin-bottom: 15px;">Please copy the message below and send it to SOLEIL:</p>
+            <textarea readonly style="width: 100%; height: 150px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 12px; margin-bottom: 15px; resize: none;" onclick="this.select(); document.execCommand('copy');">${message}</textarea>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 15px 0; border-left: 4px solid #582e4e;">
+              <h4 style="color: #582e4e; margin-bottom: 10px;">📋 Next Steps:</h4>
+              <p style="color: #333; margin-bottom: 5px; text-align: left;">1. Copy the message above (click on it)</p>
+              <p style="color: #333; margin-bottom: 5px; text-align: left;">2. Click "Send Message to SOLEIL"</p>
+              <p style="color: #333; margin-bottom: 5px; text-align: left;">3. Paste and send the message</p>
+              <p style="color: #333; margin-bottom: 0; text-align: left;">4. Wait for payment details</p>
+            </div>
+            <button onclick="window.openMessenger('${messengerUrl}', '${orderIds}'); this.parentElement.parentElement.remove();" style="background: #582e4e; color: white; border: none; padding: 15px 30px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%; margin-bottom: 10px;">
+              📱 Send Message to SOLEIL
+            </button>
+            <button onclick="this.parentElement.parentElement.remove()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
+              Cancel (Order will be incomplete)
+            </button>
           </div>
         </div>
       `;
       document.body.appendChild(promptDiv);
     });
-
-    // Open Messenger in a new window/tab
-    window.open(messengerUrl, '_blank');
-    
-    // Redirect current page to home after a short delay
-    setTimeout(() => {
-      navigate('/', { 
-        state: { 
-          orderSuccess: true, 
-          orderIds: orderRecords.map(order => order.id),
-          redirectedToMessenger: true
-        } 
-      });
-    }, 2000);
   };
 
   return (
@@ -775,9 +814,7 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
                 />
                 {errors.zipCode && <span className="error-message">{errors.zipCode}</span>}
               </div>
-              </div>
-
-              {/* Payment Method Section */}
+            </div>
               <div className="payment-section">
                 <h3>💳 Payment Method</h3>
                 <div className="payment-options">
@@ -810,9 +847,38 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
                       PayMaya
                     </div>
                   </label>
+                  
+                  <label className="payment-option">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="cash"
+                      checked={customerInfo.paymentMethod === 'cash'}
+                      onChange={(e) => handleInputChange('paymentMethod', e.target.value)}
+                      disabled={isSubmitting}
+                    />
+                    <div className="payment-label">
+                      <span className="payment-icon">💵</span>
+                      Cash
+                    </div>
+                  </label>
+                  
+                  <label className="payment-option">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="bank"
+                      checked={customerInfo.paymentMethod === 'bank'}
+                      onChange={(e) => handleInputChange('paymentMethod', e.target.value)}
+                      disabled={isSubmitting}
+                    />
+                    <div className="payment-label">
+                      <span className="payment-icon">🏦</span>
+                      Bank Transfer
+                    </div>
+                  </label>
                 </div>
               </div>
-
               <div className="delivery-section">
                 <h3>🚚 Delivery Method</h3>
                 <div className="delivery-options">

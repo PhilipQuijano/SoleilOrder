@@ -284,7 +284,8 @@
 }
 
 .payment-options {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 15px;
     margin-top: 15px;
 }
@@ -536,7 +537,7 @@
     }
 
     .payment-options {
-        flex-direction: column;
+        grid-template-columns: 1fr;
         gap: 12px;
     }
 

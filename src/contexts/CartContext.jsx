@@ -11,8 +11,27 @@ export const useCart = () => {
 };
 
 export const CartProvider = ({ children }) => {
-  const [cartBracelets, setCartBracelets] = useState([]);
+  // Initialize state from localStorage or empty array
+  const [cartBracelets, setCartBracelets] = useState(() => {
+    try {
+      const savedCart = localStorage.getItem('cartBracelets');
+      return savedCart ? JSON.parse(savedCart) : [];
+    } catch (error) {
+      console.error('Error loading cart from localStorage:', error);
+      return [];
+    }
+  });
+
   const [totalCartPrice, setTotalCartPrice] = useState(0);
+
+  // Save cart to localStorage whenever cartBracelets changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('cartBracelets', JSON.stringify(cartBracelets));
+    } catch (error) {
+      console.error('Error saving cart to localStorage:', error);
+    }
+  }, [cartBracelets]);
 
   // Calculate total price whenever cart changes
   useEffect(() => {
@@ -62,7 +81,6 @@ export const CartProvider = ({ children }) => {
       )
     );
   };
-
 
   const value = {
     cartBracelets,
