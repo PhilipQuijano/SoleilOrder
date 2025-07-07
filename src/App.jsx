@@ -3,8 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar/Navbar';
 import HomePage from './HomePage';
 import CustomizeBracelet from './components/CustomizeBracelet/CustomizeBracelet';
+import AboutPage from './components/AboutPage/AboutPage';
 import './App.css';
-import NavbarDebug from './components/Navbar/NavbarDebug';
 import Checkout from './components/Checkout/Checkout';
 import { AnimatePresence } from 'framer-motion';
 import './components/GlobalTransitions.css';
@@ -19,8 +19,8 @@ const App = () => {
         <AnimatePresence mode="wait">
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/about" element={<AboutPage />} />
             <Route path="/customize" element={<CustomizeBracelet />} />
-            <Route path="/NavbarDebug" element={<NavbarDebug />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/cart" element={<Cart />} />
           </Routes>
