@@ -357,11 +357,6 @@ const AboutPage = () => {
                 Philip Quijano
               </a>
             </p>
-            <p className="credit-contact">
-              <a href="mailto:jpquijano99@gmail.com" className="contact-link">
-                jpquijano99@gmail.com
-              </a>
-            </p>
           </motion.div>
         </div>
       </section>
