@@ -197,17 +197,34 @@ const CustomizeBracelet = () => {
 
 
   useEffect(() => {
-    if (isEditing && editData && editData.charms) {
-      setCharms(editData.charms);
-      calculateTotalPrice(editData.charms);
-    } else if (defaultSilverCharm) {
+    if (defaultSilverCharm) {
       const selectedSize = sizeOptions.find(s => s.value === size);
       const initialCharmsCount = selectedSize ? selectedSize.charms : 17;
-      const defaultCharms = Array(initialCharmsCount).fill(defaultSilverCharm);
-      setCharms(defaultCharms);
-      calculateTotalPrice(defaultCharms);
+      
+      if (isEditing && editData && editData.charms) {
+        // In edit mode, adjust the charms array to match the new size
+        const currentCharms = [...editData.charms];
+        
+        if (currentCharms.length < initialCharmsCount) {
+          // If new size is larger, fill with default charm
+          while (currentCharms.length < initialCharmsCount) {
+            currentCharms.push(defaultSilverCharm);
+          }
+        } else if (currentCharms.length > initialCharmsCount) {
+          // If new size is smaller, trim the array
+          currentCharms.splice(initialCharmsCount);
+        }
+        
+        setCharms(currentCharms);
+        calculateTotalPrice(currentCharms);
+      } else if (!isEditing) {
+        // For new bracelets, create default array
+        const defaultCharms = Array(initialCharmsCount).fill(defaultSilverCharm);
+        setCharms(defaultCharms);
+        calculateTotalPrice(defaultCharms);
+      }
     }
-  }, [size, defaultSilverCharm, isEditing, editData]);
+  }, [size, defaultSilverCharm, isEditing]);
 
   useEffect(() => {
     async function loadCharms() {
@@ -561,18 +578,36 @@ const CustomizeBracelet = () => {
           </div>
           <div className="control-group">
             <h3>Starting Charm</h3>
-            <select 
-              value={defaultSilverCharm?.id || ''} 
-              onChange={(e) => handlePlainCharmChange(e.target.value)}
-            >
-              {plainCharms.map((charm) => (
-                <option key={charm.id} value={charm.id}>
-                  {charm.name}
-                </option>
-              ))}
+              <select 
+                value={defaultSilverCharm?.id || ''} 
+                onChange={(e) => handlePlainCharmChange(e.target.value)}
+                style={{ textAlign: 'center' }}
+              >
+              {plainCharms.map((charm) => {
+                // Get the required stock for current bracelet size
+                const currentSize = sizeOptions.find(s => s.value === size);
+                const requiredStock = currentSize ? currentSize.charms : 17;
+                
+                // Check if charm has sufficient stock
+                const hasEnoughStock = charm.stock === undefined || charm.stock >= requiredStock;
+                
+                return (
+                  <option 
+                    key={charm.id} 
+                    value={charm.id}
+                    disabled={!hasEnoughStock}
+                    style={{ 
+                      color: hasEnoughStock ? 'inherit' : '#999999',
+                      fontStyle: hasEnoughStock ? 'normal' : 'italic'
+                    }}
+                  >
+                    {charm.name}{!hasEnoughStock ? ' (INSUFFICIENT STOCK)' : ''}
+                  </option>
+                );
+              })}
             </select>
           </div>
-        </div>
+      </div>
         
         <div className="bracelet-preview-section">
           <div className="bracelet-visual">
