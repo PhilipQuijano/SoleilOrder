@@ -1,15 +1,19 @@
+/* Mobile-First Responsive Design for AboutPage */
+/* Base container styles */
 .aboutpage-container {
   width: 100%;
   min-height: 100vh;
   background: linear-gradient(135deg, #b088e8 0%, #c55ae0 100%);
-  margin-top: 20px;
+  margin-top: 1.25rem; /* 20px converted to rem */
   overflow-x: hidden;
 }
 
-/* Hero Section */
+/* =================================
+   HERO SECTION - Mobile First
+   ================================= */
 .aboutpage-hero {
   position: relative;
-  min-height: 80vh;
+  min-height: 60vh; /* Reduced for mobile */
   background: linear-gradient(
     135deg,
     rgba(70, 35, 60, 0.95) 0%,
@@ -21,23 +25,26 @@
   align-items: center;
   color: white;
   text-align: center;
-  padding: 60px 20px 100px;
+  padding: 3rem 1rem 2rem; /* Mobile-first padding */
   overflow: hidden;
 }
 
 .hero-content {
-  max-width: 800px;
-  margin: 0 auto 0px;
+  max-width: 90%; /* Responsive width */
+  width: 100%;
+  margin: 0 auto;
   z-index: 2;
 }
 
 .hero-title {
   font-family: 'Playfair Display', Georgia, serif;
-  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-size: clamp(1.8rem, 6vw, 4rem); /* Better mobile scaling */
   font-weight: 200;
-  margin-bottom: 20px;
-  line-height: 1.2;
-  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  margin-bottom: 1rem;
+  line-height: 1.1;
+  text-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.4);
+  word-wrap: break-word;
+  hyphens: auto;
 }
 
 .brand-highlight {
@@ -45,24 +52,28 @@
   font-style: italic;
   font-weight: 300;
   text-shadow: 
-    0 3px 12px rgba(255, 220, 244, 0.6),
-    0 6px 24px rgba(88, 46, 78, 0.4);
+    0 0.1875rem 0.75rem rgba(255, 220, 244, 0.6),
+    0 0.375rem 1.5rem rgba(88, 46, 78, 0.4);
 }
 
 .hero-subtitle {
-  font-size: clamp(1rem, 2vw, 1.3rem);
+  font-size: clamp(0.9rem, 3vw, 1.3rem); /* Better mobile scaling */
   font-weight: 300;
   color: #f0f0f0;
   margin: 0;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.3);
+  line-height: 1.4;
 }
 
-/* Carousel Section */
+/* =================================
+   CAROUSEL SECTION - Mobile First
+   ================================= */
 .carousel-section {
   position: relative;
   width: 100%;
-  max-width: 900px;
+  max-width: 100%;
   margin: 0 auto;
+  padding: 0 1rem; /* Mobile padding */
   z-index: 1;
 }
 
@@ -70,7 +81,8 @@
 .carousel-error,
 .no-images,
 .image-carousel {
-  min-height: 550px;
+  min-height: 18.75rem; /* 300px in rem for mobile */
+  width: 100%;
 }
 
 .carousel-loading,
@@ -81,20 +93,22 @@
   justify-content: center;
   align-items: center;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  backdrop-filter: blur(15px);
+  border-radius: 1rem;
+  backdrop-filter: blur(0.9375rem);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0.9375rem 2.1875rem rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+  text-align: center;
 }
 
 .loading-spinner {
-  width: 40px;
-  height: 40px;
+  width: 2.5rem;
+  height: 2.5rem;
   border: 3px solid rgba(255, 255, 255, 0.3);
   border-top: 3px solid #ffdcf4;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 20px;
+  margin-bottom: 1.25rem;
 }
 
 @keyframes spin {
@@ -105,21 +119,25 @@
 .loading-text,
 .error-text {
   color: #f0f0f0;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 300;
   margin: 0;
+  text-align: center;
 }
 
 .retry-button {
   background: #ffdcf4;
   color: #582e4e;
   border: none;
-  padding: 10px 20px;
-  border-radius: 25px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 1.5625rem;
   font-weight: 500;
   cursor: pointer;
-  margin-top: 15px;
+  margin-top: 1rem;
   transition: all 0.3s ease;
+  font-size: 0.9rem;
+  min-height: 3rem; /* Touch target */
+  min-width: 3rem;
 }
 
 .retry-button:hover {
@@ -131,30 +149,32 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
+  gap: 1rem;
+  padding: 1rem;
 }
 
 .no-images-icon {
-  font-size: 3rem;
+  font-size: 2.5rem;
   opacity: 0.7;
 }
 
 .no-images-text {
   color: #f0f0f0;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 300;
   margin: 0;
+  text-align: center;
 }
 
 .image-carousel {
   position: relative;
   width: 100%;
-  height: 500px;
-  border-radius: 20px;
+  height: 18.75rem; /* 300px mobile height */
+  border-radius: 1rem;
   overflow: hidden;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0.9375rem 2.1875rem rgba(0, 0, 0, 0.3);
   background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(15px);
+  backdrop-filter: blur(0.9375rem);
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
@@ -181,6 +201,7 @@
   object-position: center;
 }
 
+/* Mobile-optimized navigation buttons */
 .carousel-nav {
   position: absolute;
   top: 50%;
@@ -188,124 +209,137 @@
   background: rgba(255, 255, 255, 0.9);
   border: none;
   border-radius: 50%;
-  width: 50px;
-  height: 50px;
+  width: 3rem; /* 48px touch target */
+  height: 3rem;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   color: #582e4e;
   transition: all 0.3s ease;
   z-index: 10;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(0.625rem);
+  touch-action: manipulation;
 }
 
-.carousel-nav:hover {
+.carousel-nav:hover,
+.carousel-nav:focus {
   background: white;
-  transform: translateY(-50%) scale(1.1);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  transform: translateY(-50%) scale(1.05);
+  box-shadow: 0 0.5rem 1.5625rem rgba(0, 0, 0, 0.2);
 }
 
 .carousel-nav.prev {
-  left: 20px;
+  left: 0.5rem;
 }
 
 .carousel-nav.next {
-  right: 20px;
+  right: 0.5rem;
 }
 
+/* Mobile-friendly dots */
 .carousel-dots {
   position: absolute;
-  bottom: 20px;
+  bottom: 1rem;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 10px;
+  gap: 0.5rem;
   z-index: 10;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .dot {
-  width: 12px;
-  height: 12px;
+  width: 0.875rem; /* 14px touch target */
+  height: 0.875rem;
   border-radius: 50%;
   border: 2px solid rgba(255, 255, 255, 0.8);
   background: transparent;
   cursor: pointer;
   transition: all 0.3s ease;
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(0.3125rem);
+  touch-action: manipulation;
 }
 
 .dot.active {
   background: white;
-  transform: scale(1.2);
+  transform: scale(1.15);
   border-color: white;
 }
 
-.dot:hover {
+.dot:hover,
+.dot:focus {
   background: rgba(255, 255, 255, 0.7);
-  transform: scale(1.1);
+  transform: scale(1.05);
 }
 
-/* Content Sections */
+/* =================================
+   CONTENT SECTIONS - Mobile First
+   ================================= */
 .container {
-  max-width: 1200px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 1rem;
 }
 
 .aboutpage-container .section-title {
   font-family: 'Playfair Display', Georgia, serif;
-  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-size: clamp(1.5rem, 5vw, 2.8rem);
   font-weight: 250;
   color: #a04995;
-  margin: 0 auto 30px auto;     /* ← Better centering */
+  margin: 0 auto 2rem auto;
   text-align: center;
   position: relative;
-  padding: 15px 50px;
+  padding: 1rem 2rem;
   background: rgba(255, 255, 255, 0.9);
-  border-radius: 50px;
-  box-shadow: 0 2px 8px rgba(88, 46, 78, 0.38);
-  backdrop-filter: blur(10px);
-  display: block;               /* ← Changed from inline-block */
-  width: fit-content;           /* ← Auto-size to content */
+  border-radius: 3.125rem;
+  box-shadow: 0 0.125rem 0.5rem rgba(88, 46, 78, 0.38);
+  backdrop-filter: blur(0.625rem);
+  display: block;
+  width: fit-content;
+  max-width: 90%;
   transition: all 0.3s ease;
-  text-shadow: 0 2px 4px rgba(88, 46, 78, 0.3);
+  text-shadow: 0 0.125rem 0.25rem rgba(88, 46, 78, 0.3);
+  word-wrap: break-word;
+  hyphens: auto;
 }
-
 
 .aboutpage-container .section-title:hover {
-  transform: translateY(-2px);  /* ← Simplified */
-  box-shadow: 0 4px 12px rgba(88, 46, 78, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 0.25rem 0.75rem rgba(88, 46, 78, 0.12);
 }
 
-
 .main-content {
-  padding: 100px 20px;
+  padding: 4rem 1rem;
   background: linear-gradient(135deg, #e8d5ff 0%, #f0e6ff 50%, #e3d0ff 100%);
 }
 
 .description-content {
-  max-width: 800px;
+  max-width: 100%;
   margin: 0 auto;
   text-align: center;
 }
 
 .description-text {
-  font-size: clamp(1rem, 2vw, 1.15rem);
-  line-height: 1.8;
+  font-size: clamp(0.9rem, 2.5vw, 1.15rem);
+  line-height: 1.6;
   color: #444;
   text-align: left;
   background: rgba(255, 255, 255, 0.7);
-  padding: 50px;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(88, 46, 78, 0.1);
-  backdrop-filter: blur(10px);
+  padding: 2rem;
+  border-radius: 1.25rem;
+  box-shadow: 0 0.625rem 1.875rem rgba(88, 46, 78, 0.1);
+  backdrop-filter: blur(0.625rem);
   border: 1px solid rgba(255, 255, 255, 0.8);
+  max-width: 100%;
+  word-wrap: break-word;
+  hyphens: auto;
 }
 
 .description-text p {
-  margin-bottom: 30px;
+  margin-bottom: 1.5rem;
 }
 
 .description-text strong {
@@ -313,33 +347,35 @@
   font-weight: 600;
 }
 
-/* Customization Experience Section */
-
+/* =================================
+   EXPERIENCE SECTION - Mobile First
+   ================================= */
 .experience-content {
-  max-width: 1100px;
+  max-width: 100%;
   margin: 0 auto;
   text-align: center;
 }
 
 .experience-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 40px;
-  margin: 60px 0;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  margin: 3rem 0;
 }
 
 .experience-card {
   background: rgba(255, 255, 255, 0.8);
-  padding: 50px 35px;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(88, 46, 78, 0.1);
+  padding: 2rem 1.5rem;
+  border-radius: 1.25rem;
+  box-shadow: 0 0.625rem 1.875rem rgba(88, 46, 78, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.9);
   transition: all 0.4s ease;
   position: relative;
   overflow: hidden;
   will-change: transform;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(0.625rem);
   cursor: pointer;
+  width: 100%;
 }
 
 .experience-card::before {
@@ -359,47 +395,49 @@
 }
 
 .experience-card:hover {
-  box-shadow: 0 20px 50px rgba(88, 46, 78, 0.25);
+  box-shadow: 0 1.25rem 3.125rem rgba(88, 46, 78, 0.25);
   background: rgba(255, 255, 255, 0.95);
+  transform: translateY(-0.25rem);
 }
 
 .card-icon {
-  font-size: 3.5rem;
-  margin-bottom: 25px;
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
   display: block;
 }
 
 .experience-card h3 {
   font-family: 'Playfair Display', Georgia, serif;
-  font-size: 1.4rem;
+  font-size: clamp(1.1rem, 3vw, 1.4rem);
   font-weight: 400;
   color: #582e4e;
-  margin-bottom: 20px;
+  margin-bottom: 1rem;
+  word-wrap: break-word;
+  hyphens: auto;
 }
 
 .experience-card p {
   color: #666;
-  line-height: 1.7;
-  font-size: 1rem;
+  line-height: 1.6;
+  font-size: clamp(0.85rem, 2vw, 1rem);
+  word-wrap: break-word;
+  hyphens: auto;
 }
 
 .future-plans {
   background: rgba(255, 255, 255, 0.8);
-  padding: 60px 50px;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(88, 46, 78, 0.1);
+  padding: 2.5rem 2rem;
+  border-radius: 1.25rem;
+  box-shadow: 0 0.625rem 1.875rem rgba(88, 46, 78, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.9);
-  margin-top: 60px;
-  margin-bottom: 80px;
+  margin-top: 3rem;
+  margin-bottom: 4rem;
   text-align: left;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(0.625rem);
   cursor: pointer;
   transition: all 0.4s ease;
-}
-
-.future-plans:hover {
-  box-shadow: 0 15px 40px rgba(88, 46, 78, 0.2);
-  background: rgba(255, 255, 255, 0.95);
+  position: relative;
+  z-index: 1;
 }
 
 .future-plans::before {
@@ -412,47 +450,54 @@
   background: linear-gradient(135deg, rgba(202, 164, 255, 0.1) 0%, rgba(255, 220, 244, 0.1) 100%);
   opacity: 0;
   transition: opacity 0.3s ease;
-  border-radius: 20px;
+  border-radius: 1.25rem;
 }
 
 .future-plans:hover::before {
   opacity: 1;
 }
 
-.future-plans {
-  position: relative;
-  z-index: 1;
+.future-plans:hover {
+  box-shadow: 0 0.9375rem 2.5rem rgba(88, 46, 78, 0.2);
+  background: rgba(255, 255, 255, 0.95);
+  transform: translateY(-0.25rem);
 }
 
 .future-plans h3 {
   font-family: 'Playfair Display', Georgia, serif;
-  font-size: 1.6rem;
+  font-size: clamp(1.2rem, 4vw, 1.6rem);
   font-weight: 400;
   color: #582e4e;
-  margin-bottom: 25px;
+  margin-bottom: 1.5rem;
   text-align: center;
+  word-wrap: break-word;
+  hyphens: auto;
 }
 
 .future-plans p {
   color: #444;
-  line-height: 1.8;
-  font-size: 1.05rem;
-  margin-bottom: 25px;
+  line-height: 1.6;
+  font-size: clamp(0.9rem, 2.5vw, 1.05rem);
+  margin-bottom: 1.5rem;
+  word-wrap: break-word;
+  hyphens: auto;
 }
 
 .future-plans ul {
   list-style: none;
   padding: 0;
-  margin: 30px 0;
+  margin: 1.5rem 0;
 }
 
 .future-plans li {
   position: relative;
-  padding-left: 35px;
-  margin-bottom: 15px;
+  padding-left: 2rem;
+  margin-bottom: 1rem;
   color: #444;
-  line-height: 1.7;
-  font-size: 1rem;
+  line-height: 1.6;
+  font-size: clamp(0.85rem, 2vw, 1rem);
+  word-wrap: break-word;
+  hyphens: auto;
 }
 
 .future-plans li::before {
@@ -461,38 +506,42 @@
   left: 0;
   top: 0;
   color: #582e4e;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
 }
 
-/* Developer Credit Section */
+/* =================================
+   DEVELOPER CREDIT - Mobile First
+   ================================= */
 .developer-credit {
-  padding: 30px 10px 30px;
+  padding: 2rem 1rem;
   background: linear-gradient(135deg, #582e4e 0%, #6d3a60 100%);
   color: white;
 }
 
 .credit-content {
-  max-width: 600px;
+  max-width: 100%;
   margin: 0 auto;
   text-align: center;
 }
 
 .credit-line {
-  width: 120px;
+  width: 7.5rem;
   height: 2px;
   background: linear-gradient(90deg, transparent, #ffdcf4, transparent);
-  margin: 0 auto 20px;
+  margin: 0 auto 1.25rem;
   border-radius: 1px;
 }
 
 .credit-text {
-  font-size: 1.1rem;
+  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
   font-weight: 300;
   color: #f0f0f0;
+  word-wrap: break-word;
+  hyphens: auto;
 }
 
 .credit-developer {
-  font-size: 1.2rem;
+  font-size: clamp(1rem, 3vw, 1.2rem);
 }
 
 .developer-link {
@@ -501,8 +550,9 @@
   font-weight: 500;
   transition: all 0.3s ease;
   position: relative;
-  padding: 8px 0;
+  padding: 0.5rem 0;
   display: inline-block;
+  touch-action: manipulation;
 }
 
 .developer-link::after {
@@ -516,17 +566,19 @@
   transition: width 0.3s ease;
 }
 
-.developer-link:hover::after {
+.developer-link:hover::after,
+.developer-link:focus::after {
   width: 100%;
 }
 
-.developer-link:hover {
+.developer-link:hover,
+.developer-link:focus {
   color: white;
-  text-shadow: 0 2px 8px rgba(255, 220, 244, 0.5);
+  text-shadow: 0 0.125rem 0.5rem rgba(255, 220, 244, 0.5);
 }
 
 .credit-contact {
-  font-size: 1rem;
+  font-size: clamp(0.85rem, 2vw, 1rem);
   margin: 0;
 }
 
@@ -536,8 +588,9 @@
   font-weight: 400;
   transition: all 0.3s ease;
   position: relative;
-  padding: 0px 0;
+  padding: 0.5rem 0;
   display: inline-block;
+  touch-action: manipulation;
 }
 
 .contact-link::after {
@@ -551,143 +604,264 @@
   transition: width 0.3s ease;
 }
 
-.contact-link:hover::after {
+.contact-link:hover::after,
+.contact-link:focus::after {
   width: 100%;
 }
 
-.contact-link:hover {
+.contact-link:hover,
+.contact-link:focus {
   color: white;
-  text-shadow: 0 2px 8px rgba(255, 220, 244, 0.5);
+  text-shadow: 0 0.125rem 0.5rem rgba(255, 220, 244, 0.5);
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .aboutpage-container {
-    margin-top: 50px;
-  }
+/* =================================
+   RESPONSIVE BREAKPOINTS
+   ================================= */
 
+/* Small phones (320px+) */
+@media (min-width: 20rem) {
+  .aboutpage-container {
+    margin-top: 2rem;
+  }
+  
+  .carousel-section {
+    padding: 0 0.5rem;
+  }
+  
+  .image-carousel {
+    height: 16rem;
+  }
+  
+  .carousel-nav {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1rem;
+  }
+  
+  .carousel-nav.prev {
+    left: 0.25rem;
+  }
+  
+  .carousel-nav.next {
+    right: 0.25rem;
+  }
+  
+  .description-text {
+    padding: 1.5rem;
+  }
+  
+  .experience-card {
+    padding: 1.5rem 1rem;
+  }
+  
+  .future-plans {
+    padding: 2rem 1.5rem;
+  }
+}
+
+/* Medium phones (375px+) */
+@media (min-width: 23.4375rem) {
+  .image-carousel {
+    height: 18.75rem;
+  }
+  
+  .carousel-nav {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.1rem;
+  }
+  
+  .carousel-nav.prev {
+    left: 0.5rem;
+  }
+  
+  .carousel-nav.next {
+    right: 0.5rem;
+  }
+  
+  .description-text {
+    padding: 2rem;
+  }
+  
+  .experience-card {
+    padding: 2rem 1.5rem;
+  }
+  
+  .future-plans {
+    padding: 2.5rem 2rem;
+  }
+}
+
+/* Large phones and small tablets (480px+) */
+@media (min-width: 30rem) {
   .aboutpage-hero {
     min-height: 70vh;
-    padding: 60px 20px 40px;
+    padding: 4rem 2rem 3rem;
   }
-
-  .hero-content {
-    margin-bottom: 20px;
-  }
-
+  
   .image-carousel {
-    height: 400px;
+    height: 22rem;
   }
-
+  
   .carousel-nav {
-    width: 45px;
-    height: 45px;
-    font-size: 1.3rem;
-  }
-
-  .carousel-nav.prev {
-    left: 15px;
-  }
-
-  .carousel-nav.next {
-    right: 15px;
-  }
-
-  .section-title {
-    padding: 15px 30px;
-    font-size: clamp(1.5rem, 4vw, 2rem);
-  }
-
-  .description-text {
-    padding: 40px 30px;
-  }
-
-  .experience-grid {
-    grid-template-columns: 1fr;
-    gap: 30px;
-    margin: 50px 0;
-  }
-
-  .experience-card {
-    padding: 40px 30px;
-  }
-
-  .future-plans {
-    padding: 50px 35px;
-    margin-top: 50px;
-    margin-bottom: 70px;
-  }
-
-  .main-content {
-    padding: 80px 20px;
-  }
-
-  .developer-credit {
-    padding: 110px 20px 40px;
-  }
-}
-
-@media (max-width: 480px) {
-  .aboutpage-hero {
-    min-height: 60vh;
-    padding: 50px 15px 30px;
-  }
-
-  .hero-content {
-    margin-bottom: 20px;
-  }
-
-  .image-carousel {
-    height: 350px;
-  }
-
-  .carousel-nav {
-    width: 40px;
-    height: 40px;
+    width: 3rem;
+    height: 3rem;
     font-size: 1.2rem;
   }
-
+  
   .carousel-nav.prev {
-    left: 10px;
+    left: 0.75rem;
   }
-
+  
   .carousel-nav.next {
-    right: 10px;
+    right: 0.75rem;
   }
-
-  .section-title {
-    padding: 12px 25px;
-    margin-bottom: 40px;
+  
+  .container {
+    padding: 0 1.5rem;
   }
-
-  .description-text {
-    padding: 30px 25px;
-  }
-
-  .experience-card {
-    padding: 35px 25px;
-  }
-
-  .card-icon {
-    font-size: 3rem;
-  }
-
-  .future-plans {
-    padding: 40px 25px;
-  }
-
-  .future-plans li {
-    padding-left: 30px;
-  }
-
+  
   .main-content {
-    padding: 70px 15px;
+    padding: 5rem 1.5rem;
   }
-
+  
+  .experience-grid {
+    gap: 2.5rem;
+  }
+  
   .developer-credit {
-    padding: 60px 15px 35px;
+    padding: 3rem 1.5rem;
   }
 }
+
+/* Tablets (768px+) */
+@media (min-width: 48rem) {
+  .aboutpage-hero {
+    min-height: 80vh;
+    padding: 4rem 2rem 4rem;
+  }
+  
+  .carousel-section {
+    max-width: 50rem;
+    padding: 0 2rem;
+  }
+  
+  .image-carousel {
+    height: 25rem;
+  }
+  
+  .carousel-nav {
+    width: 3.125rem;
+    height: 3.125rem;
+    font-size: 1.3rem;
+  }
+  
+  .carousel-nav.prev {
+    left: 1rem;
+  }
+  
+  .carousel-nav.next {
+    right: 1rem;
+  }
+  
+  .container {
+    max-width: 75rem;
+    padding: 0 2rem;
+  }
+  
+  .description-content {
+    max-width: 50rem;
+  }
+  
+  .experience-content {
+    max-width: 68.75rem;
+  }
+  
+  .experience-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 3rem;
+    margin: 4rem 0;
+  }
+  
+  .main-content {
+    padding: 6rem 2rem;
+  }
+  
+  .developer-credit {
+    padding: 4rem 2rem;
+  }
+  
+  .credit-content {
+    max-width: 37.5rem;
+  }
+}
+
+/* Large tablets and small desktops (1024px+) */
+@media (min-width: 64rem) {
+  .carousel-section {
+    max-width: 56.25rem;
+  }
+  
+  .image-carousel {
+    height: 31.25rem;
+  }
+  
+  .carousel-nav {
+    width: 3.125rem;
+    height: 3.125rem;
+    font-size: 1.5rem;
+  }
+  
+  .carousel-nav.prev {
+    left: 1.25rem;
+  }
+  
+  .carousel-nav.next {
+    right: 1.25rem;
+  }
+  
+  .experience-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .experience-card {
+    padding: 3rem 2rem;
+  }
+  
+  .future-plans {
+    padding: 3.75rem 3rem;
+  }
+}
+
+/* Desktop (1200px+) */
+@media (min-width: 75rem) {
+  .carousel-section {
+    max-width: 56.25rem;
+  }
+  
+  .image-carousel {
+    height: 31.25rem;
+  }
+  
+  .experience-grid {
+    grid-template-columns: repeat(auto-fit, minmax(18.75rem, 1fr));
+    gap: 2.5rem;
+    margin: 3.75rem 0;
+  }
+  
+  .experience-card {
+    padding: 3.125rem 2.1875rem;
+  }
+  
+  .future-plans {
+    padding: 3.75rem 3.125rem;
+  }
+}
+
+/* =================================
+   UTILITY CLASSES
+   ================================= */
 
 /* Smooth scrolling for the entire page */
 html {
@@ -699,23 +873,47 @@ html {
 .carousel-error,
 .no-images,
 .image-carousel {
-  min-height: 400px;
+  min-height: 18.75rem;
 }
 
-@media (max-width: 768px) {
-  .carousel-loading,
-  .carousel-error,
-  .no-images,
-  .image-carousel {
-    min-height: 400px;
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  html {
+    scroll-behavior: auto;
   }
 }
 
-@media (max-width: 480px) {
-  .carousel-loading,
-  .carousel-error,
-  .no-images,
+/* Focus improvements for keyboard navigation */
+.carousel-nav:focus,
+.dot:focus,
+.retry-button:focus,
+.developer-link:focus,
+.contact-link:focus {
+  outline: 2px solid #ffdcf4;
+  outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+  .carousel-nav,
+  .carousel-dots,
+  .retry-button {
+    display: none !important;
+  }
+  
   .image-carousel {
-    min-height: 350px;
+    height: auto !important;
+    min-height: 12.5rem;
+  }
+  
+  .aboutpage-hero {
+    min-height: auto !important;
+    padding: 2rem 1rem !important;
   }
 }
