@@ -13,6 +13,13 @@ const About = () => {
   const isAnimating = useRef(false);
   const preloadedImages = useRef(new Map());
   const preloadQueue = useRef([]);
+  
+  const getAnimationDelay = (index) => {
+    const screenWidth = window.innerWidth;
+    if (screenWidth <= 576) return index * 0.003; 
+    if (screenWidth <= 768) return index * 0.008; 
+    return index * 0.02; 
+  };
 
   // Preload individual image
   const preloadImage = (src, charmId) => {
@@ -157,7 +164,7 @@ const About = () => {
                     key={`${charm.id}-${animationKey}-${i}`}
                     className="charm-item"
                     style={{
-                      animationDelay: `${i * 0.02}s`
+                      animationDelay: `${getAnimationDelay(i)}s`
                     }}
                   >
                     <img 
