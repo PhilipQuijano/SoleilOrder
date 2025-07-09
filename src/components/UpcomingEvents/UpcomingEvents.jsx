@@ -16,23 +16,16 @@ const UpcomingEvents = () => {
 
   const fetchEvents = async () => {
     try {
-      console.log('Fetching events from Supabase...');
-      
       const { data, error } = await supabase
         .from('events')
         .select('*');
       
-      console.log('Supabase response:', { data, error });
-      
       if (error) {
-        console.error('Supabase error:', error);
         setEvents([]);
         return;
       }
       
       if (data && data.length > 0) {
-        console.log('Events found:', data.length);
-        console.log('First event:', data[0]);
         setEvents(data);
         
         // Initialize image loading state
@@ -42,18 +35,16 @@ const UpcomingEvents = () => {
         });
         setImageLoaded(loadingState);
       } else {
-        console.log('No events found in database');
         setEvents([]);
       }
     } catch (error) {
-      console.error('Error fetching events:', error);
       setEvents([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Preload images
+  // Preload event images
   useEffect(() => {
     if (events.length > 0) {
       events.forEach((event, index) => {
@@ -63,7 +54,6 @@ const UpcomingEvents = () => {
             setImageLoaded(prev => ({ ...prev, [index]: true }));
           };
           img.onerror = () => {
-            console.log(`Failed to load image for event ${index}:`, event.image);
             setImageLoaded(prev => ({ ...prev, [index]: false }));
           };
           img.src = event.image;
@@ -72,7 +62,7 @@ const UpcomingEvents = () => {
     }
   }, [events, imageLoaded]);
 
-  // Auto-advance the carousel every 6 seconds (only if there are events)
+  // Auto-advance carousel
   useEffect(() => {
     if (events.length <= 1) return;
     
@@ -126,7 +116,6 @@ const UpcomingEvents = () => {
   const formatDate = (dateString) => {
     if (!dateString) return 'Date TBD';
     
-    // If it's already a formatted string or not a valid date, return as is
     if (typeof dateString === 'string' && !dateString.includes('-') && !dateString.includes('/')) {
       return dateString;
     }
@@ -134,9 +123,8 @@ const UpcomingEvents = () => {
     try {
       const date = new Date(dateString);
       
-      // Check if date is valid
       if (isNaN(date.getTime())) {
-        return dateString; // Return original string if not a valid date
+        return dateString;
       }
       
       return date.toLocaleDateString('en-US', {
@@ -146,7 +134,6 @@ const UpcomingEvents = () => {
         day: 'numeric'
       });
     } catch (error) {
-      console.error('Error formatting date:', error);
       return dateString;
     }
   };
@@ -166,9 +153,6 @@ const UpcomingEvents = () => {
       </div>
     );
   }
-
-  // Debug: Log the current state
-  console.log('Component render - Events:', events, 'Loading:', loading);
 
   if (events.length === 0) {
     return (

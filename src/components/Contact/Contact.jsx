@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { reviewsApi } from '../../../api/getReviews';
 import './Contact.css';
 
 const Contact = () => {
+  // State management
   const [reviewData, setReviewData] = useState({
     name: '',
     email: '',
     rating: 5,
     comment: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState('');
 
+  // Event handlers
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setReviewData(prev => ({
@@ -18,48 +23,98 @@ const Contact = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Here you would typically send the review data to your backend
-    console.log('Review submitted:', reviewData);
-    alert('Thank you for your review! We appreciate your feedback.');
-    setReviewData({
-      name: '',
-      email: '',
-      rating: 5,
-      comment: ''
-    });
+    setIsSubmitting(true);
+    setSubmitMessage('');
+
+    try {
+      await reviewsApi.createReview(reviewData);
+      setSubmitMessage('Thank you for your review!');
+      setReviewData({
+        name: '',
+        email: '',
+        rating: 5,
+        comment: ''
+      });
+    } catch (error) {
+      setSubmitMessage('Sorry, there was an error submitting your review. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleRatingClick = (rating) => {
+    setReviewData(prev => ({ ...prev, rating }));
+  };
+
+  // Animation variants
+  const containerVariants = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.6 }
+  };
+
+  const cardVariants = {
+    initial: { scale: 0.95, opacity: 0 },
+    animate: { scale: 1, opacity: 1 },
+    transition: { delay: 0.2, duration: 0.5 }
+  };
+
+  const titleVariants = {
+    initial: { y: -20, opacity: 0 },
+    animate: { y: 0, opacity: 1 },
+    transition: { delay: 0.3, duration: 0.5 }
+  };
+
+  const sectionVariants = {
+    initial: { y: 20, opacity: 0 },
+    animate: { y: 0, opacity: 1 },
+    transition: { delay: 0.4, duration: 0.5 }
+  };
+
+  const contactInfoVariants = {
+    initial: { y: 20, opacity: 0 },
+    animate: { y: 0, opacity: 1 },
+    transition: { delay: 0.5, duration: 0.5 }
+  };
+
+  const contactItemVariants = (delay) => ({
+    initial: { x: -20, opacity: 0 },
+    animate: { x: 0, opacity: 1 },
+    transition: { delay, duration: 0.4 }
+  });
+
+  const messageVariants = {
+    initial: { y: 20, opacity: 0 },
+    animate: { y: 0, opacity: 1 },
+    transition: { delay: 0.9, duration: 0.5 }
   };
 
   return (
     <div className="contact-page">
       <motion.div 
         className="contact-container"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        {...containerVariants}
       >
         <motion.div 
           className="contact-card"
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
+          {...cardVariants}
         >
           <motion.h1 
             className="contact-title"
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
+            {...titleVariants}
           >
+            Contact Us
           </motion.h1>
 
           <motion.div 
             className="review-section"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
+            {...sectionVariants}
           >
-            <h2 className="review-title">Leave a comment if you have any suggestions or comments about Soleil!</h2>
+            <h2 className="review-title">
+              Leave a comment if you have any suggestions or comments about Soleil!
+            </h2>
             
             <form onSubmit={handleSubmit} className="review-form">
               <div className="form-row">
@@ -73,6 +128,7 @@ const Contact = () => {
                     onChange={handleInputChange}
                     className="form-input"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
                 
@@ -86,6 +142,7 @@ const Contact = () => {
                     onChange={handleInputChange}
                     className="form-input"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
@@ -98,12 +155,15 @@ const Contact = () => {
                       key={star}
                       type="button"
                       className={`star ${star <= reviewData.rating ? 'active' : ''}`}
-                      onClick={() => setReviewData(prev => ({ ...prev, rating: star }))}
+                      onClick={() => handleRatingClick(star)}
+                      disabled={isSubmitting}
                     >
                       ★
                     </button>
                   ))}
-                  <span className="rating-text">({reviewData.rating} star{reviewData.rating !== 1 ? 's' : ''})</span>
+                  <span className="rating-text">
+                    ({reviewData.rating} star{reviewData.rating !== 1 ? 's' : ''})
+                  </span>
                 </div>
               </div>
 
@@ -118,26 +178,33 @@ const Contact = () => {
                   rows="4"
                   placeholder="Share your thoughts about Soleil..."
                   required
+                  disabled={isSubmitting}
                 />
               </div>
 
-              <button type="submit" className="submit-btn">
-                Submit Review
+              <button 
+                type="submit" 
+                className="submit-btn"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Submitting...' : 'Submit Review'}
               </button>
+
+              {submitMessage && (
+                <div className={`submit-message ${submitMessage.includes('error') ? 'error' : 'success'}`}>
+                  {submitMessage}
+                </div>
+              )}
             </form>
           </motion.div>
 
           <motion.div 
             className="contact-info"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.9, duration: 0.5 }}
+            {...contactInfoVariants}
           >
             <motion.div 
               className="contact-item"
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.5, duration: 0.4 }}
+              {...contactItemVariants(0.6)}
             >
               <div className="contact-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -155,9 +222,7 @@ const Contact = () => {
 
             <motion.div 
               className="contact-item"
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.6, duration: 0.4 }}
+              {...contactItemVariants(0.7)}
             >
               <div className="contact-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -181,9 +246,7 @@ const Contact = () => {
 
             <motion.div 
               className="contact-item"
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.7, duration: 0.4 }}
+              {...contactItemVariants(0.8)}
             >
               <div className="contact-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -200,7 +263,7 @@ const Contact = () => {
                   rel="noopener noreferrer"
                   className="contact-link"
                 >
-                  https://www.instagram.com/soleilphl/
+                  @soleilphl
                 </a>
               </div>
             </motion.div>
@@ -208,9 +271,7 @@ const Contact = () => {
 
           <motion.div 
             className="contact-message"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.8, duration: 0.5 }}
+            {...messageVariants}
           >
             <p>If you have any questions or queries, let us know!</p>
           </motion.div>

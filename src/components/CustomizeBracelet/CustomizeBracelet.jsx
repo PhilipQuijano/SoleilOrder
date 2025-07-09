@@ -1,39 +1,46 @@
+
 import React, { useState, useEffect } from 'react';
-import './CustomizeBracelet.css';
-import defaultSilverCharmImage from '../../assets/default-silver-charm.jpg';
-import { fetchCharms } from '../../../api/getCharms';
-import { motion, AnimatePresence } from 'framer-motion';
-import '../GlobalTransitions.css';
+import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
+import { fetchCharms } from '../../../api/getCharms';
+import './CustomizeBracelet.css';
+import '../GlobalTransitions.css';
+import defaultSilverCharmImage from '../../assets/default-silver-charm.jpg';
 
 const CustomizeBracelet = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { addBraceletToCart, getBraceletCount, editBracelet } = useCart();
   
-  // Check if we're editing an existing bracelet
+  // Edit mode detection
   const editData = location.state?.editBracelet;
   const isEditing = !!editData;
 
-  // State for bracelet size
+  // Core state
   const [size, setSize] = useState(editData?.size || 17);
   const [charms, setCharms] = useState([]);
   const [selectedCharm, setSelectedCharm] = useState(null);
   const [totalPrice, setTotalPrice] = useState(0);
-  const [availableCharms, setAvailableCharms] = useState({});
   const [loading, setLoading] = useState(true);
+  
+  // Selection and UI state
+  const [availableCharms, setAvailableCharms] = useState({});
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedSubtype, setSelectedSubtype] = useState(null);
   const [defaultSilverCharm, setDefaultSilverCharm] = useState(null);
-  const [draggedCharm, setDraggedCharm] = useState(null);
-  const [dragOverPosition, setDragOverPosition] = useState(null);
   const [plainCharms, setPlainCharms] = useState([]);
+  
+  // Modal states
   const [showModal, setShowModal] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
-  const { addBraceletToCart, getBraceletCount, editBracelet } = useCart();
-  const [showTermsModal, setShowTermsModal] = useState(false);  
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  
+  // Drag and drop state
+  const [draggedCharm, setDraggedCharm] = useState(null);
+  const [dragOverPosition, setDragOverPosition] = useState(null);
 
-  // Size options with charm counts
+  // Configuration
   const sizeOptions = [
     { value: 17, label: '17 Charms - 17 cm', charms: 17 },
     { value: 18, label: '18 Charms - 18 cm', charms: 18 },
@@ -45,72 +52,257 @@ const CustomizeBracelet = () => {
     { value: 24, label: '24 Charms - 24 cm', charms: 24 },
   ];
 
-  const handleDragOver = (e, index) => {
-    e.preventDefault();
-    e.stopPropagation();
-    e.dataTransfer.dropEffect = 'move';
+  // Initialize charms based on size and edit mode
+  useEffect(() => {
+    if (defaultSilverCharm) {
+      const selectedSize = sizeOptions.find(s => s.value === size);
+      const initialCharmsCount = selectedSize ? selectedSize.charms : 17;
+      
+      if (isEditing && editData && editData.charms) {
+        const currentCharms = [...editData.charms];
+        
+        if (currentCharms.length < initialCharmsCount) {
+          while (currentCharms.length < initialCharmsCount) {
+            currentCharms.push(defaultSilverCharm);
+          }
+        } else if (currentCharms.length > initialCharmsCount) {
+          currentCharms.splice(initialCharmsCount);
+        }
+        
+        setCharms(currentCharms);
+        calculateTotalPrice(currentCharms);
+      } else if (!isEditing) {
+        const defaultCharms = Array(initialCharmsCount).fill(defaultSilverCharm);
+        setCharms(defaultCharms);
+        calculateTotalPrice(defaultCharms);
+      }
+    }
+  }, [size, defaultSilverCharm, isEditing]);
+
+  // Load charms from API
+  useEffect(() => {
+    const loadCharms = async () => {
+      setLoading(true);
+      try {
+        const charmsFromDB = await fetchCharms();
+        
+        if (!charmsFromDB || charmsFromDB.length === 0) {
+          setLoading(false);
+          return;
+        }
+
+        const sortedPlainCharms = charmsFromDB
+          .filter(charm => 
+            charm.category === 'Plain Charms' && (charm.stock > 0 || charm.stock === undefined)
+          )
+          .sort((a, b) => {
+            const order = ['Silver', 'Gold', 'Rose Gold', 'Bronze (Matte)', 'Black (Matte)', 'Pink'];
+            const aIndex = order.indexOf(a.name);
+            const bIndex = order.indexOf(b.name);
+            
+            if (aIndex !== -1 && bIndex !== -1) {
+              return aIndex - bIndex;
+            }
+            if (aIndex !== -1) return -1;
+            if (bIndex !== -1) return 1;
+            return a.name.localeCompare(b.name);
+          });
+
+        // Set default charm with stock consideration
+        const findDefaultCharm = (requiredStock) => {
+          const silverCharm = sortedPlainCharms.find(charm => 
+            charm.name === 'Silver' && (charm.stock >= requiredStock || charm.stock === undefined)
+          );
+          if (silverCharm) return silverCharm;
+
+          const preferredOrder = ['Gold', 'Rose Gold', 'Bronze (Matte)', 'Black (Matte)', 'Pink'];
+          
+          for (const charmName of preferredOrder) {
+            const charm = sortedPlainCharms.find(c => 
+              c.name === charmName && (c.stock >= requiredStock || c.stock === undefined)
+            );
+            if (charm) return charm;
+          }
+
+          return sortedPlainCharms.find(charm => 
+            charm.stock >= requiredStock || charm.stock === undefined
+          ) || sortedPlainCharms[0];
+        };
+
+        const currentSize = sizeOptions.find(s => s.value === size) || sizeOptions[0];
+        const requiredStock = currentSize.charms;
+
+        const defaultCharm = findDefaultCharm(requiredStock);
+        setDefaultSilverCharm(defaultCharm);
+
+        // Organize charms into categories
+        const categoriesObj = {};
+        
+        charmsFromDB
+          .filter(charm => charm && (charm.stock > 0 || charm.stock === undefined))
+          .forEach((charm) => {
+            if (charm.category === 'letters' && charm.subcategory) {
+              if (!categoriesObj.letters) {
+                categoriesObj.letters = { name: 'Letters', subcategories: [] };
+              }
+              
+              let sub = categoriesObj.letters.subcategories.find(sc => sc.name === charm.subcategory);
+              if (!sub) {
+                sub = { name: charm.subcategory, charms: [] };
+                categoriesObj.letters.subcategories.push(sub);
+              }
+              
+              sub.charms.push(charm);
+            } else if (charm.category) {
+              const categoryKey = charm.category.toLowerCase().replace(/\s+/g, '');
+              
+              if (!categoriesObj[categoryKey]) {
+                categoriesObj[categoryKey] = {
+                  name: charm.category === 'Plain Charms' ? 'Plain Charms' : `${charm.category.charAt(0).toUpperCase()}${charm.category.slice(1)} Charms`,
+                  charms: [],
+                };
+              }
+              
+              categoriesObj[categoryKey].charms.push(charm);
+            }
+          });
+        
+        setAvailableCharms(categoriesObj);
+        setPlainCharms(sortedPlainCharms);
+      } catch (error) {
+        // Handle error gracefully without exposing internal details
+        console.error('Failed to load charms');
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    // Keep cursor as grabbing
-    document.body.style.cursor = 'grabbing';
+    loadCharms();
+  }, []);
+
+  // Show welcome instructions for new users
+  useEffect(() => {
+    if (!isEditing) {
+      const hasVisited = localStorage.getItem('soleil-bracelet-visited');
+      if (!hasVisited) {
+        setShowInstructions(true);
+        localStorage.setItem('soleil-bracelet-visited', 'true');
+      }
+    }
+  }, [isEditing]);
+
+  // Global drag event handlers
+  useEffect(() => {
+    const handleGlobalDragOver = (e) => {
+      if (document.body.classList.contains('dragging-active')) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        document.body.style.cursor = 'grabbing';
+      }
+    };
+
+    const handleGlobalDragEnter = (e) => {
+      if (document.body.classList.contains('dragging-active')) {
+        e.preventDefault();
+        document.body.style.cursor = 'grabbing';
+      }
+    };
+
+    document.addEventListener('dragover', handleGlobalDragOver);
+    document.addEventListener('dragenter', handleGlobalDragEnter);
+
+    return () => {
+      document.removeEventListener('dragover', handleGlobalDragOver);
+      document.removeEventListener('dragenter', handleGlobalDragEnter);
+    };
+  }, []);
+
+  // Event handlers
+  const handleSizeChange = (newSize) => {
+    const parsedSize = parseFloat(newSize);
+    setSize(parsedSize);
     
-    // Set drag over position if not already set
-    if (dragOverPosition !== index) {
-      setDragOverPosition(index);
+    const newSizeOption = sizeOptions.find(s => s.value === parsedSize);
+    const requiredStock = newSizeOption ? newSizeOption.charms : 17;
+    
+    if (defaultSilverCharm && defaultSilverCharm.stock !== undefined && defaultSilverCharm.stock < requiredStock) {
+      const findDefaultCharm = (requiredStock) => {
+        const silverCharm = plainCharms.find(charm => 
+          charm.name === 'Silver' && (charm.stock >= requiredStock || charm.stock === undefined)
+        );
+        if (silverCharm) return silverCharm;
+
+        const preferredOrder = ['Gold', 'Rose Gold', 'Bronze (Matte)', 'Black (Matte)', 'Pink'];
+        
+        for (const charmName of preferredOrder) {
+          const charm = plainCharms.find(c => 
+            c.name === charmName && (c.stock >= requiredStock || c.stock === undefined)
+          );
+          if (charm) return charm;
+        }
+
+        return plainCharms.find(charm => 
+          charm.stock >= requiredStock || charm.stock === undefined
+        ) || plainCharms[0];
+      };
+
+      const newDefaultCharm = findDefaultCharm(requiredStock);
+      setDefaultSilverCharm(newDefaultCharm);
     }
   };
 
-  const handleDragEnter = (e, index) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // Set drag over position
-    setDragOverPosition(index);
-    
-    // Ensure cursor stays as grabbing
-    document.body.style.cursor = 'grabbing';
+  const handleCategorySelect = (categoryKey, categoryName) => {
+    setSelectedCategory({ key: categoryKey, name: categoryName });
+    setSelectedSubtype(null);
+    setSelectedCharm(null);
   };
 
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (!e.currentTarget.contains(e.relatedTarget)) {
-      setDragOverPosition(null);
+  const handlePlainCharmChange = (charmId) => {
+    const selectedPlainCharm = plainCharms.find(charm => charm.id === parseInt(charmId));
+    if (selectedPlainCharm) {
+      setDefaultSilverCharm(selectedPlainCharm);
     }
   };
 
-  const handleDrop = (e, index) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // Clear drag over position
-    setDragOverPosition(null);
-    
-    // Apply the dragged charm to this position
-    if (draggedCharm) {
-      applyCharmToPosition(index);
-      setDraggedCharm(null);
-    }
-    
-    // Reset cursor
-    document.body.style.cursor = 'default';
+  const selectCharm = (charm) => {
+    setSelectedCharm(charm);
   };
 
-  // Updated drag start handler for charm options
+  const applyCharmToPosition = (position) => {
+    if (selectedCharm) {
+      const newCharms = [...charms];
+      newCharms[position] = selectedCharm;
+      setCharms(newCharms);
+      calculateTotalPrice(newCharms);
+      setSelectedCharm(null);
+    }
+  };
+
+  const calculateTotalPrice = (currentCharms) => {
+    const charmsPrice = currentCharms.reduce((sum, charm) => {
+      return sum + (charm ? charm.price : 0);
+    }, 0);
+    setTotalPrice(charmsPrice);
+  };
+
+  const resetSelection = () => {
+    setSelectedCategory(null);
+    setSelectedSubtype(null);
+    setSelectedCharm(null);
+  };
+
+  // Drag and drop handlers
   const handleDragStart = (e, charm) => {
     setDraggedCharm(charm);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/html', '');
     setSelectedCharm(charm);
     
-    // Add dragging class to body for global cursor control
     document.body.classList.add('dragging-active');
     document.body.style.cursor = 'grabbing';
-    
-    // Add dragging class to the original element
     e.currentTarget.classList.add('dragging');
     
-    // Create clean drag image (same as before)
+    // Create clean drag image
     const dragContainer = document.createElement('div');
     dragContainer.style.width = '80px';
     dragContainer.style.height = '80px';
@@ -155,209 +347,107 @@ const CustomizeBracelet = () => {
     }, 0);
   };
 
-  // Updated drag end handler
   const handleDragEnd = (e) => {
     e.currentTarget.classList.remove('dragging');
     document.body.classList.remove('dragging-active');
     document.body.style.cursor = 'default';
-    
-    // Clean up drag state
     setDraggedCharm(null);
     setDragOverPosition(null);
   };
 
-  useEffect(() => {
-  // Global drag over handler to prevent stop sign cursor
-  const handleGlobalDragOver = (e) => {
-    if (document.body.classList.contains('dragging-active')) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      document.body.style.cursor = 'grabbing';
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+    
+    document.body.style.cursor = 'grabbing';
+    
+    if (dragOverPosition !== index) {
+      setDragOverPosition(index);
     }
   };
 
-  // Global drag enter handler
-  const handleGlobalDragEnter = (e) => {
-    if (document.body.classList.contains('dragging-active')) {
-      e.preventDefault();
-      document.body.style.cursor = 'grabbing';
+  const handleDragEnter = (e, index) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setDragOverPosition(index);
+    document.body.style.cursor = 'grabbing';
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      setDragOverPosition(null);
     }
   };
 
-  // Attach global listeners
-  document.addEventListener('dragover', handleGlobalDragOver);
-  document.addEventListener('dragenter', handleGlobalDragEnter);
-
-  // Cleanup
-  return () => {
-    document.removeEventListener('dragover', handleGlobalDragOver);
-    document.removeEventListener('dragenter', handleGlobalDragEnter);
-  };
-}, []);
-
-
-  useEffect(() => {
-    if (defaultSilverCharm) {
-      const selectedSize = sizeOptions.find(s => s.value === size);
-      const initialCharmsCount = selectedSize ? selectedSize.charms : 17;
-      
-      if (isEditing && editData && editData.charms) {
-        // In edit mode, adjust the charms array to match the new size
-        const currentCharms = [...editData.charms];
-        
-        if (currentCharms.length < initialCharmsCount) {
-          // If new size is larger, fill with default charm
-          while (currentCharms.length < initialCharmsCount) {
-            currentCharms.push(defaultSilverCharm);
-          }
-        } else if (currentCharms.length > initialCharmsCount) {
-          // If new size is smaller, trim the array
-          currentCharms.splice(initialCharmsCount);
-        }
-        
-        setCharms(currentCharms);
-        calculateTotalPrice(currentCharms);
-      } else if (!isEditing) {
-        // For new bracelets, create default array
-        const defaultCharms = Array(initialCharmsCount).fill(defaultSilverCharm);
-        setCharms(defaultCharms);
-        calculateTotalPrice(defaultCharms);
-      }
-    }
-  }, [size, defaultSilverCharm, isEditing]);
-
-  useEffect(() => {
-    async function loadCharms() {
-      setLoading(true);
-      try {
-        const charmsFromDB = await fetchCharms();
-        
-        if (!charmsFromDB || charmsFromDB.length === 0) {
-          console.error('No charms data received from Supabase');
-          setLoading(false);
-          return;
-        }
-
-        const plainCharms = charmsFromDB
-          .filter(charm => 
-            charm.category === 'Plain Charms' && (charm.stock > 0 || charm.stock === undefined)
-          )
-          .sort((a, b) => {
-            // Define the order we want
-            const order = ['Silver', 'Gold', 'Rose Gold', 'Bronze (Matte)', 'Black (Matte)', 'Pink'];
-            const aIndex = order.indexOf(a.name);
-            const bIndex = order.indexOf(b.name);
-            
-            // If both are in the order array, sort by that order
-            if (aIndex !== -1 && bIndex !== -1) {
-              return aIndex - bIndex;
-            }
-            
-            // If only one is in the order array, prioritize it
-            if (aIndex !== -1) return -1;
-            if (bIndex !== -1) return 1;
-            
-            // If neither is in the order array, sort alphabetically
-            return a.name.localeCompare(b.name);
-          });
-
-        // Set default charm with stock consideration
-        const findDefaultCharm = (requiredStock) => {
-          // First try Silver (ID 155 based on your table)
-          const silverCharm = plainCharms.find(charm => 
-            charm.name === 'Silver' && (charm.stock >= requiredStock || charm.stock === undefined)
-          );
-          if (silverCharm) return silverCharm;
-
-          // If Silver doesn't have enough stock, try other plain charms in order of preference
-          const preferredOrder = ['Gold', 'Rose Gold', 'Bronze (Matte)', 'Black (Matte)', 'Pink'];
-          
-          for (const charmName of preferredOrder) {
-            const charm = plainCharms.find(c => 
-              c.name === charmName && (c.stock >= requiredStock || c.stock === undefined)
-            );
-            if (charm) return charm;
-          }
-
-          // Fallback: any available charm with enough stock
-          return plainCharms.find(charm => 
-            charm.stock >= requiredStock || charm.stock === undefined
-          ) || plainCharms[0];
-        };
-
-        // Get the current size's charm count
-        const currentSize = sizeOptions.find(s => s.value === size) || sizeOptions[0];
-        const requiredStock = currentSize.charms;
-
-        const defaultCharm = findDefaultCharm(requiredStock);
-        setDefaultSilverCharm(defaultCharm);
-
-        // Organize charms into categories
-        const categoriesObj = {};
-        
-          charmsFromDB
-            .filter(charm => charm && (charm.stock > 0 || charm.stock === undefined))
-            .forEach((charm) => {
-            if (charm.category === 'letters' && charm.subcategory) {
-              if (!categoriesObj.letters) {
-                categoriesObj.letters = { name: 'Letters', subcategories: [] };
-              }
-              
-              let sub = categoriesObj.letters.subcategories.find(sc => sc.name === charm.subcategory);
-              if (!sub) {
-                sub = { name: charm.subcategory, charms: [] };
-                categoriesObj.letters.subcategories.push(sub);
-              }
-              
-              sub.charms.push(charm);
-            } else if (charm.category) {
-              const categoryKey = charm.category.toLowerCase().replace(/\s+/g, '');
-              
-              if (!categoriesObj[categoryKey]) {
-                categoriesObj[categoryKey] = {
-                  name: charm.category === 'Plain Charms' ? 'Plain Charms' : `${charm.category.charAt(0).toUpperCase()}${charm.category.slice(1)} Charms`,
-                  charms: [],
-                };
-              }
-              
-              categoriesObj[categoryKey].charms.push(charm);
-            }
-          });
-        
-        setAvailableCharms(categoriesObj);
-        setPlainCharms(plainCharms);
-      } catch (error) {
-        console.error('Error loading charms:', error);
-      } finally {
-        setLoading(false);
-      }
+  const handleDrop = (e, index) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setDragOverPosition(null);
+    
+    if (draggedCharm) {
+      applyCharmToPosition(index);
+      setDraggedCharm(null);
     }
     
-    loadCharms();
-  }, []);
-
-  // Show instructions only for new bracelets, not when editing
-  useEffect(() => {
-    if (!isEditing) {
-      const hasVisited = localStorage.getItem('soleil-bracelet-visited');
-      if (!hasVisited) {
-        setShowInstructions(true);
-        localStorage.setItem('soleil-bracelet-visited', 'true');
-      }
-    }
-  }, [isEditing]);
-
-  // Handle category selection
-  const handleCategorySelect = (categoryKey, categoryName) => {
-    setSelectedCategory({ key: categoryKey, name: categoryName });
-    setSelectedSubtype(null);
-    setSelectedCharm(null);
+    document.body.style.cursor = 'default';
   };
-  const handlePlainCharmChange = (charmId) => {
-    const selectedPlainCharm = plainCharms.find(charm => charm.id === parseInt(charmId));
-    if (selectedPlainCharm) {
-      setDefaultSilverCharm(selectedPlainCharm);
+
+  // Modal handlers
+  const handleFinalize = () => {
+    setShowModal(true);
+  };
+
+  const handleCheckout = () => {
+    const braceletData = {
+      size: size,
+      charms: charms,
+      totalPrice: totalPrice,
+      charmCounts: processCharmsForCheckout()
+    };
+
+    if (isEditing) {
+      editBracelet(editData.id, braceletData);
+      setShowModal(false);
+      navigate('/cart', { 
+        state: { 
+          message: 'Bracelet updated successfully!' 
+        }
+      });
+    } else {
+      addBraceletToCart(braceletData);
+      setShowModal(false);
+      navigate('/cart');
     }
+  };
+
+  // Utility functions
+  const processCharmsForCheckout = () => {
+    const charmCounts = {};
+    
+    charms.forEach(charm => {
+      if (charm && charm.id) {
+        const key = charm.id;
+        if (charmCounts[key]) {
+          charmCounts[key].count++;
+        } else {
+          charmCounts[key] = {
+            id: charm.id,
+            name: charm.name,
+            price: charm.price,
+            image: charm.image,
+            count: 1
+          };
+        }
+      }
+    });
+
+    return Object.values(charmCounts);
   };
 
   const getPriceBreakdown = () => {
@@ -384,61 +474,6 @@ const CustomizeBracelet = () => {
     return Object.values(breakdown);
   };
 
-  // Handle finalize button click
-  const handleFinalize = () => {
-    setShowModal(true);
-  };
-
-  // Handle checkout/save
-  const handleCheckout = () => {
-    const braceletData = {
-      size: size,
-      charms: charms,
-      totalPrice: totalPrice,
-      charmCounts: processCharmsForCheckout()
-    };
-
-    if (isEditing) {
-      // Update existing bracelet - pass the original bracelet ID
-      editBracelet(editData.id, braceletData);
-      setShowModal(false);
-      navigate('/cart', { 
-        state: { 
-          message: 'Bracelet updated successfully!' 
-        }
-      });
-    } else {
-      // Add new bracelet
-      addBraceletToCart(braceletData);
-      setShowModal(false);
-      navigate('/cart');
-    }
-  };
-
-  const processCharmsForCheckout = () => {
-    const charmCounts = {};
-    
-    charms.forEach(charm => {
-      if (charm && charm.id) {
-        const key = charm.id;
-        if (charmCounts[key]) {
-          charmCounts[key].count++;
-        } else {
-          charmCounts[key] = {
-            id: charm.id,
-            name: charm.name,
-            price: charm.price,
-            image: charm.image,
-            count: 1
-          };
-        }
-      }
-    });
-
-    return Object.values(charmCounts);
-  };
-
-  // Get charms to display based on current selection
   const getCharmsToDisplay = () => {
     if (!selectedCategory) return [];
     
@@ -460,76 +495,6 @@ const CustomizeBracelet = () => {
     return category.charms || [];
   };
 
-  // Handle size change
-  const handleSizeChange = (newSize) => {
-    const parsedSize = parseFloat(newSize);
-    setSize(parsedSize);
-    
-    // Check if current default charm has enough stock for new size
-    const newSizeOption = sizeOptions.find(s => s.value === parsedSize);
-    const requiredStock = newSizeOption ? newSizeOption.charms : 17;
-    
-    if (defaultSilverCharm && defaultSilverCharm.stock !== undefined && defaultSilverCharm.stock < requiredStock) {
-      // Find a new default charm with sufficient stock
-      const findDefaultCharm = (requiredStock) => {
-        // First try Silver
-        const silverCharm = plainCharms.find(charm => 
-          charm.name === 'Silver' && (charm.stock >= requiredStock || charm.stock === undefined)
-        );
-        if (silverCharm) return silverCharm;
-
-        // Try other charms in preference order
-        const preferredOrder = ['Gold', 'Rose Gold', 'Bronze (Matte)', 'Black (Matte)', 'Pink'];
-        
-        for (const charmName of preferredOrder) {
-          const charm = plainCharms.find(c => 
-            c.name === charmName && (c.stock >= requiredStock || c.stock === undefined)
-          );
-          if (charm) return charm;
-        }
-
-        // Fallback
-        return plainCharms.find(charm => 
-          charm.stock >= requiredStock || charm.stock === undefined
-        ) || plainCharms[0];
-      };
-
-      const newDefaultCharm = findDefaultCharm(requiredStock);
-      setDefaultSilverCharm(newDefaultCharm);
-    }
-  };
-
-  // Handle charm selection
-  const selectCharm = (charm) => {
-    setSelectedCharm(charm);
-  };
-
-  // Apply selected charm to position
-  const applyCharmToPosition = (position) => {
-    if (selectedCharm) {
-      const newCharms = [...charms];
-      newCharms[position] = selectedCharm;
-      setCharms(newCharms);
-      calculateTotalPrice(newCharms);
-      setSelectedCharm(null);
-    }
-  };
-
-  // Calculate total price
-  const calculateTotalPrice = (currentCharms) => {
-    const charmsPrice = currentCharms.reduce((sum, charm) => {
-      return sum + (charm ? charm.price : 0);
-    }, 0);
-    setTotalPrice(charmsPrice);
-  };
-
-  // Reset selection flow
-  const resetSelection = () => {
-    setSelectedCategory(null);
-    setSelectedSubtype(null);
-    setSelectedCharm(null);
-  };
-
   return (
     <motion.div 
       className="customize-bracelet-page"
@@ -538,7 +503,7 @@ const CustomizeBracelet = () => {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
-      {/* Edit Mode Indicator */}
+      {/* Edit Mode Banner */}
       {isEditing && (
         <motion.div 
           className="edit-mode-banner"
@@ -558,7 +523,7 @@ const CustomizeBracelet = () => {
         </motion.div>
       )}
 
-      {/* Sticky Bracelet Display */}
+      {/* Bracelet Display */}
       <motion.div 
         className="bracelet-display"
         initial={{ y: -20, opacity: 0 }}
@@ -578,17 +543,14 @@ const CustomizeBracelet = () => {
           </div>
           <div className="control-group">
             <h3>Starting Charm</h3>
-              <select 
-                value={defaultSilverCharm?.id || ''} 
-                onChange={(e) => handlePlainCharmChange(e.target.value)}
-                style={{ textAlign: 'center' }}
-              >
+            <select 
+              value={defaultSilverCharm?.id || ''} 
+              onChange={(e) => handlePlainCharmChange(e.target.value)}
+              style={{ textAlign: 'center' }}
+            >
               {plainCharms.map((charm) => {
-                // Get the required stock for current bracelet size
                 const currentSize = sizeOptions.find(s => s.value === size);
                 const requiredStock = currentSize ? currentSize.charms : 17;
-                
-                // Check if charm has sufficient stock
                 const hasEnoughStock = charm.stock === undefined || charm.stock >= requiredStock;
                 
                 return (
@@ -607,7 +569,7 @@ const CustomizeBracelet = () => {
               })}
             </select>
           </div>
-      </div>
+        </div>
         
         <div className="bracelet-preview-section">
           <div className="bracelet-visual">
@@ -637,6 +599,7 @@ const CustomizeBracelet = () => {
         </div>
       </motion.div>
 
+      {/* Cart Indicator */}
       {getBraceletCount() > 0 && (
         <div className="cart-indicator">
           <button 
@@ -648,21 +611,20 @@ const CustomizeBracelet = () => {
         </div>
       )}
 
-      {/* Charm Selection Section */}
+      {/* Charm Selection */}
       <motion.div 
         className="charm-selection"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3, duration: 0.6 }}
       >
-        
         {loading ? (
           <div className="loading">
             Loading charms...
           </div>
         ) : (
           <div className="selection-steps">
-            {/* Step 1: Category Selection */}
+            {/* Category Selection */}
             {!selectedCategory && (
               <motion.div 
                 className="selection-step"
@@ -694,7 +656,7 @@ const CustomizeBracelet = () => {
               </motion.div>
             )}
             
-            {/* Step 3: Charm Selection */}
+            {/* Charm Selection */}
             {selectedCategory && (
               (selectedCategory.key !== 'gold' && selectedCategory.key !== 'silver') || 
               (selectedSubtype)
@@ -794,7 +756,7 @@ const CustomizeBracelet = () => {
         )}
       </motion.div>
       
-      {/* Sticky Price Footer */}
+      {/* Price Footer */}
       <div className="price-footer">
         <div className="price-info">
           <span className="price-label">Total Price:</span>
@@ -813,6 +775,7 @@ const CustomizeBracelet = () => {
           </button>
         </div>
       </div>
+
 
       {/* Modal */}
       {showModal && (

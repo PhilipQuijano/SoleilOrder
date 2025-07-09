@@ -18,24 +18,19 @@ const AboutPage = () => {
       setLoading(true);
       setError(null);
       
-      // First, let's check if the bucket exists and is accessible
-      const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
+      // Check if about-images bucket exists
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const aboutBucket = buckets?.find(bucket => bucket.name === 'about-images');
       
-      if (bucketError) {
+      if (!aboutBucket && buckets) {
+        console.warn('About-images bucket not found, attempting to access anyway');
       }
       
-      // Check if about-images bucket exists (but don't fail if we can't list buckets)
-      if (buckets) {
-        const aboutBucket = buckets?.find(bucket => bucket.name === 'about-images');
-        if (!aboutBucket) {
-         
-          // Don't return here - try to access it anyway
-        }
-      }
+      // Try multiple methods to fetch images
+      let data, error;
       
-      
-      // Method 1: List with different parameters
-      let { data, error } = await supabase
+      // Method 1: List with parameters
+      const result1 = await supabase
         .storage
         .from('about-images')
         .list('', {
@@ -44,64 +39,57 @@ const AboutPage = () => {
           sortBy: { column: 'name', order: 'asc' }
         });
       
-      if (error) {
-        // Method 2: Try without parameters
+      if (result1.error) {
+        // Method 2: List without parameters
         const result2 = await supabase
           .storage
           .from('about-images')
           .list();
         
-        data = result2.data;
-        error = result2.error;
+        if (result2.error) {
+          // Method 3: List root directory explicitly
+          const result3 = await supabase
+            .storage
+            .from('about-images')
+            .list('/', { limit: 100 });
+          
+          data = result3.data;
+          error = result3.error;
+        } else {
+          data = result2.data;
+          error = result2.error;
+        }
+      } else {
+        data = result1.data;
+        error = result1.error;
       }
       
       if (error) {
-        // Method 3: Try listing root directory explicitly
-        const result3 = await supabase
-          .storage
-          .from('about-images')
-          .list('/', {
-            limit: 100
-          });
-        
-        data = result3.data;
-        error = result3.error;
-      }
-      
-      if (error) {
-        console.error('All methods failed. Final error:', error);
         setError(`Storage error: ${error.message}`);
         setImages([]);
         return;
       }
       
-      
       if (data && data.length > 0) {
-        // Filter out directories and system files, keep only image files
+        // Filter for valid image files
         const imageFiles = data.filter(file => {
           if (!file.name) return false;
           
-          // Check if it's an image file
           const isImage = file.name.match(/\.(jpg|jpeg|png|gif|webp|avif|bmp|tiff)$/i);
-          
-          // Check if it's not a folder (folders have no metadata or specific properties)
           const isNotFolder = file.name !== '.emptyFolderPlaceholder' && 
                              !file.name.endsWith('/') &&
-                             file.id; // Files should have an ID
-          
+                             file.id;
           
           return isImage && isNotFolder;
         });
         
-        
         if (imageFiles.length > 0) {
-          // Get public URLs for the images
+          // Get public URLs for images
           const imageUrls = imageFiles.map(file => {
             const { data: urlData } = supabase
               .storage
               .from('about-images')
               .getPublicUrl(file.name);
-            
             
             return {
               id: file.id || file.name,
@@ -113,7 +101,6 @@ const AboutPage = () => {
           });
           setImages(imageUrls);
         } else {
-        
           setImages([]);
         }
       } else {
@@ -155,10 +142,8 @@ const AboutPage = () => {
   };
 
   const handleImageError = (e) => {
-    console.error('Image failed to load:', e.target.src);
     e.target.style.display = 'none';
   };
-
 
   return (
     <div className="aboutpage-container">
@@ -247,7 +232,7 @@ const AboutPage = () => {
         </motion.div>
       </section>
 
-{/* Main Content Section */}
+      {/* Main Content Section */}
       <section className="main-content">
         <div className="container">
           {/* Customization Experience */}
@@ -296,7 +281,7 @@ const AboutPage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
-                viewport={{ once: true }}
+                viewport={{ once: 'true' }}
                 whileHover={{ 
                   scale: 1.05,
                   y: -8,

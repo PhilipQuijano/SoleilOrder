@@ -1,10 +1,8 @@
-// Hero.jsx - Updated with animations and upcoming events
 import React from 'react';
 import './Hero.css';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import backgroundImage from '../../assets/charms-background.jpg';
-import UpcomingEvents from '../UpcomingEvents/UpcomingEvents';
 
 const Hero = () => {
   return (

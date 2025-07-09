@@ -1,4 +1,3 @@
-// Navbar.jsx - Enhanced with animations
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -20,9 +19,11 @@ const Navbar = () => {
     
     handleScroll();
     window.addEventListener('scroll', handleScroll);
+    
     return () => window.removeEventListener('scroll', handleScroll);
   }, [location.pathname]);
 
+  // Animation variants
   const navVariants = {
     hidden: { opacity: 0, y: -20 },
     visible: { opacity: 1, y: 0 }
@@ -43,6 +44,7 @@ const Navbar = () => {
     >
       <div className="navbar-content">
         <div className="navbar-left">
+          {/* Social Media Links */}
           <div className="social-icons">
             <motion.a
               href="https://www.instagram.com/soleilphl/" 
@@ -67,12 +69,16 @@ const Navbar = () => {
               <Facebook size={18} />
             </motion.a>
           </div>
+          
+          {/* Logo */}
           <motion.div whileHover={{ scale: 1.05 }}>
             <Link to="/" className="logo hover-underline">
               SOLEIL
             </Link>
           </motion.div>
         </div>
+
+        {/* Navigation Links */}
         <div className="nav-links">
           {['About', 'Customize', 'Contact'].map((item) => (
             <motion.div

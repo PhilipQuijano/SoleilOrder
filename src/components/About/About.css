@@ -1,6 +1,10 @@
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
 .about {
-  width: 100vw;
-  min-height: 110vh;
+  width: 100%;
+  min-height: 100vh;
   background: linear-gradient(
     to bottom,
     #72506b 0%,
@@ -27,15 +31,15 @@
   right: 0;
   bottom: 0;
   background: 
-    repeating-radial-gradient(circle at 30% 70%, transparent 0%, transparent 20px, rgba(88, 46, 78, 0.01) 12px, rgba(88, 46, 78, 0.01) 15px);
+    repeating-radial-gradient(circle at 30% 70%, transparent 0%, transparent 1.25rem, rgba(88, 46, 78, 0.01) 0.75rem, rgba(88, 46, 78, 0.01) 0.9375rem);
   pointer-events: none;
 }
 
-/* Smooth transition to Upcoming Events */
+/* Smooth transition to next section */
 .about::after {
   content: '';
   position: absolute;
-  bottom: -2px;
+  bottom: -0.125rem;
   left: 0;
   right: 0;
   height: 30vh;
@@ -52,10 +56,14 @@
   z-index: 1;
 }
 
+/* ============================================
+   CONTAINER AND LAYOUT
+   ============================================ */
+
 .about .container {
-  max-width: 1200px;
+  max-width: 75rem;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0 1rem;
   width: 100%;
   display: flex;
   justify-content: center;
@@ -66,7 +74,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 6rem;
-  max-width: 1200px;
+  max-width: 75rem;
   margin: 0 auto;
   padding: 5rem 2rem 7.5rem;
   min-height: 100vh;
@@ -74,15 +82,18 @@
   z-index: 2;
 }
 
+/* ============================================
+   TEXT CONTENT SECTION
+   ============================================ */
+
 .about-text {
   flex-basis: 60%;
   max-width: 37.5rem;
 }
 
-/* About Section Text with Box Styling */
 .about-text h2 {
   font-family: var(--font-headline);
-  font-size: 1.5rem;
+  font-size: clamp(1rem, 4vw, 1.5rem);
   color: #ffdcf4;
   margin-bottom: 1.875rem;
   font-weight: 500;
@@ -92,18 +103,20 @@
   text-transform: uppercase;
   
   text-shadow: 
-    0 3px 12px rgba(0, 0, 0, 0.6),
-    0 1px 3px rgba(0, 0, 0, 0.8),
-    0 6px 24px rgba(88, 46, 78, 0.4);
+    0 0.1875rem 0.75rem rgba(0, 0, 0, 0.6),
+    0 0.0625rem 0.1875rem rgba(0, 0, 0, 0.8),
+    0 0.375rem 1.5rem rgba(88, 46, 78, 0.4);
   
-  border: 1px solid #ffdcf4;
+  border: 0.0625rem solid #ffdcf4;
   padding: 1.25rem 2.5rem;
   background-color: transparent;
   display: inline-block;
+  width: 100%;
+  box-sizing: border-box;
   
   box-shadow: 
-    0 4px 12px rgba(0, 0, 0, 0.3),
-    0 2px 4px rgba(0, 0, 0, 0.2);
+    0 0.25rem 0.75rem rgba(0, 0, 0, 0.3),
+    0 0.125rem 0.25rem rgba(0, 0, 0, 0.2);
   
   animation: textGlow 4s ease-in-out infinite alternate;
   transition: all 0.3s ease;
@@ -114,36 +127,12 @@
 
 .about-text .italic {
   font-style: italic;
-  font-weight: 100;
+  font-weight: 300;
   color: #f8f8f8;
   text-shadow: 
-    0 2px 8px rgba(255, 255, 255, 0.2),
-    0 4px 16px rgba(0, 0, 0, 0.7),
-    0 8px 32px rgba(88, 46, 78, 0.5);
-}
-
-@keyframes textGlow {
-  0% {
-    text-shadow: 
-      0 3px 12px rgba(0, 0, 0, 0.6),
-      0 1px 3px rgba(0, 0, 0, 0.8),
-      0 6px 24px rgba(88, 46, 78, 0.4);
-  }
-  100% {
-    text-shadow: 
-      0 3px 12px rgba(0, 0, 0, 0.6),
-      0 1px 3px rgba(0, 0, 0, 0.8),
-      0 6px 24px rgba(88, 46, 78, 0.6),
-      0 0 40px rgba(255, 255, 255, 0.1);
-  }
-}
-
-.about-text h2:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 
-    0 6px 16px rgba(0, 0, 0, 0.4),
-    0 4px 8px rgba(0, 0, 0, 0.3);
+    0 0.125rem 0.5rem rgba(255, 255, 255, 0.2),
+    0 0.25rem 1rem rgba(0, 0, 0, 0.7),
+    0 0.5rem 2rem rgba(88, 46, 78, 0.5);
 }
 
 .about-text h2::after {
@@ -158,16 +147,17 @@
   transition: opacity 0.3s;
 }
 
-.about-text h2:hover::after {
-  opacity: 1;
-}
-
 .about-text p {
   color: #f0f0f0;
   line-height: 1.8;
-  font-size: 1rem;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  font-size: clamp(0.875rem, 2.5vw, 1rem);
+  text-shadow: 0 0.0625rem 0.25rem rgba(0, 0, 0, 0.3);
+  margin-bottom: 1rem;
 }
+
+/* ============================================
+   IMAGES SECTION
+   ============================================ */
 
 .about-images {
   flex-basis: 55%;
@@ -190,22 +180,21 @@
 .charm-item {
   aspect-ratio: 1/1;
   width: 100%;
-  height: 100%;
+  min-height: 3.75rem;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 248, 248, 0.9) 100%);
   border-radius: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 0.0625rem solid rgba(255, 255, 255, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   position: relative;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.2), 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   
   animation: charmCycle 3s ease-in-out forwards;
   transform: translateX(100%);
   opacity: 0;
-  min-height: 3.75rem;
 }
 
 .charm-item::before {
@@ -218,16 +207,6 @@
   background: linear-gradient(135deg, rgba(88, 46, 78, 0.03) 0%, rgba(255, 255, 255, 0.02) 50%, transparent 100%);
   border-radius: 0.75rem;
   pointer-events: none;
-}
-
-.charm-item:hover {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.charm-item:hover:not(.loading-charm) {
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(0, 0, 0, 0.15);
-  z-index: 10;
 }
 
 .charm-image {
@@ -252,6 +231,52 @@
   background-color: rgba(224, 224, 224, 0.6);
   border-radius: 50%;
   animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ============================================
+   HOVER EFFECTS
+   ============================================ */
+
+.about-text h2:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-0.125rem) scale(1.02);
+  box-shadow: 
+    0 0.375rem 1rem rgba(0, 0, 0, 0.4),
+    0 0.25rem 0.5rem rgba(0, 0, 0, 0.3);
+}
+
+.about-text h2:hover::after {
+  opacity: 1;
+}
+
+.charm-item:hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.charm-item:hover:not(.loading-charm) {
+  transform: translateY(-0.125rem) scale(1.05);
+  box-shadow: 0 0.375rem 1.25rem rgba(0, 0, 0, 0.3), 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes textGlow {
+  0% {
+    text-shadow: 
+      0 0.1875rem 0.75rem rgba(0, 0, 0, 0.6),
+      0 0.0625rem 0.1875rem rgba(0, 0, 0, 0.8),
+      0 0.375rem 1.5rem rgba(88, 46, 78, 0.4);
+  }
+  100% {
+    text-shadow: 
+      0 0.1875rem 0.75rem rgba(0, 0, 0, 0.6),
+      0 0.0625rem 0.1875rem rgba(0, 0, 0, 0.8),
+      0 0.375rem 1.5rem rgba(88, 46, 78, 0.6),
+      0 0 2.5rem rgba(255, 255, 255, 0.1);
+  }
 }
 
 @keyframes charmCycle {
@@ -289,29 +314,27 @@
 }
 
 /* ============================================
-   MOBILE RESPONSIVE BREAKPOINTS
+   TABLET BREAKPOINT (768px - 1024px)
    ============================================ */
 
-/* Large tablets and small desktops */
-@media (max-width: 1024px) {
+@media (max-width: 64rem) {
   .about-content {
     gap: 4rem;
     padding: 4rem 2rem 6rem;
   }
   
   .about-text h2 {
-    font-size: 1.4rem;
-    padding: 1rem 2rem;
+    padding: 1rem 3rem;
     letter-spacing: 0.2rem;
   }
   
   .charms-grid {
     gap: 1rem;
+    grid-template-columns: repeat(5, 1fr);
   }
 }
 
-/* Tablets */
-@media (max-width: 768px) {
+@media (max-width: 48rem) {
   .about {
     min-height: 100vh;
   }
@@ -341,16 +364,16 @@
   }
   
   .about-text h2 {
-    font-size: 1.3rem;
     padding: 1rem 1.5rem;
     letter-spacing: 0.15rem;
     margin-bottom: 1.5rem;
-    width: 100%;
-    box-sizing: border-box;
+  }
+  
+  .about-text .italic {
+    margin: 0.5rem;
   }
   
   .about-text p {
-    font-size: 1rem;
     line-height: 1.7;
     max-width: 100%;
   }
@@ -361,7 +384,7 @@
   }
   
   .charms-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 1rem;
     max-width: 100%;
     width: 100%;
@@ -369,12 +392,15 @@
 
   .charm-item {
     min-height: 4rem;
-    aspect-ratio: 1;
   }
+
 }
 
-/* Large mobile phones */
-@media (max-width: 576px) {
+/* ============================================
+   MOBILE BREAKPOINT (320px - 576px)
+   ============================================ */
+
+@media (max-width: 36rem) {
   .about .container {
     padding: 0 1rem;
   }
@@ -385,14 +411,16 @@
   }
   
   .about-text h2 {
-    font-size: 1.2rem;
     padding: 0.875rem 1.25rem;
     letter-spacing: 0.125rem;
     margin-bottom: 1.25rem;
   }
   
+  .about-text .italic {
+    word-spacing: 0.3rem;
+  }
+  
   .about-text p {
-    font-size: 0.95rem;
     line-height: 1.6;
   }
   
@@ -417,8 +445,7 @@
   }
 }
 
-/* Small mobile phones */
-@media (max-width: 480px) {
+@media (max-width: 30rem) {
   .about {
     min-height: 90vh;
   }
@@ -434,14 +461,12 @@
   }
   
   .about-text h2 {
-    font-size: 1.1rem;
     padding: 0.75rem 1rem;
     letter-spacing: 0.1rem;
     margin-bottom: 1rem;
   }
   
   .about-text p {
-    font-size: 0.9rem;
     line-height: 1.5;
   }
   
@@ -456,10 +481,14 @@
     min-height: 3rem;
     border-radius: 0.5rem;
   }
+
 }
 
-/* Extra small mobile phones */
-@media (max-width: 375px) {
+/* ============================================
+   EXTRA SMALL MOBILE (320px and below)
+   ============================================ */
+
+@media (max-width: 23.4375rem) {
   .about .container {
     padding: 0 0.5rem;
   }
@@ -470,13 +499,8 @@
   }
   
   .about-text h2 {
-    font-size: 1rem;
     padding: 0.625rem 0.875rem;
     letter-spacing: 0.08rem;
-  }
-  
-  .about-text p {
-    font-size: 0.875rem;
   }
   
   .charms-grid {
@@ -486,10 +510,10 @@
   .charm-item {
     min-height: 2.75rem;
   }
+  
 }
 
-/* Very small screens */
-@media (max-width: 320px) {
+@media (max-width: 20rem) {
   .about .container {
     padding: 0 0.5rem;
   }
@@ -500,13 +524,8 @@
   }
   
   .about-text h2 {
-    font-size: 0.95rem;
     padding: 0.5rem 0.75rem;
     letter-spacing: 0.05rem;
-  }
-  
-  .about-text p {
-    font-size: 0.825rem;
   }
   
   .charms-grid {
@@ -516,5 +535,56 @@
   
   .charm-item {
     min-height: 2.5rem;
+  }
+  
+  .about-text .italic {
+    word-spacing: 0.3rem;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY AND TOUCH TARGETS
+   ============================================ */
+
+/* Ensure minimum touch target size on mobile */
+@media (max-width: 48rem) {
+  .charm-item {
+    min-height: 3rem;
+    min-width: 3rem;
+  }
+  
+  .about-text h2 {
+    min-height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* ============================================
+   PERFORMANCE OPTIMIZATIONS
+   ============================================ */
+
+/* Reduce animations on smaller screens for better performance */
+@media (max-width: 36rem) {
+  .charm-item {
+    animation-duration: 2s;
+  }
+  
+  .about-text h2 {
+    animation-duration: 6s;
+  }
+}
+
+/* Disable hover effects on touch devices */
+@media (hover: none) {
+  .charm-item:hover,
+  .about-text h2:hover {
+    transform: none;
+    box-shadow: initial;
+  }
+  
+  .about-text h2:hover::after {
+    opacity: 0;
   }
 }

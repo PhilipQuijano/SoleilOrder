@@ -8,14 +8,14 @@ const Cart = () => {
   const { cartBracelets, totalCartPrice, removeBraceletFromCart, clearCart } = useCart();
   const navigate = useNavigate();
 
-const handleEditBracelet = (braceletId) => {
-  const braceletToEdit = cartBracelets.find(b => b.id === braceletId);
-  navigate('/customize', { 
-    state: { 
-      editBracelet: braceletToEdit
-    } 
-  });
-};
+  const handleEditBracelet = (braceletId) => {
+    const braceletToEdit = cartBracelets.find(b => b.id === braceletId);
+    navigate('/customize', { 
+      state: { 
+        editBracelet: braceletToEdit
+      } 
+    });
+  };
 
   const handleCheckout = () => {
     if (cartBracelets.length === 0) return;
@@ -30,6 +30,7 @@ const handleEditBracelet = (braceletId) => {
 
   const getPriceBreakdown = (bracelet) => {
     const breakdown = {};
+    
     bracelet.charms.forEach(charm => {
       if (charm) {
         const key = `${charm.name}-${charm.price}`;
@@ -52,6 +53,7 @@ const handleEditBracelet = (braceletId) => {
     return Object.values(breakdown);
   };
 
+  // Empty cart state
   if (cartBracelets.length === 0) {
     return (
       <div className="cart-page">
@@ -82,6 +84,7 @@ const handleEditBracelet = (braceletId) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
+        {/* Cart Header */}
         <motion.div 
           className="cart-header"
           initial={{ x: -20, opacity: 0 }}
@@ -95,6 +98,7 @@ const handleEditBracelet = (braceletId) => {
         </motion.div>
 
         <div className="cart-content">
+          {/* Cart Items */}
           <div className="cart-bracelets">
             <AnimatePresence>
               {cartBracelets.map((bracelet, index) => (
@@ -106,7 +110,7 @@ const handleEditBracelet = (braceletId) => {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ delay: index * 0.1, duration: 0.5 }}
                 >
-                  {/* Bracelet Preview Section - Similar to Checkout */}
+                  {/* Bracelet Preview */}
                   <div className="bracelet-preview">
                     <h3>Bracelet #{index + 1} - {bracelet.size}cm</h3>
                     <div className="bracelet-visual-small">
@@ -118,7 +122,7 @@ const handleEditBracelet = (braceletId) => {
                     </div>
                   </div>
 
-                  {/* Price Breakdown Section */}
+                  {/* Price Breakdown */}
                   <div className="bracelet-details">
                     <div className="price-breakdown">
                       {getPriceBreakdown(bracelet).map((item, idx) => (
@@ -134,7 +138,6 @@ const handleEditBracelet = (braceletId) => {
                         </motion.div>
                       ))}
                       
-                      {/* Bracelet Total - Similar to Checkout Total */}
                       <div className="bracelet-total">
                         <div className="bracelet-total-row">
                           <span className="total-label">Bracelet Total</span>
@@ -164,7 +167,7 @@ const handleEditBracelet = (braceletId) => {
             </AnimatePresence>
           </div>
 
-          {/* Cart Summary - Similar to Checkout Summary */}
+          {/* Cart Summary */}
           <motion.div 
             className="cart-summary"
             initial={{ x: 20, opacity: 0 }}

@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import './Checkout.css';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../../../api/supabaseClient';
+import './Checkout.css';
 
 const CheckoutPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const passedData = location.state;
 
-  // Philippine regions data
+  // Philippine regions for address form
   const philippineRegions = [
     'National Capital Region (NCR)',
-    'Cordillera Administrative Region (CAR)',
+    'Cordilliner Administrative Region (CAR)',
     'Region I - Ilocos Region',
     'Region II - Cagayan Valley',
     'Region III - Central Luzon',
@@ -30,15 +30,14 @@ const CheckoutPage = () => {
     'Bangsamoro Autonomous Region in Muslim Mindanao (BARMM)'
   ];
 
+  // Initialize order data from various sources
   const [orderData] = useState(() => {
     if (passedData?.bracelets) {
-      // New multiple bracelet structure from cart
       return {
         bracelets: passedData.bracelets,
         totalPrice: passedData.totalPrice
       };
     } else if (passedData?.charms) {
-      // Legacy single bracelet structure
       return {
         bracelets: [{
           id: 'single-bracelet',
@@ -67,11 +66,11 @@ const CheckoutPage = () => {
     };
   });
 
+  // Customer information form state
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
     phone: '',
     email: '',
-    // Address fields
     houseNumber: '',
     street: '',
     barangay: '',
@@ -86,13 +85,12 @@ const CheckoutPage = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Handle form input changes
   const handleInputChange = (field, value) => {
     setCustomerInfo(prev => {
-      const updated = {
-        ...prev,
-        [field]: value
-      };
+      const updated = { ...prev, [field]: value };
       
+      // Auto-set delivery method based on payment method
       if (field === 'paymentMethod' && value === 'cash') {
         updated.deliveryMethod = 'lbc';
       }
@@ -102,13 +100,11 @@ const CheckoutPage = () => {
     
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: ''
-      }));
+      setErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
 
+  // Form validation
   const validateForm = () => {
     const newErrors = {};
     
@@ -122,7 +118,6 @@ const CheckoutPage = () => {
       newErrors.phone = 'Please enter a valid phone number';
     }
     
-    // Address validation
     if (!customerInfo.houseNumber.trim()) {
       newErrors.houseNumber = 'House/Unit number is required';
     }
@@ -148,15 +143,16 @@ const CheckoutPage = () => {
     } else if (!/^\d{4}$/.test(customerInfo.zipCode.trim())) {
       newErrors.zipCode = 'Please enter a valid 4-digit ZIP code';
     }
-    if (!customerInfo.deliveryMethod.trim()) {
-  newErrors.deliveryMethod = 'Delivery method is required';
-    }
 
+    if (!customerInfo.deliveryMethod.trim()) {
+      newErrors.deliveryMethod = 'Delivery method is required';
+    }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  // Generate full address string
   const getFullAddress = () => {
     const addressParts = [
       customerInfo.houseNumber,
@@ -171,7 +167,7 @@ const CheckoutPage = () => {
     return addressParts.join(', ');
   };
 
-  // Helper function to get charm quantities across all bracelets
+  // Calculate charm quantities across all bracelets
   const getCharmQuantities = () => {
     const charmQuantities = {};
     
@@ -195,7 +191,7 @@ const CheckoutPage = () => {
     return charmQuantities;
   };
 
-  // Helper function to validate stock availability without updating
+  // Validate stock availability without updating database
   const validateStockAvailability = async () => {
     const charmQuantities = getCharmQuantities();
     const stockValidation = [];
@@ -204,8 +200,6 @@ const CheckoutPage = () => {
       const charmData = charmQuantities[charmId];
       const numericCharmId = parseInt(charmId);
       
-      console.log(`Checking stock availability for ${charmData.name}, need ${charmData.totalCount}`);
-      
       const { data: currentData, error: fetchError } = await supabase
         .from('charms')
         .select('*')
@@ -213,11 +207,8 @@ const CheckoutPage = () => {
         .single();
 
       if (fetchError) {
-        console.error(`Failed to fetch stock for ${charmData.name}`, fetchError);
-        throw new Error(`Failed to find charm ${charmData.name} in database. Try again later.`);
+        throw new Error(`Unable to verify stock availability. Please try again later.`);
       }
-
-      console.log(`Current stock for ${charmData.name}: ${currentData.stock}, Needed: ${charmData.totalCount}`);
 
       const updatedStock = currentData.stock - charmData.totalCount;
 
@@ -237,10 +228,8 @@ const CheckoutPage = () => {
     return stockValidation;
   };
 
-  // Helper function to update stock after successful order creation
+  // Update charm stock after successful order creation
   const updateCharmStock = async (stockValidation) => {
-    console.log('Updating charm stock after successful order creation...');
-    
     for (const stockItem of stockValidation) {
       const { error: updateError } = await supabase
         .from('charms')
@@ -248,37 +237,171 @@ const CheckoutPage = () => {
         .eq('id', stockItem.charmId);
 
       if (updateError) {
-        console.error(`Failed to update stock for ${stockItem.charmName}`, updateError);
-        // This is a critical error - the order was created but stock wasn't updated
-        // In a production environment, you might want to implement a rollback mechanism
-        // or send an alert to administrators
-        throw new Error(`Order created but failed to update stock for ${stockItem.charmName}. Please contact support immediately.`);
+        throw new Error(`Order created but failed to update inventory. Please contact support immediately.`);
       }
-      
-      console.log(`✅ Successfully updated ${stockItem.charmName} stock from ${stockItem.currentStock} to ${stockItem.newStock}`);
     }
   };
 
+  // Format payment method display name
+  const getPaymentMethodName = (method) => {
+    switch(method) {
+      case 'gcash': return 'GCash';
+      case 'paymaya': return 'PayMaya';
+      case 'cash': return 'Cash';
+      case 'bank': return 'Bank Transfer';
+      default: return method.toUpperCase();
+    }
+  };
+
+  // Format delivery method display name
+  const getDeliveryMethodName = (method) => {
+    switch(method) {
+      case 'jnt': return 'J&T Express (Cheapest Option)';
+      case 'lbc': return 'LBC (COD/COP Available)';
+      case 'lalamove': return 'Lalamove (Same Day Delivery)';
+      default: return method;
+    }
+  };
+
+  // Generate message for Messenger
+  const generateMessengerMessage = (orderRecords, customerInfo, fullAddress, orderIds, totalBracelets) => {
+    const formatDate = (dateString) => {
+      return new Date(dateString).toLocaleDateString('en-PH', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    };
+
+    const getCharmSummary = () => {
+      const charmQuantities = getCharmQuantities();
+      return Object.values(charmQuantities)
+        .map(charm => `• ${charm.name} (x${charm.totalCount}) - ₱${(charm.price * charm.totalCount).toLocaleString()}`)
+        .join('\n');
+    };
+
+    const message = `*ORDER CONFIRMATION REQUEST*
+
+*Order Details:*
+Order ID(s): #${orderIds}
+Date: ${formatDate(orderRecords[0].created_at)}
+Total Bracelets: ${totalBracelets}
+Total Amount: ₱${orderData.totalPrice.toLocaleString()}
+
+*Customer Information:*
+Name: ${customerInfo.name}
+Phone: ${customerInfo.phone}
+Email: ${customerInfo.email || 'Not provided'}
+
+*Delivery Address:*
+${fullAddress}
+
+*Delivery Method:* ${getDeliveryMethodName(customerInfo.deliveryMethod)}
+
+*Charm Summary:*
+${getCharmSummary()}
+
+*Payment Method:* ${getPaymentMethodName(customerInfo.paymentMethod)}
+
+---
+Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the payment details so I can proceed with the payment. Thank you! < 3`;
+
+    return message;
+  };
+
+  // Handle messenger redirection and success prompt
+  const redirectToMessenger = (message, orderRecords, orderIds) => {
+    const messengerUrl = `https://m.me/61567161596724?text=${encodeURIComponent(message)}`;
+
+    const showSuccessPrompt = () => {
+      const promptDiv = document.createElement('div');
+      promptDiv.innerHTML = `
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 10000;">
+          <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+            <div style="color: #28a745; font-size: 2rem; margin-bottom: 15px;">✓</div>
+            <h3 style="color: #333; margin-bottom: 15px;">Order #${orderIds} created successfully!</h3>
+            <p style="color: #666; margin-bottom: 15px;">Your order details have been prepared and copied to your clipboard.</p>
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #582e4e;">
+              <h4 style="color: #582e4e; margin-bottom: 10px;">📋 Next Steps:</h4>
+              <p style="color: #333; margin-bottom: 8px; text-align: left;">1. Click "Send Message to SOLEIL" below</p>
+              <p style="color: #333; margin-bottom: 8px; text-align: left;">2. You'll be redirected to Messenger</p>
+              <p style="color: #333; margin-bottom: 8px; text-align: left;">3. Paste the message and send it</p>
+              <p style="color: #333; margin-bottom: 0; text-align: left;">4. Wait for SOLEIL to confirm and send payment details</p>
+            </div>
+            <p style="color: #e74c3c; font-weight: 600; margin-bottom: 20px;">⚠️ Important: You must send the message to SOLEIL to complete your order!</p>
+            <button onclick="window.openMessenger('${messengerUrl}', '${orderIds}'); this.parentElement.parentElement.remove();" style="background: #582e4e; color: white; border: none; padding: 15px 30px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%; margin-bottom: 10px;">
+              📱 Send Message to SOLEIL
+            </button>
+            <button onclick="this.parentElement.parentElement.remove()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
+              Cancel (Order will be incomplete)
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(promptDiv);
+    };
+
+    // Create global function to handle messenger opening
+    window.openMessenger = (url, orderIds) => {
+      window.open(url, '_blank');
+      
+      setTimeout(() => {
+        navigate('/contact', { 
+          state: { 
+            orderSuccess: true, 
+            orderIds: orderRecords.map(order => order.id),
+            redirectedToMessenger: true
+          } 
+        });
+      }, 2000);
+    };
+
+    // Try to copy to clipboard, show prompt regardless of success
+    navigator.clipboard.writeText(message).then(() => {
+      showSuccessPromit();
+    }).catch(() => {
+      const promptDiv = document.createElement('div');
+      promptDiv.innerHTML = `
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 10000;">
+          <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+            <div style="color: #28a745; font-size: 2rem; margin-bottom: 15px;">✓</div>
+            <h3 style="color: #333; margin-bottom: 15px;">Order #${orderIds} created successfully!</h3>
+            <p style="color: #666; margin-bottom: 15px;">Please copy the message below and send it to SOLEIL:</p>
+            <textarea readonly style="width: 100%; height: 150px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 12px; margin-bottom: 15px; resize: none;" onclick="this.select(); document.execCommand('copy');">${message}</textarea>
+            <div style="background: #f8f9za; padding: 15px; border-radius: 10px; margin: 15px 0; border-left: 4px solid #582e4e;">
+              <h4 style="color: #582e4e; margin-bottom: 10px;">📋 Next Steps:</h4>
+              <p style="color: #333; margin-bottom: 5px; text-align: left;">1. Copy the message above (click on it)</p>
+              <p style="color: #333; margin-bottom: 5px; text-align: left;">2. Click "Send Message to SOLEIL"</p>
+              <p style="color: #333; margin-bottom: 5px; text-align: left;">3. Paste and send the message</p>
+              <p style="color: #333; margin-bottom: 0; text-align: left;">4. Wait for payment details</p>
+            </div>
+            <button onclick="window.openMessenger('${messengerUrl}', '${orderIds}'); this.parentElement.parentElement.remove();" style="background: #582e4e; color: white; border: none; padding: 15px 30px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%; margin-bottom: 10px;">
+              📱 Send Message to SOLEIL
+            </button>
+            <button onclick="this.parentElement.parentElement.remove()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
+              Cancel (Order will be incomplete)
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(promptDiv);
+    });
+  };
+
+  // Main order submission handler
   const handleSubmitOrder = async () => {
     if (!validateForm()) return;
     
     setIsSubmitting(true);
-
     const fullAddress = getFullAddress();
 
-    console.log('Order submitted:', {
-      customer: { ...customerInfo, fullAddress },
-      order: orderData
-    });
-
     try {
-      // Step 1: Validate stock availability without updating
-      console.log('Step 1: Validating stock availability...');
+      // Step 1: Validate stock availability
       const stockValidation = await validateStockAvailability();
-      console.log('✅ Stock validation passed:', stockValidation);
 
       // Step 2: Create order records for each bracelet
-      console.log('Step 2: Creating order records...');
       const orderRecords = [];
 
       for (let i = 0; i < orderData.bracelets.length; i++) {
@@ -296,8 +419,6 @@ const CheckoutPage = () => {
           total_amount: bracelet.totalPrice,
           created_at: new Date().toISOString()
         };
-        
-        console.log(`Order record ${i + 1} to insert:`, orderRecord);
 
         const { data: insertedOrder, error: orderError } = await supabase
           .from('orders')
@@ -306,11 +427,9 @@ const CheckoutPage = () => {
           .single();
 
         if (orderError) {
-          console.error(`Failed to create order ${i + 1}:`, orderError);
-          throw new Error(`Failed to create order ${i + 1}. Please try again.`);
+          throw new Error('Failed to create order. Please try again.');
         }
 
-        console.log(`✅ Order ${i + 1} created successfully:`, insertedOrder);
         orderRecords.push(insertedOrder);
         
         // Create bracelet record linked to this order
@@ -321,20 +440,17 @@ const CheckoutPage = () => {
           bracelet_arrangement: bracelet.charms.map(charm => charm.id.toString())
         };
 
-        const { data: insertedBracelet, error: braceletError } = await supabase
+        const { error: braceletError } = await supabase
           .from('bracelets')
           .insert([braceletRecord])
           .select()
           .single();
 
         if (braceletError) {
-          console.error(`Failed to create bracelet ${i + 1}:`, braceletError);
-          throw new Error(`Order ${i + 1} created but failed to save bracelet. Please contact support.`);
+          throw new Error('Order created but failed to save bracelet details. Please contact support.');
         }
 
-        console.log(`✅ Bracelet ${i + 1} created successfully:`, insertedBracelet);
-
-        // Step 3: Create order items for this bracelet
+        // Create order items for this bracelet
         const braceletCharmQuantities = {};
         
         bracelet.charms.forEach(charm => {
@@ -366,191 +482,31 @@ const CheckoutPage = () => {
           });
         }
 
-        console.log(`Order items for bracelet ${i + 1}:`, orderItems);
-
         const { error: itemsError } = await supabase
           .from('order_items')
           .insert(orderItems);
 
         if (itemsError) {
-          console.error(`Failed to create order items for bracelet ${i + 1}:`, itemsError);
-          throw new Error(`Order ${i + 1} created but failed to save items. Please contact support.`);
+          throw new Error('Order created but failed to save order items. Please contact support.');
         }
-
-        console.log(`✅ Order items for bracelet ${i + 1} created successfully`);
       }
 
-      // Step 3: Update stock ONLY after all orders are successfully created
-      console.log('Step 3: Updating charm stock after successful order creation...');
+      // Step 3: Update stock after all orders are successfully created
       await updateCharmStock(stockValidation);
-      console.log('✅ All stock updates completed successfully');
 
-      // Step 4: Generate pre-filled message and redirect to Messenger
-      console.log('Step 4: Generating messenger message and redirecting...');
+      // Step 4: Generate message and redirect to Messenger
       const orderIds = orderRecords.map(order => order.id.toString().padStart(4, '0')).join(', #');
       const totalBracelets = orderData.bracelets.length;
-      
-      // Generate message content
       const messageContent = generateMessengerMessage(orderRecords, customerInfo, fullAddress, orderIds, totalBracelets);
       
-      // Redirect to Messenger with pre-filled message
       redirectToMessenger(messageContent, orderRecords, orderIds);
       
     } catch (error) {
-      console.error('Error in handleSubmitOrder:', error);
-      alert(error.message || 'An unexpected error occurred. Please try again.');
+      const errorMessage = error.message || 'An unexpected error occurred. Please try again.';
+      alert(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const getPaymentMethodName = (method) => {
-    switch(method) {
-      case 'gcash': return 'GCash';
-      case 'paymaya': return 'PayMaya';
-      case 'cash': return 'Cash';
-      case 'bank': return 'Bank Transfer';
-      default: return method.toUpperCase();
-    }
-  };
-
-  const generateMessengerMessage = (orderRecords, customerInfo, fullAddress, orderIds, totalBracelets) => {
-    const formatDate = (dateString) => {
-      return new Date(dateString).toLocaleDateString('en-PH', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    };
-
-    const getCharmSummary = () => {
-      const charmQuantities = getCharmQuantities();
-      return Object.values(charmQuantities)
-        .map(charm => `• ${charm.name} (x${charm.totalCount}) - ₱${(charm.price * charm.totalCount).toLocaleString()}`)
-        .join('\n');
-    };
-
-      const getDeliveryMethodName = (method) => {
-        switch(method) {
-          case 'jnt': return 'J&T Express (Cheapest Option)';
-          case 'lbc': return 'LBC (COD/COP Available)';
-          case 'lalamove': return 'Lalamove (Same Day Delivery)';
-          default: return method;
-        }
-      };
-
-    const message = ` *ORDER CONFIRMATION REQUEST*
-
-*Order Details:*
-Order ID(s): #${orderIds}
-Date: ${formatDate(orderRecords[0].created_at)}
-Total Bracelets: ${totalBracelets}
-Total Amount: ₱${orderData.totalPrice.toLocaleString()}
-
-*Customer Information:*
-Name: ${customerInfo.name}
-Phone: ${customerInfo.phone}
-Email: ${customerInfo.email || 'Not provided'}
-
-*Delivery Address:*
-${fullAddress}
-
-*Delivery Method:* ${getDeliveryMethodName(customerInfo.deliveryMethod)}
-
-*Charm Summary:*
-${getCharmSummary()}
-
-*Payment Method:* ${getPaymentMethodName(customerInfo.paymentMethod)}
-
----
-Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the payment details so I can proceed with the payment. Thank you! < 3`;
-
-    return message;
-  };
-
-  const redirectToMessenger = (message, orderRecords, orderIds) => {
-
-    // Option 1: Direct Messenger link (if you have Facebook Page ID)
-    const messengerUrl = `https://m.me/61567161596724?text=${encodeURIComponent(message)}`;
-
-    const showSuccessPrompt = () => {
-      const promptDiv = document.createElement('div');
-      promptDiv.innerHTML = `
-        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 10000;">
-          <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-            <div style="color: #28a745; font-size: 2rem; margin-bottom: 15px;">✓</div>
-            <h3 style="color: #333; margin-bottom: 15px;">Order #${orderIds} created successfully!</h3>
-            <p style="color: #666; margin-bottom: 15px;">Your order details have been prepared and copied to your clipboard.</p>
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #582e4e;">
-              <h4 style="color: #582e4e; margin-bottom: 10px;">📋 Next Steps:</h4>
-              <p style="color: #333; margin-bottom: 8px; text-align: left;">1. Click "Send Message to SOLEIL" below</p>
-              <p style="color: #333; margin-bottom: 8px; text-align: left;">2. You'll be redirected to Messenger</p>
-              <p style="color: #333; margin-bottom: 8px; text-align: left;">3. Paste the message and send it</p>
-              <p style="color: #333; margin-bottom: 0; text-align: left;">4. Wait for SOLEIL to confirm and send payment details</p>
-            </div>
-            <p style="color: #e74c3c; font-weight: 600; margin-bottom: 20px;">⚠️ Important: You must send the message to SOLEIL to complete your order!</p>
-            <button onclick="window.openMessenger('${messengerUrl}', '${orderIds}'); this.parentElement.parentElement.remove();" style="background: #582e4e; color: white; border: none; padding: 15px 30px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%; margin-bottom: 10px;">
-              📱 Send Message to SOLEIL
-            </button>
-            <button onclick="this.parentElement.parentElement.remove()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
-              Cancel (Order will be incomplete)
-            </button>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(promptDiv);
-    };
-
-    // Create a global function to handle the messenger opening
-    window.openMessenger = (url, orderIds) => {
-      // Open Messenger in a new window/tab
-      window.open(url, '_blank');
-      
-    //Redirect current page to contact page after a short delay
-        setTimeout(() => {
-          navigate('/contact', { 
-            state: { 
-              orderSuccess: true, 
-              orderIds: orderRecords.map(order => order.id),
-              redirectedToMessenger: true
-            } 
-          });
-        }, 2000);
-      };
-
-    // Try to copy to clipboard, then show prompt regardless of success
-    navigator.clipboard.writeText(message).then(() => {
-      showSuccessPrompt();
-    }).catch(() => {
-      // If clipboard fails, show prompt with textarea
-      const promptDiv = document.createElement('div');
-      promptDiv.innerHTML = `
-        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 10000;">
-          <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-            <div style="color: #28a745; font-size: 2rem; margin-bottom: 15px;">✓</div>
-            <h3 style="color: #333; margin-bottom: 15px;">Order #${orderIds} created successfully!</h3>
-            <p style="color: #666; margin-bottom: 15px;">Please copy the message below and send it to SOLEIL:</p>
-            <textarea readonly style="width: 100%; height: 150px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 12px; margin-bottom: 15px; resize: none;" onclick="this.select(); document.execCommand('copy');">${message}</textarea>
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 15px 0; border-left: 4px solid #582e4e;">
-              <h4 style="color: #582e4e; margin-bottom: 10px;">📋 Next Steps:</h4>
-              <p style="color: #333; margin-bottom: 5px; text-align: left;">1. Copy the message above (click on it)</p>
-              <p style="color: #333; margin-bottom: 5px; text-align: left;">2. Click "Send Message to SOLEIL"</p>
-              <p style="color: #333; margin-bottom: 5px; text-align: left;">3. Paste and send the message</p>
-              <p style="color: #333; margin-bottom: 0; text-align: left;">4. Wait for payment details</p>
-            </div>
-            <button onclick="window.openMessenger('${messengerUrl}', '${orderIds}'); this.parentElement.parentElement.remove();" style="background: #582e4e; color: white; border: none; padding: 15px 30px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%; margin-bottom: 10px;">
-              📱 Send Message to SOLEIL
-            </button>
-            <button onclick="this.parentElement.parentElement.remove()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
-              Cancel (Order will be incomplete)
-            </button>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(promptDiv);
-    });
   };
 
   return (
@@ -561,16 +517,15 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-
         <div className="checkout-content">
-          {/* Left Column - Order Summary */}
+          {/* Order Summary Section */}
           <motion.div 
             className="order-summary-section"
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.5 }}
           >
-            {/* Multiple Bracelets Preview */}
+            {/* Bracelets Preview */}
             <div className="bracelets-preview">
               <h2>Your Bracelet{orderData.bracelets.length > 1 ? 's' : ''} ({orderData.bracelets.length})</h2>
               
@@ -597,17 +552,13 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
               <h2>Order Summary</h2>
               <div className="order-items">
                 {orderData.bracelets.map((bracelet, braceletIndex) => {
-                  // Get charm breakdown for this bracelet
                   const charmBreakdown = {};
                   bracelet.charms.forEach(charm => {
                     if (charm && charm.id) {
                       if (charmBreakdown[charm.id]) {
                         charmBreakdown[charm.id].count++;
                       } else {
-                        charmBreakdown[charm.id] = {
-                          ...charm,
-                          count: 1
-                        };
+                        charmBreakdown[charm.id] = { ...charm, count: 1 };
                       }
                     }
                   });
@@ -653,7 +604,7 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
             </div>
           </motion.div>
 
-          {/* Right Column - Customer Information */}
+          {/* Customer Information Section */}
           <motion.div 
             className="customer-info-section"
             initial={{ x: 20, opacity: 0 }}
@@ -663,6 +614,7 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
             <div className="customer-form">
               <h2>Fill in Your Details</h2>
               
+              {/* Personal Information */}
               <div className="form-group">
                 <label htmlFor="name">Full Name *</label>
                 <input
@@ -703,7 +655,7 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
                 />
               </div>
 
-              {/* Philippine Address Section */}
+              {/* Address Section */}
               <div className="address-section">
                 <h3>🇵🇭 Delivery Address</h3>
                 

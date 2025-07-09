@@ -504,14 +504,13 @@ html {
    ============================================================================= */
 .charm-options {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(4rem, 1fr));
-    gap: 1rem;
-    padding: 1rem 0;
-    max-width: 100%;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 13px; /* 20px * 0.67 */
+    padding: 13px 0; /* 20px * 0.67 */
+    max-width: 335px; /* 500px * 0.67 */
     margin: 0 auto;
     justify-items: center;
 }
-
 .charm-option {
     aspect-ratio: 1;
     background: white;
