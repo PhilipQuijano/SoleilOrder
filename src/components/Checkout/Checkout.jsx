@@ -313,7 +313,17 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
 
   // Handle messenger redirection and success prompt
   const redirectToMessenger = (message, orderRecords, orderIds) => {
-    const messengerUrl = `https://m.me/61567161596724?text=${encodeURIComponent(message)}`;
+    // Detect if user is on mobile
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    let messengerUrl;
+    if (isMobile) {
+      // For mobile: Use fb-messenger:// protocol first, fallback to web version
+      messengerUrl = `fb-messenger://user-thread/61567161596724`;
+    } else {
+      // For desktop: Use web version with pre-filled message
+      messengerUrl = `https://m.me/61567161596724?text=${encodeURIComponent(message)}`;
+    }
 
     const showSuccessPrompt = () => {
       const promptDiv = document.createElement('div');
@@ -322,17 +332,21 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
           <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
             <div style="color: #28a745; font-size: 2rem; margin-bottom: 15px;">✓</div>
             <h3 style="color: #333; margin-bottom: 15px;">Order #${orderIds} created successfully!</h3>
-            <p style="color: #666; margin-bottom: 15px;">Your order details have been prepared and copied to your clipboard.</p>
+            <p style="color: #666; margin-bottom: 15px;">${isMobile ? 'Your order details are ready to copy.' : 'Your order details have been prepared and copied to your clipboard.'}</p>
+            ${isMobile ? `
+              <textarea readonly style="width: 100%; height: 120px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 12px; margin-bottom: 15px; resize: none;" onclick="this.select(); document.execCommand('copy'); alert('Message copied! Now paste it in Messenger.');">${message}</textarea>
+              <p style="color: #007bff; font-weight: 600; margin-bottom: 15px;">👆 Tap the message above to copy it</p>
+            ` : ''}
             <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #582e4e;">
               <h4 style="color: #582e4e; margin-bottom: 10px;">📋 Next Steps:</h4>
-              <p style="color: #333; margin-bottom: 8px; text-align: left;">1. Click "Send Message to SOLEIL" below</p>
-              <p style="color: #333; margin-bottom: 8px; text-align: left;">2. You'll be redirected to Messenger</p>
-              <p style="color: #333; margin-bottom: 8px; text-align: left;">3. Paste the message and send it</p>
-              <p style="color: #333; margin-bottom: 0; text-align: left;">4. Wait for SOLEIL to confirm and send payment details</p>
+              <p style="color: #333; margin-bottom: 8px; text-align: left;">1. ${isMobile ? 'Copy the message above' : 'Message copied to clipboard'}</p>
+              <p style="color: #333; margin-bottom: 8px; text-align: left;">2. Click "Open Messenger" below</p>
+              <p style="color: #333; margin-bottom: 8px; text-align: left;">3. Find SOLEIL's chat and paste the message</p>
+              <p style="color: #333; margin-bottom: 0; text-align: left;">4. Send it and wait for payment details</p>
             </div>
             <p style="color: #e74c3c; font-weight: 600; margin-bottom: 20px;">⚠️ Important: You must send the message to SOLEIL to complete your order!</p>
-            <button onclick="window.openMessenger('${messengerUrl}', '${orderIds}'); this.parentElement.parentElement.remove();" style="background: #582e4e; color: white; border: none; padding: 15px 30px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%; margin-bottom: 10px;">
-              📱 Send Message to SOLEIL
+            <button onclick="window.openMessenger('${messengerUrl}', '${orderIds}', ${isMobile}); this.parentElement.parentElement.remove();" style="background: #582e4e; color: white; border: none; padding: 15px 30px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%; margin-bottom: 10px;">
+              📱 Open Messenger
             </button>
             <button onclick="this.parentElement.parentElement.remove()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
               Cancel (Order will be incomplete)
@@ -344,8 +358,18 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
     };
 
     // Create global function to handle messenger opening
-    window.openMessenger = (url, orderIds) => {
-      window.open(url, '_blank');
+    window.openMessenger = (url, orderIds, isMobile) => {
+      if (isMobile) {
+        // Try to open native app first
+        window.location.href = url;
+        
+        // Fallback to web version after a short delay if app doesn't open
+        setTimeout(() => {
+          window.open(`https://m.me/61567161596724`, '_blank');
+        }, 1000);
+      } else {
+        window.open(url, '_blank');
+      }
       
       setTimeout(() => {
         navigate('/contact', { 
@@ -358,36 +382,16 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
       }, 2000);
     };
 
-    // Try to copy to clipboard, show prompt regardless of success
-    navigator.clipboard.writeText(message).then(() => {
-      showSuccessPromit();
-    }).catch(() => {
-      const promptDiv = document.createElement('div');
-      promptDiv.innerHTML = `
-        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 10000;">
-          <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-            <div style="color: #28a745; font-size: 2rem; margin-bottom: 15px;">✓</div>
-            <h3 style="color: #333; margin-bottom: 15px;">Order #${orderIds} created successfully!</h3>
-            <p style="color: #666; margin-bottom: 15px;">Please copy the message below and send it to SOLEIL:</p>
-            <textarea readonly style="width: 100%; height: 150px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 12px; margin-bottom: 15px; resize: none;" onclick="this.select(); document.execCommand('copy');">${message}</textarea>
-            <div style="background: #f8f9za; padding: 15px; border-radius: 10px; margin: 15px 0; border-left: 4px solid #582e4e;">
-              <h4 style="color: #582e4e; margin-bottom: 10px;">📋 Next Steps:</h4>
-              <p style="color: #333; margin-bottom: 5px; text-align: left;">1. Copy the message above (click on it)</p>
-              <p style="color: #333; margin-bottom: 5px; text-align: left;">2. Click "Send Message to SOLEIL"</p>
-              <p style="color: #333; margin-bottom: 5px; text-align: left;">3. Paste and send the message</p>
-              <p style="color: #333; margin-bottom: 0; text-align: left;">4. Wait for payment details</p>
-            </div>
-            <button onclick="window.openMessenger('${messengerUrl}', '${orderIds}'); this.parentElement.parentElement.remove();" style="background: #582e4e; color: white; border: none; padding: 15px 30px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%; margin-bottom: 10px;">
-              📱 Send Message to SOLEIL
-            </button>
-            <button onclick="this.parentElement.parentElement.remove()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
-              Cancel (Order will be incomplete)
-            </button>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(promptDiv);
-    });
+    // Copy to clipboard for desktop, show prompt for both
+    if (!isMobile) {
+      navigator.clipboard.writeText(message).then(() => {
+        showSuccessPrompt();
+      }).catch(() => {
+        showSuccessPrompt();
+      });
+    } else {
+      showSuccessPrompt();
+    }
   };
 
   // Main order submission handler
@@ -415,7 +419,7 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
           customer_address: fullAddress,
           payment_method: customerInfo.paymentMethod,
           delivery_method: customerInfo.deliveryMethod,
-          status: 'pending_confirmation',
+          status: 'Awaiting Confirmation',
           total_amount: bracelet.totalPrice,
           created_at: new Date().toISOString()
         };
@@ -527,11 +531,11 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
           >
             {/* Bracelets Preview */}
             <div className="bracelets-preview">
-              <h2>Your Bracelet{orderData.bracelets.length > 1 ? 's' : ''} ({orderData.bracelets.length})</h2>
+              <h2 className="font-cormorant-medium">Your Bracelet{orderData.bracelets.length > 1 ? 's' : ''} ({orderData.bracelets.length})</h2>
               
               {orderData.bracelets.map((bracelet, braceletIndex) => (
                 <div key={bracelet.id || braceletIndex} className="bracelet-final-preview">
-                  <h3>Bracelet #{braceletIndex + 1}</h3>
+                  <h3 className="font-cormorant-medium">Bracelet #{braceletIndex + 1}</h3>
                   <div className="final-bracelet-visual">
                     {bracelet.charms.map((charm, charmIndex) => (
                       <div key={charmIndex} className="final-bracelet-charm">
@@ -540,8 +544,8 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
                     ))}
                   </div>
                   <div className="bracelet-info">
-                    <p className="bracelet-size">Size: {bracelet.size} cm</p>
-                    <p className="bracelet-price">₱{bracelet.totalPrice.toLocaleString()}</p>
+                    <p className="bracelet-size font-inter-regular">Size: {bracelet.size} cm</p>
+                    <p className="bracelet-price font-montserrat-medium">₱{bracelet.totalPrice.toLocaleString()}</p>
                   </div>
                 </div>
               ))}
@@ -549,7 +553,7 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
 
             {/* Order Details */}
             <div className="order-details">
-              <h2>Order Summary</h2>
+              <h2 className="font-montserrat-semibold">Order Summary</h2>
               <div className="order-items">
                 {orderData.bracelets.map((bracelet, braceletIndex) => {
                   const charmBreakdown = {};
@@ -565,7 +569,7 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
 
                   return (
                     <div key={bracelet.id || braceletIndex} className="bracelet-order-section">
-                      <h4>Bracelet #{braceletIndex + 1} - {bracelet.size}cm</h4>
+                      <h4 className="font-cormorant-medium">Bracelet #{braceletIndex + 1} - {bracelet.size}cm</h4>
                       {Object.values(charmBreakdown).map((charm, index) => (
                         <motion.div 
                           key={`${bracelet.id}-${charm.id}-${index}`}
@@ -577,17 +581,17 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
                           <div className="item-info">
                             <img src={charm.image} alt={charm.name} className="item-image" />
                             <div className="item-details">
-                              <span className="item-name">{charm.name}</span>
+                              <span className="item-name font-inter-regular">{charm.name}</span>
                               {charm.count > 1 && (
-                                <span className="item-quantity">x{charm.count}</span>
+                                <span className="item-quantity font-inter-regular">x{charm.count}</span>
                               )}
                             </div>
                           </div>
-                          <span className="item-price">₱{(charm.price * charm.count).toLocaleString()}</span>
+                          <span className="item-price font-montserrat-medium">₱{(charm.price * charm.count).toLocaleString()}</span>
                         </motion.div>
                       ))}
                       <div className="bracelet-subtotal">
-                        <span>Subtotal: ₱{bracelet.totalPrice.toLocaleString()}</span>
+                        <span className="font-montserrat-medium">Subtotal: ₱{bracelet.totalPrice.toLocaleString()}</span>
                       </div>
                     </div>
                   );
@@ -596,8 +600,8 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
                 <div className="order-total">
                   <div className="total-divider"></div>
                   <div className="total-row">
-                    <span className="total-label">Total Amount</span>
-                    <span className="total-amount">₱{orderData.totalPrice.toLocaleString()}</span>
+                    <span className="total-label font-montserrat-semibold">Total Amount</span>
+                    <span className="total-amount font-montserrat-semibold">₱{orderData.totalPrice.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
@@ -612,44 +616,45 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
             transition={{ delay: 0.3, duration: 0.5 }}
           >
             <div className="customer-form">
-              <h2>Fill in Your Details</h2>
+              <h2 className="font-montserrat-semibold">Fill in Your Details</h2>
               
               {/* Personal Information */}
               <div className="form-group">
-                <label htmlFor="name">Full Name *</label>
+                <label htmlFor="name" className="font-inter-medium">Full Name *</label>
                 <input
                   type="text"
                   id="name"
                   value={customerInfo.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
-                  className={errors.name ? 'error' : ''}
+                  className={`font-inter-regular ${errors.name ? 'error' : ''}`}
                   placeholder="Enter your full name"
                   disabled={isSubmitting}
                 />
-                {errors.name && <span className="error-message">{errors.name}</span>}
+                {errors.name && <span className="error-message font-inter-regular">{errors.name}</span>}
               </div>
 
               <div className="form-group">
-                <label htmlFor="phone">Phone Number *</label>
+                <label htmlFor="phone" className="font-inter-medium">Phone Number *</label>
                 <input
                   type="tel"
                   id="phone"
                   value={customerInfo.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
-                  className={errors.phone ? 'error' : ''}
+                  className={`font-inter-regular ${errors.phone ? 'error' : ''}`}
                   placeholder="09XXXXXXXXX"
                   disabled={isSubmitting}
                 />
-                {errors.phone && <span className="error-message">{errors.phone}</span>}
+                {errors.phone && <span className="error-message font-inter-regular">{errors.phone}</span>}
               </div>
 
               <div className="form-group">
-                <label htmlFor="email">Email (Optional)</label>
+                <label htmlFor="email" className="font-inter-medium">Email (Optional)</label>
                 <input
                   type="email"
                   id="email"
                   value={customerInfo.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
+                  className="font-inter-regular"
                   placeholder="your.email@example.com"
                   disabled={isSubmitting}
                 />
@@ -657,30 +662,31 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
 
               {/* Address Section */}
               <div className="address-section">
-                <h3>🇵🇭 Delivery Address</h3>
+                <h3 className="font-montserrat-medium">🇵🇭 Delivery Address</h3>
                 
                 <div className="address-grid">
                   <div className="form-group">
-                    <label htmlFor="houseNumber">House/Unit Number *</label>
+                    <label htmlFor="houseNumber" className="font-inter-medium">House/Unit Number *</label>
                     <input
                       type="text"
                       id="houseNumber"
                       value={customerInfo.houseNumber}
                       onChange={(e) => handleInputChange('houseNumber', e.target.value)}
-                      className={errors.houseNumber ? 'error' : ''}
+                      className={`font-inter-regular ${errors.houseNumber ? 'error' : ''}`}
                       placeholder="123 or Blk 1 Lot 2"
                       disabled={isSubmitting}
                     />
-                    {errors.houseNumber && <span className="error-message">{errors.houseNumber}</span>}
+                    {errors.houseNumber && <span className="error-message font-inter-regular">{errors.houseNumber}</span>}
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="street">Street Name (Optional)</label>
+                    <label htmlFor="street" className="font-inter-medium">Street Name (Optional)</label>
                     <input
                       type="text"
                       id="street"
                       value={customerInfo.street}
                       onChange={(e) => handleInputChange('street', e.target.value)}
+                      className="font-inter-regular"
                       placeholder="e.g., Rizal Street"
                       disabled={isSubmitting}
                     />
@@ -689,56 +695,56 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
 
                 <div className="address-grid">
                   <div className="form-group">
-                    <label htmlFor="barangay">Barangay *</label>
+                    <label htmlFor="barangay" className="font-inter-medium">Barangay *</label>
                     <input
                       type="text"
                       id="barangay"
                       value={customerInfo.barangay}
                       onChange={(e) => handleInputChange('barangay', e.target.value)}
-                      className={errors.barangay ? 'error' : ''}
+                      className={`font-inter-regular ${errors.barangay ? 'error' : ''}`}
                       placeholder="e.g., Barangay San Jose"
                       disabled={isSubmitting}
                     />
-                    {errors.barangay && <span className="error-message">{errors.barangay}</span>}
+                    {errors.barangay && <span className="error-message font-inter-regular">{errors.barangay}</span>}
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="city">City/Municipality *</label>
+                    <label htmlFor="city" className="font-inter-medium">City/Municipality *</label>
                     <input
                       type="text"
                       id="city"
                       value={customerInfo.city}
                       onChange={(e) => handleInputChange('city', e.target.value)}
-                      className={errors.city ? 'error' : ''}
+                      className={`font-inter-regular ${errors.city ? 'error' : ''}`}
                       placeholder="e.g., Quezon City"
                       disabled={isSubmitting}
                     />
-                    {errors.city && <span className="error-message">{errors.city}</span>}
+                    {errors.city && <span className="error-message font-inter-regular">{errors.city}</span>}
                   </div>
                 </div>
 
                 <div className="address-grid">
                   <div className="form-group">
-                    <label htmlFor="province">Province *</label>
+                    <label htmlFor="province" className="font-inter-medium">Province *</label>
                     <input
                       type="text"
                       id="province"
                       value={customerInfo.province}
                       onChange={(e) => handleInputChange('province', e.target.value)}
-                      className={errors.province ? 'error' : ''}
+                      className={`font-inter-regular ${errors.province ? 'error' : ''}`}
                       placeholder="e.g., Metro Manila"
                       disabled={isSubmitting}
                     />
-                    {errors.province && <span className="error-message">{errors.province}</span>}
+                    {errors.province && <span className="error-message font-inter-regular">{errors.province}</span>}
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="region">Region *</label>
+                    <label htmlFor="region" className="font-inter-medium">Region *</label>
                     <select
                       id="region"
                       value={customerInfo.region}
                       onChange={(e) => handleInputChange('region', e.target.value)}
-                      className={errors.region ? 'error' : ''}
+                      className={`font-inter-regular ${errors.region ? 'error' : ''}`}
                       disabled={isSubmitting}
                     >
                       <option value="">Select a region</option>
@@ -753,13 +759,13 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
                 </div>
 
               <div className="form-group">
-                <label htmlFor="zipCode">ZIP Code *</label>
+                <label htmlFor="zipCode" className="font-inter-medium">ZIP Code *</label>
                 <input
                   type="text"
                   id="zipCode"
                   value={customerInfo.zipCode}
                   onChange={(e) => handleInputChange('zipCode', e.target.value)}
-                  className={errors.zipCode ? 'error' : ''}
+                  className={`font-inter-regular ${errors.zipCode ? 'error' : ''}`}
                   placeholder="e.g., 1100"
                   maxLength="4"
                   disabled={isSubmitting}
@@ -767,8 +773,8 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
                 {errors.zipCode && <span className="error-message">{errors.zipCode}</span>}
               </div>
             </div>
-              <div className="payment-section">
-                <h3>💳 Payment Method</h3>
+<div className="payment-section">
+                <h3 className="font-montserrat-medium">💳 Payment Method</h3>
                 <div className="payment-options">
                   <label className="payment-option">
                     <input
@@ -781,7 +787,7 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
                     />
                     <div className="payment-label">
                       <span className="payment-icon">📱</span>
-                      GCash
+                      <span className="font-inter-regular">GCash</span>
                     </div>
                   </label>
                   
@@ -796,7 +802,7 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
                     />
                     <div className="payment-label">
                       <span className="payment-icon">💎</span>
-                      PayMaya
+                      <span className="font-inter-regular">PayMaya</span>
                     </div>
                   </label>
                   
@@ -811,7 +817,7 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
                     />
                     <div className="payment-label">
                       <span className="payment-icon">💵</span>
-                      Cash
+                      <span className="font-inter-regular">Cash</span>
                     </div>
                   </label>
                   
@@ -826,13 +832,14 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
                     />
                     <div className="payment-label">
                       <span className="payment-icon">🏦</span>
-                      Bank Transfer
+                      <span className="font-inter-regular">Bank Transfer</span>
                     </div>
                   </label>
                 </div>
               </div>
+              
               <div className="delivery-section">
-                <h3>🚚 Delivery Method</h3>
+                <h3 className="font-montserrat-medium">🚚 Delivery Method</h3>
                 <div className="delivery-options">
                   <label className="delivery-option">
                     <input
@@ -846,8 +853,8 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
                     <div className="delivery-label">
                       <span className="delivery-icon">📦</span>
                       <div className="delivery-details">
-                        <div className="delivery-name">J&T Express</div>
-                        <div className="delivery-desc">Cheapest Option</div>
+                        <div className="delivery-name font-inter-medium">J&T Express</div>
+                        <div className="delivery-desc font-inter-regular">Cheapest Option</div>
                       </div>
                     </div>
                   </label>
@@ -864,8 +871,8 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
                     <div className="delivery-label">
                       <span className="delivery-icon">💰</span>
                       <div className="delivery-details">
-                        <div className="delivery-name">LBC</div>
-                        <div className="delivery-desc">COD/COP Available</div>
+                        <div className="delivery-name font-inter-medium">LBC</div>
+                        <div className="delivery-desc font-inter-regular">COD/COP Available</div>
                       </div>
                     </div>
                   </label>
@@ -882,13 +889,13 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
                     <div className="delivery-label">
                       <span className="delivery-icon">⚡</span>
                       <div className="delivery-details">
-                        <div className="delivery-name">Lalamove</div>
-                        <div className="delivery-desc">Same Day Delivery</div>
+                        <div className="delivery-name font-inter-medium">Lalamove</div>
+                        <div className="delivery-desc font-inter-regular">Same Day Delivery</div>
                       </div>
                     </div>
                   </label>
                 </div>
-                {errors.deliveryMethod && <span className="error-message">{errors.deliveryMethod}</span>}
+                {errors.deliveryMethod && <span className="error-message font-inter-regular">{errors.deliveryMethod}</span>}
               </div>
 
               {/* Submit Button */}
@@ -898,10 +905,10 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
                 disabled={isSubmitting}
                 type="button"
               >
-                <span className="button-text">
+                <span className="button-text font-montserrat-medium">
                   {isSubmitting ? 'Processing Order...' : `Place Order & Contact SOLEIL`}
                 </span>
-                <span className="button-price">₱{orderData.totalPrice.toLocaleString()}</span>
+                <span className="button-price font-montserrat-semibold">₱{orderData.totalPrice.toLocaleString()}</span>
               </button>
             </div>
           </motion.div>

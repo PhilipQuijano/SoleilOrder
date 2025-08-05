@@ -102,7 +102,7 @@ const Contact = () => {
           {...cardVariants}
         >
           <motion.h1 
-            className="contact-title"
+            className="contact-title font-cormorant-bold"
             {...titleVariants}
           >
             Contact Us
@@ -112,35 +112,35 @@ const Contact = () => {
             className="review-section"
             {...sectionVariants}
           >
-            <h2 className="review-title">
+            <h2 className="review-title font-montserrat-medium">
               Leave a comment if you have any suggestions or comments about Soleil!
             </h2>
             
             <form onSubmit={handleSubmit} className="review-form">
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="name" className="form-label">Name</label>
+                  <label htmlFor="name" className="form-label font-inter-medium">Name</label>
                   <input
                     type="text"
                     id="name"
                     name="name"
                     value={reviewData.name}
                     onChange={handleInputChange}
-                    className="form-input"
+                    className="form-input font-inter-regular"
                     required
                     disabled={isSubmitting}
                   />
                 </div>
                 
                 <div className="form-group">
-                  <label htmlFor="email" className="form-label">Email</label>
+                  <label htmlFor="email" className="form-label font-inter-medium">Email</label>
                   <input
                     type="email"
                     id="email"
                     name="email"
                     value={reviewData.email}
                     onChange={handleInputChange}
-                    className="form-input"
+                    className="form-input font-inter-regular"
                     required
                     disabled={isSubmitting}
                   />
@@ -148,7 +148,7 @@ const Contact = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="rating" className="form-label">Rating</label>
+                <label htmlFor="rating" className="form-label font-inter-medium">Rating</label>
                 <div className="rating-container">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
@@ -161,20 +161,20 @@ const Contact = () => {
                       ★
                     </button>
                   ))}
-                  <span className="rating-text">
+                  <span className="rating-text font-inter-regular">
                     ({reviewData.rating} star{reviewData.rating !== 1 ? 's' : ''})
                   </span>
                 </div>
               </div>
 
               <div className="form-group">
-                <label htmlFor="comment" className="form-label">Comment</label>
+                <label htmlFor="comment" className="form-label font-inter-medium">Comment</label>
                 <textarea
                   id="comment"
                   name="comment"
                   value={reviewData.comment}
                   onChange={handleInputChange}
-                  className="form-textarea"
+                  className="form-textarea font-inter-regular"
                   rows="4"
                   placeholder="Share your thoughts about Soleil..."
                   required
@@ -184,14 +184,14 @@ const Contact = () => {
 
               <button 
                 type="submit" 
-                className="submit-btn"
+                className="submit-btn font-montserrat-semibold"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Submitting...' : 'Submit Review'}
               </button>
 
               {submitMessage && (
-                <div className={`submit-message ${submitMessage.includes('error') ? 'error' : 'success'}`}>
+                <div className={`submit-message font-inter-regular ${submitMessage.includes('error') ? 'error' : 'success'}`}>
                   {submitMessage}
                 </div>
               )}
@@ -213,8 +213,8 @@ const Contact = () => {
                 </svg>
               </div>
               <div className="contact-details">
-                <span className="contact-label">Email:</span>
-                <a href="mailto:soleil.phl.2025@gmail.com" className="contact-link">
+                <span className="contact-label font-inter-medium">Email:</span>
+                <a href="mailto:soleil.phl.2025@gmail.com" className="contact-link font-inter-regular">
                   soleil.phl.2025@gmail.com
                 </a>
               </div>
@@ -232,12 +232,12 @@ const Contact = () => {
                 </svg>
               </div>
               <div className="contact-details">
-                <span className="contact-label">Facebook:</span>
+                <span className="contact-label font-inter-medium">Facebook:</span>
                 <a 
                   href="https://facebook.com/people/Soleil-phl/61567161596724/" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="contact-link"
+                  className="contact-link font-inter-regular"
                 >
                   facebook.com/people/Soleil-phl/61567161596724/
                 </a>
@@ -256,12 +256,12 @@ const Contact = () => {
                 </svg>
               </div>
               <div className="contact-details">
-                <span className="contact-label">Instagram:</span>
+                <span className="contact-label font-inter-medium">Instagram:</span>
                 <a 
                   href="https://www.instagram.com/soleilphl/" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="contact-link"
+                  className="contact-link font-inter-regular"
                 >
                   @soleilphl
                 </a>
@@ -273,7 +273,7 @@ const Contact = () => {
             className="contact-message"
             {...messageVariants}
           >
-            <p>If you have any questions or queries, let us know!</p>
+            <p className="font-inter-regular">If you have any questions or queries, let us know!</p>
           </motion.div>
         </motion.div>
       </motion.div>

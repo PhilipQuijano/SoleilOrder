@@ -63,10 +63,10 @@ const Cart = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h2>Your Cart is Empty</h2>
-          <p>Start customizing your first bracelet!</p>
+          <h2 className="font-cormorant-medium">Your Cart is Empty</h2>
+          <p className="font-inter-regular">Start customizing your first bracelet!</p>
           <button 
-            className="customize-button"
+            className="customize-button font-inter-medium"
             onClick={() => navigate('/customize')}
           >
             Customize Bracelet
@@ -91,8 +91,8 @@ const Cart = () => {
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.1, duration: 0.5 }}
         >
-          <h1>Your Cart ({cartBracelets.length} Bracelet{cartBracelets.length !== 1 ? 's' : ''})</h1>
-          <button className="clear-cart-button" onClick={clearCart}>
+          <h1 className="font-montserrat-semibold">Your Cart ({cartBracelets.length} Bracelet{cartBracelets.length !== 1 ? 's' : ''})</h1>
+          <button className="clear-cart-button font-inter-medium" onClick={clearCart}>
             Clear Cart
           </button>
         </motion.div>
@@ -112,7 +112,7 @@ const Cart = () => {
                 >
                   {/* Bracelet Preview */}
                   <div className="bracelet-preview">
-                    <h3>Bracelet #{index + 1} - {bracelet.size}cm</h3>
+                    <h3 className="font-cormorant-medium">Bracelet #{index + 1} - {bracelet.size}cm</h3>
                     <div className="bracelet-visual-small">
                       {bracelet.charms.map((charm, charmIndex) => (
                         <div key={charmIndex} className="charm-preview">
@@ -133,15 +133,15 @@ const Cart = () => {
                           animate={{ x: 0, opacity: 1 }}
                           transition={{ delay: 0.1 * idx, duration: 0.3 }}
                         >
-                          <span>{item.charm.name} × {item.count}</span>
-                          <span>₱{item.totalPrice.toLocaleString()}</span>
+                          <span className="font-inter-regular">{item.charm.name} × {item.count}</span>
+                          <span className="font-montserrat-medium">₱{item.totalPrice.toLocaleString()}</span>
                         </motion.div>
                       ))}
                       
                       <div className="bracelet-total">
                         <div className="bracelet-total-row">
-                          <span className="total-label">Bracelet Total</span>
-                          <span className="total-amount">₱{bracelet.totalPrice.toLocaleString()}</span>
+                          <span className="total-label font-montserrat-semibold">Bracelet Total</span>
+                          <span className="total-amount font-montserrat-semibold">₱{bracelet.totalPrice.toLocaleString()}</span>
                         </div>
                       </div>
                     </div>
@@ -150,13 +150,13 @@ const Cart = () => {
                   {/* Action Buttons */}
                   <div className="bracelet-actions">
                     <button 
-                      className="edit-button"
+                      className="edit-button font-inter-medium"
                       onClick={() => handleEditBracelet(bracelet.id)}
                     >
                       Edit Bracelet
                     </button>
                     <button 
-                      className="remove-button"
+                      className="remove-button font-inter-medium"
                       onClick={() => removeBraceletFromCart(bracelet.id)}
                     >
                       Remove
@@ -175,22 +175,22 @@ const Cart = () => {
             transition={{ delay: 0.2, duration: 0.5 }}
           >
             <div className="summary-card">
-              <h3>Order Summary</h3>
+              <h3 className="font-montserrat-semibold">Order Summary</h3>
 
               <div className="summary-total">
-                <span className="total-label">Total Amount</span>
-                <span className="total-amount">₱{totalCartPrice.toLocaleString()}</span>
+                <span className="total-label font-montserrat-semibold">Total Amount</span>
+                <span className="total-amount font-montserrat-semibold">₱{totalCartPrice.toLocaleString()}</span>
               </div>
               
               <button 
-                className="checkout-button"
+                className="checkout-button font-inter-medium"
                 onClick={handleCheckout}
               >
                 <span>Proceed to Checkout</span>
               </button>
               
               <button 
-                className="continue-shopping-button"
+                className="continue-shopping-button font-inter-medium"
                 onClick={() => navigate('/customize')}
               >
                 Add Another Bracelet

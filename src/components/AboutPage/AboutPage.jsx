@@ -235,7 +235,7 @@ const AboutPage = () => {
       {/* Main Content Section */}
       <section className="main-content">
         <div className="container">
-          {/* Customization Experience */}
+{/* Customization Experience */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -244,7 +244,7 @@ const AboutPage = () => {
             className="experience-content"
             style={{ marginTop: '30px' }}
           >
-            <h2 className="section-title">Your Personalized Experience</h2>
+          <h2 className="section-title font-cormorant-medium">Your Personalized Experience</h2>
             <div className="experience-grid">
               <motion.div 
                 className="experience-card"
@@ -258,8 +258,8 @@ const AboutPage = () => {
                   transition: { duration: 0.3 }
                 }}
               >
-                <h3>Custom Design</h3>
-                <p>Create your perfect bracelet with our intuitive customization tool. Mix and match charms to tell your unique story.</p>
+                <h3 className="font-montserrat-bold">Custom Design</h3>
+                <p className="font-inter-regular">Create your perfect bracelet with our intuitive customization tool. Mix and match charms to tell your unique story.</p>
               </motion.div>
               <motion.div 
                 className="experience-card"
@@ -273,8 +273,8 @@ const AboutPage = () => {
                   transition: { duration: 0.3 }
                 }}
               >
-                <h3>Quality Craftsmanship</h3>
-                <p>Each piece is carefully crafted with attention to detail, ensuring your jewelry is as beautiful as it is meaningful.</p>
+                <h3 className="font-montserrat-bold">Quality Craftsmanship</h3>
+                <p className="font-inter-regular">Each piece is carefully crafted with attention to detail, ensuring your jewelry is as beautiful as it is meaningful.</p>
               </motion.div>
               <motion.div 
                 className="experience-card"
@@ -288,8 +288,8 @@ const AboutPage = () => {
                   transition: { duration: 0.3 }
                 }}
               >
-                <h3>Frequent Updates</h3>
-                <p>We're constantly adding new charms and expanding our collection. Check back regularly for fresh designs and seasonal specials.</p>
+                <h3 className="font-montserrat-bold">Frequent Updates</h3>
+                <p className="font-inter-regular">We're constantly adding new charms and expanding our collection. Check back regularly for fresh designs and seasonal specials.</p>
               </motion.div>
             </div>
             
@@ -305,17 +305,17 @@ const AboutPage = () => {
                 transition: { duration: 0.3 }
               }}
             >
-              <h3>What's Coming Next?</h3>
-              <p>
+              <h3 className="font-montserrat-bold">What's Coming Next?</h3>
+              <p className="font-inter-regular">
                 We're excited to announce that Soleil is expanding! In the coming months, expect to see:
               </p>
-              <ul>
+              <ul className="font-inter-regular">
                 <li>New jewelry categories including rings, necklaces, and earrings</li>
                 <li>Seasonal charm collections</li>
                 <li>Limited edition collaborations</li>
                 <li>Enhanced customization options</li>
               </ul>
-              <p>
+              <p className="font-inter-regular">
                 Stay tuned for these exciting additions to the Soleil family!
               </p>
             </motion.div>
@@ -334,11 +334,11 @@ const AboutPage = () => {
             className="credit-content"
           >
             <div className="credit-line"></div>
-            <p className="credit-text">
+            <p className="credit-text font-inter-regular">
               Website crafted with ❤️ by 
             </p>
             <p className="credit-developer">
-              <a href="https://github.com/PhilipQuijano" target="_blank" rel="noopener noreferrer" className="developer-link">
+              <a href="https://github.com/PhilipQuijano" target="_blank" rel="noopener noreferrer" className="developer-link font-montserrat-semibold">
                 Philip Quijano
               </a>
             </p>

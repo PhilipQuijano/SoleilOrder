@@ -603,7 +603,7 @@ const CustomizeBracelet = () => {
       {getBraceletCount() > 0 && (
         <div className="cart-indicator">
           <button 
-            className="cart-button"
+            className="cart-button font-montserrat-medium"
             onClick={() => navigate('/cart')}
           >
             Cart ({getBraceletCount()})
@@ -632,7 +632,7 @@ const CustomizeBracelet = () => {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.4 }}
               >
-                <h3 className="step-title">CHOOSE A CATEGORY</h3>
+                <h3 className="step-title font-montserrat-semibold">CHOOSE A CATEGORY</h3>
                 <div className="category-cards-container">
                   <div className="category-cards">
                     {Object.entries(availableCharms).map(([key, category]) => (
@@ -759,16 +759,16 @@ const CustomizeBracelet = () => {
       {/* Price Footer */}
       <div className="price-footer">
         <div className="price-info">
-          <span className="price-label">Total Price:</span>
-          <span className="price-amount">₱{totalPrice.toFixed(2)}</span>
+          <span className="price-label font-montserrat-semibold">Total Price:</span>
+          <span className="price-amount font-montserrat-semibold">₱{totalPrice.toFixed(2)}</span>
         </div>
         <div className="footer-actions">
           <button 
-            className="terms-button" 
+            className="terms-button font-inter-regular" 
             onClick={() => setShowTermsModal(true)}
             title="View Terms and Conditions"
           >
-            📋 Terms
+            Terms
           </button>
           <button className="finalize-button" onClick={handleFinalize}>
             {isEditing ? 'Update Bracelet' : 'Finalize your Bracelet'}

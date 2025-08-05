@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Montserrat:wght@500;600&display=swap');
+
 :root {
   --primary-color: #582e4e;
   --secondary-color: #f9e0e8;
@@ -5,6 +7,34 @@
   --light-text: #666666;
   --white: #ffffff;
 }
+
+.font-montserrat-semibold {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+}
+
+.font-montserrat-medium {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 500;
+}
+
+.font-inter-medium {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+}
+
+.font-inter-regular {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+}
+.font-playfair-bold { font-family: 'Playfair Display', serif; font-weight: 700; }
+.font-playfair-semibold { font-family: 'Playfair Display', serif; font-weight: 600; }
+.font-playfair-medium { font-family: 'Playfair Display', serif; font-weight: 500; }
+.font-playfair-regular { font-family: 'Playfair Display', serif; font-weight: 400; }
+.font-cormorant-semibold { font-family: 'Cormorant Garamond', serif; font-weight: 600; }
+.font-cormorant-medium { font-family: 'Cormorant Garamond', serif; font-weight: 500; }
+.font-source-medium { font-family: 'Source Sans Pro', sans-serif; font-weight: 500; }
+.font-source-regular { font-family: 'Source Sans Pro', sans-serif; font-weight: 400; }
 
 * {
   margin: 0;

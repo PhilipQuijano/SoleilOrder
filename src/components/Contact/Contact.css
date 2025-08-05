@@ -16,7 +16,7 @@
 
 /* Container with proper responsive sizing */
 .contact-container {
-  max-width: 50rem; /* 800px */
+  max-width: 80rem; 
   width: 100%;
   margin: 0 auto;
 }

@@ -22,6 +22,11 @@ html {
     overflow-x: hidden;
 }
 
+.cart-button {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 500;
+}
+
 /* =============================================================================
    MAIN CONTAINER
    ============================================================================= */
@@ -42,7 +47,7 @@ html {
     position: sticky;
     top: 75px;
     z-index: 90;
-    background-color: rgb(255, 251, 247);
+    background-color: rgb(255, 255, 255);
     padding: 1rem;
     margin: 0 1rem 1.25rem 1rem;
     text-align: center;
@@ -85,7 +90,7 @@ html {
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1rem;
-    background-color: rgb(255, 251, 247);
+    background-color: rgb(255, 255, 255);
     border-radius: 0.625rem;
     border: 1px solid rgba(88, 46, 78, 0.1);
     box-shadow: 0 2px 8px rgba(88, 46, 78, 0.08);
@@ -93,15 +98,18 @@ html {
     min-width: 120px;
     flex: 1;
     max-width: 200px;
+
 }
 
 .control-group h3 {
     margin: 0;
     color: #582e4e;
-    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
     font-size: 0.875rem;
     text-align: center;
     letter-spacing: 0.3px;
+
 }
 
 .control-group:hover {
@@ -117,7 +125,8 @@ html {
     color: #333;
     background: linear-gradient(145deg, #ffffff 0%, #fafafa 100%);
     font-size: 0.875rem;
-    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
     width: 100%;
     min-width: 100px;
     cursor: pointer;
@@ -312,7 +321,8 @@ html {
 
 .step-title {
     color: #582e4e;
-    font-weight: 700;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
     font-size: 1.1rem;
     margin: 0;
     text-align: center;
@@ -471,7 +481,8 @@ html {
 }
 
 .category-name {
-    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
     color: #333;
     text-align: center;
     font-size: 0.75rem;
@@ -663,38 +674,40 @@ body.dragging-active * {
     right: 0;
     background: linear-gradient(135deg, #582e4e 0%, #6d3a60 100%);
     color: white;
-    padding: 1rem;
+    padding: 0.75rem 1rem;
     box-shadow: 0 -3px 13px rgba(88, 46, 78, 0.3);
     z-index: 100;
     display: flex;
     justify-content: space-between;
     align-items: center;
     backdrop-filter: blur(7px);
-    min-height: 80px;
+    min-height: 56px;
 }
 
 .price-info {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
     flex: 1;
 }
 
 .price-label {
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: 0.8rem;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
     opacity: 0.9;
 }
 
 .price-amount {
-    font-size: 1.25rem;
-    font-weight: 700;
+    font-size: 1.1rem;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
     color: #fff;
 }
 
 .footer-actions {
     display: flex;
-    gap: 0.75rem;
+    gap: 0.5rem;
     align-items: center;
     flex-shrink: 0;
 }
@@ -703,17 +716,19 @@ body.dragging-active * {
     background: rgba(255, 255, 255, 0.2);
     color: white;
     border: 1px solid rgba(255, 255, 255, 0.3);
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 0.4rem;
     cursor: pointer;
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
-    font-size: 0.75rem;
-    min-width: 48px;
-    min-height: 48px;
+    font-size: 0.7rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    min-width: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
+    height: 32px;
 }
 
 .terms-button:hover {
@@ -725,15 +740,16 @@ body.dragging-active * {
     background: rgba(255, 255, 255, 0.15);
     color: white;
     border: 2px solid rgba(255, 255, 255, 0.3);
-    padding: 0.75rem 1.25rem;
-    border-radius: 1.5rem;
-    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    border-radius: 1.2rem;
+    font-size: 0.8rem;
+    font-family: 'Montserrat', sans-serif;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
     backdrop-filter: blur(7px);
-    min-width: 48px;
-    min-height: 48px;
+    min-width: 40px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1349,7 +1365,7 @@ body.dragging-active * {
 }
 
 /* =============================================================================
-   MOBILE RESPONSIVE STYLES - APPEND TO EXISTING CSS
+   MOBILE RESPONSIVE STYLES - FIXED VERSION
    ============================================================================= */
 
 /* =============================================================================
@@ -1402,19 +1418,19 @@ body.dragging-active * {
 }
 
 /* =============================================================================
-   MOBILE STYLES (320px - 767px)
+   MOBILE STYLES (320px - 767px) - FIXED ALIGNMENT
    ============================================================================= */
 @media screen and (max-width: 767px) {
-    /* Page layout adjustments */
+    /* Page layout adjustments - consistent padding */
     .customize-bracelet-page {
-        padding: 70px 0 90px 0;
+        padding: 70px 0 75px 0; /* Reduced bottom padding for smaller footer */
     }
 
-    /* Sticky bracelet display */
+    /* Sticky bracelet display - aligned with content */
     .bracelet-display {
         position: sticky;
         top: 65px;
-        margin: 0 0.5rem 1rem 0.5rem;
+        margin: 0 1rem 1rem 1rem; /* Consistent margin with charm selection */
         padding: 0.75rem;
         border-radius: 1rem;
     }
@@ -1469,12 +1485,12 @@ body.dragging-active * {
     /* Category cards - horizontal scroll on mobile */
     .category-cards-container {
         padding: 0;
-        margin: 0 -0.5rem;
+        margin: 0; /* Remove negative margin for alignment */
     }
 
     .category-cards {
         gap: 0.75rem;
-        padding: 0.75rem;
+        padding: 0 1rem; /* Match bracelet display padding */
         justify-content: flex-start;
     }
 
@@ -1494,9 +1510,9 @@ body.dragging-active * {
         line-height: 1.2;
     }
 
-    /* Charm selection area */
+    /* Charm selection area - aligned with bracelet display */
     .charm-selection {
-        padding: 1rem 0.75rem 0;
+        padding: 1rem; /* Consistent padding */
     }
 
     .charm-selection h2 {
@@ -1507,6 +1523,7 @@ body.dragging-active * {
     .selection-step {
         padding: 1rem;
         border-radius: 0.75rem;
+        margin: 0; /* Ensure no extra margin */
     }
 
     .step-header {
@@ -1565,49 +1582,51 @@ body.dragging-active * {
         margin-bottom: 0.75rem;
     }
 
-    /* Price footer - mobile layout */
+    /* Price footer - REDUCED SIZE for mobile */
     .price-footer {
-        padding: 0.75rem;
-        min-height: 75px;
-        flex-direction: column;
-        gap: 0.75rem;
+        padding: 0.5rem 1rem; /* Reduced padding */
+        min-height: 40px; /* Reduced from 75px */
+        flex-direction: row; /* Keep horizontal layout when possible */
+        gap: 0.5rem;
         align-items: center;
+        justify-content: space-between;
     }
 
     .price-info {
         flex-direction: column;
-        gap: 0.25rem;
-        text-align: center;
+        gap: 0.125rem; /* Reduced gap */
+        text-align: left;
+        flex-shrink: 0;
     }
 
     .price-label {
-        font-size: 0.8rem;
+        font-size: 0.75rem; /* Slightly smaller */
     }
 
     .price-amount {
-        font-size: 1.1rem;
+        font-size: 1rem; /* Reduced from 1.1rem */
     }
 
     .footer-actions {
-        width: 100%;
-        justify-content: center;
+        display: flex;
+        justify-content: flex-end;
         gap: 0.5rem;
+        flex-shrink: 0;
     }
 
     .terms-button {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.7rem;
-        min-width: 44px;
-        min-height: 44px;
+        padding: 0.375rem 0.625rem; /* Reduced padding */
+        font-size: 0.65rem; /* Smaller text */
+        min-width: 40px;
+        min-height: 40px; /* Reduced from 44px */
     }
 
     .finalize-button {
-        padding: 0.625rem 1rem;
-        font-size: 0.8rem;
-        min-width: 44px;
-        min-height: 44px;
-        flex: 1;
-        max-width: 200px;
+        padding: 0.5rem 0.875rem; /* Reduced padding */
+        font-size: 0.75rem; /* Smaller text */
+        min-width: 100px; /* Set reasonable min-width */
+        min-height: 40px; /* Reduced from 44px */
+        max-width: 140px; /* Prevent button from being too wide */
     }
 
     /* Modal adjustments for mobile */
@@ -1791,16 +1810,16 @@ body.dragging-active * {
 }
 
 /* =============================================================================
-   SMALL MOBILE STYLES (320px - 375px)
+   SMALL MOBILE STYLES (320px - 375px) - FURTHER OPTIMIZED
    ============================================================================= */
 @media screen and (max-width: 375px) {
     /* Further optimize for very small screens */
     .customize-bracelet-page {
-        padding: 65px 0 85px 0;
+        padding: 65px 0 70px 0; /* Further reduced bottom padding */
     }
 
     .bracelet-display {
-        margin: 0 0.25rem 0.75rem 0.25rem;
+        margin: 0 0.75rem 0.75rem 0.75rem; /* Consistent with charm selection */
         padding: 0.625rem;
         top: 60px;
     }
@@ -1837,7 +1856,7 @@ body.dragging-active * {
 
     .category-cards {
         gap: 0.5rem;
-        padding: 0.5rem;
+        padding: 0 0.75rem; /* Match bracelet display margin */
     }
 
     .category-card {
@@ -1856,7 +1875,7 @@ body.dragging-active * {
     }
 
     .charm-selection {
-        padding: 0.75rem 0.5rem 0;
+        padding: 0.75rem; /* Match bracelet display margin */
     }
 
     .charm-selection h2 {
@@ -1903,31 +1922,35 @@ body.dragging-active * {
         padding: 0.5rem;
     }
 
+    /* Ultra-compact footer for small screens */
     .price-footer {
-        padding: 0.5rem;
-        min-height: 70px;
+        padding: 0.375rem 0.75rem; /* Very compact padding */
+        min-height: 50px; /* Further reduced */
+        flex-direction: row;
+        gap: 0.375rem;
     }
 
     .price-label {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
     }
 
     .price-amount {
-        font-size: 1rem;
+        font-size: 0.9rem;
     }
 
     .terms-button {
-        padding: 0.375rem 0.5rem;
-        font-size: 0.65rem;
-        min-width: 40px;
-        min-height: 40px;
+        padding: 0.25rem 0.375rem;
+        font-size: 0.6rem;
+        min-width: 35px;
+        min-height: 35px;
     }
 
     .finalize-button {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.75rem;
-        min-width: 40px;
-        min-height: 40px;
+        padding: 0.375rem 0.625rem;
+        font-size: 0.7rem;
+        min-width: 80px;
+        min-height: 35px;
+        max-width: 120px;
     }
 
     .modal-overlay {
@@ -1970,11 +1993,37 @@ body.dragging-active * {
 }
 
 /* =============================================================================
+   VERY NARROW SCREENS - Additional fix for alignment
+   ============================================================================= */
+@media screen and (max-width: 320px) {
+    .price-footer {
+        flex-direction: column;
+        min-height: 65px;
+        padding: 0.375rem 0.5rem;
+        gap: 0.25rem;
+    }
+
+    .price-info {
+        text-align: center;
+    }
+
+    .footer-actions {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .finalize-button {
+        flex: 1;
+        max-width: 120px;
+    }
+}
+
+/* =============================================================================
    LANDSCAPE ORIENTATION ADJUSTMENTS
    ============================================================================= */
 @media screen and (max-height: 500px) and (orientation: landscape) {
     .customize-bracelet-page {
-        padding: 50px 0 70px 0;
+        padding: 50px 0 60px 0; /* Reduced footer space */
     }
 
     .bracelet-display {
@@ -1997,8 +2046,8 @@ body.dragging-active * {
     }
 
     .price-footer {
-        padding: 0.5rem;
-        min-height: 60px;
+        padding: 0.375rem 1rem; /* Compact for landscape */
+        min-height: 50px;
     }
 
     .modal-content {
