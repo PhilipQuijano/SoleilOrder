@@ -11,6 +11,7 @@ import './components/GlobalTransitions.css';
 import { CartProvider } from './contexts/CartContext';
 import Cart from './components/Cart/Cart';
 import Contact from './components/Contact/Contact';
+import { Analytics } from '@vercel/analytics/react';
 
 const App = () => {
   return (
@@ -27,6 +28,7 @@ const App = () => {
             <Route path="/cart" element={<Cart />} />
           </Routes>
         </AnimatePresence>
+        <Analytics />
       </Router>
     </CartProvider>
   );
