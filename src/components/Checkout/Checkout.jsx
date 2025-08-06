@@ -419,7 +419,7 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
           customer_address: fullAddress,
           payment_method: customerInfo.paymentMethod,
           delivery_method: customerInfo.deliveryMethod,
-          status: 'Awaiting Confirmation',
+          status: 'awaiting_confirmation',
           total_amount: bracelet.totalPrice,
           created_at: new Date().toISOString()
         };
