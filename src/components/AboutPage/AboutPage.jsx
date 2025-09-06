@@ -18,97 +18,37 @@ const AboutPage = () => {
       setLoading(true);
       setError(null);
       
-      // Check if about-images bucket exists
-      const { data: buckets } = await supabase.storage.listBuckets();
-      const aboutBucket = buckets?.find(bucket => bucket.name === 'about-images');
-      
-      if (!aboutBucket && buckets) {
-        console.warn('About-images bucket not found, attempting to access anyway');
-      }
-      
-      // Try multiple methods to fetch images
-      let data, error;
-      
-      // Method 1: List with parameters
-      const result1 = await supabase
+      const { data, error } = await supabase
         .storage
         .from('about-images')
-        .list('', {
-          limit: 100,
-          offset: 0,
-          sortBy: { column: 'name', order: 'asc' }
-        });
-      
-      if (result1.error) {
-        // Method 2: List without parameters
-        const result2 = await supabase
-          .storage
-          .from('about-images')
-          .list();
-        
-        if (result2.error) {
-          // Method 3: List root directory explicitly
-          const result3 = await supabase
-            .storage
-            .from('about-images')
-            .list('/', { limit: 100 });
-          
-          data = result3.data;
-          error = result3.error;
-        } else {
-          data = result2.data;
-          error = result2.error;
-        }
-      } else {
-        data = result1.data;
-        error = result1.error;
-      }
+        .list('', { limit: 100 });
       
       if (error) {
-        setError(`Storage error: ${error.message}`);
+        setError(`Failed to load images: ${error.message}`);
+        return;
+      }
+      
+      if (!data || data.length === 0) {
         setImages([]);
         return;
       }
       
-      if (data && data.length > 0) {
-        // Filter for valid image files
-        const imageFiles = data.filter(file => {
-          if (!file.name) return false;
-          
-          const isImage = file.name.match(/\.(jpg|jpeg|png|gif|webp|avif|bmp|tiff)$/i);
-          const isNotFolder = file.name !== '.emptyFolderPlaceholder' && 
-                             !file.name.endsWith('/') &&
-                             file.id;
-          
-          return isImage && isNotFolder;
-        });
-        
-        if (imageFiles.length > 0) {
-          // Get public URLs for images
-          const imageUrls = imageFiles.map(file => {
-            const { data: urlData } = supabase
-              .storage
-              .from('about-images')
-              .getPublicUrl(file.name);
-            
-            return {
-              id: file.id || file.name,
-              url: urlData.publicUrl,
-              name: file.name,
-              size: file.metadata?.size || 0,
-              lastModified: file.updated_at || file.created_at
-            };
-          });
-          setImages(imageUrls);
-        } else {
-          setImages([]);
-        }
-      } else {
-        setImages([]);
-      }
+      // Filter for valid image files
+      const imageFiles = data.filter(file => 
+        file.name && 
+        file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i) &&
+        file.id
+      );
+      
+      const imageUrls = imageFiles.map(file => ({
+        id: file.id,
+        url: supabase.storage.from('about-images').getPublicUrl(file.name).data.publicUrl,
+        name: file.name
+      }));
+      
+      setImages(imageUrls);
     } catch (error) {
       setError(`Failed to load images: ${error.message}`);
-      setImages([]);
     } finally {
       setLoading(false);
     }
