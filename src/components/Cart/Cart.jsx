@@ -56,7 +56,7 @@ const Cart = () => {
   // Empty cart state
   if (cartBracelets.length === 0) {
     return (
-      <div className="cart-page">
+      <div className="cart-page empty-state">
         <motion.div 
           className="empty-cart"
           initial={{ opacity: 0, y: 20 }}
