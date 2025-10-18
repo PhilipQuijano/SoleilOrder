@@ -137,7 +137,6 @@
 .cart-link svg,
 .cart-link svg * {
   stroke: currentColor;
-  fill: currentColor;
 }
 
 /* ACTIVE LINK STYLES */
