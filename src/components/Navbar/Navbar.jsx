@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Instagram, Facebook, ShoppingCart } from 'lucide-react';
 import './Navbar.css';
@@ -76,41 +76,42 @@ const Navbar = () => {
               SOLEIL
             </Link>
           </motion.div>
+          
         </div>
 
         {/* Navigation Links */}
         <div className="nav-links">
-          {['About', 'Customize', 'Contact'].map((item) => {
-            const path = `/${item.toLowerCase()}`;
-            const isActive = location.pathname === path;
-            return (
-              <motion.div
-                key={item}
-                variants={linkVariants}
-                whileHover="hover"
-                whileTap="tap"
+          {['About', 'Charms', 'Customize', 'Contact'].map((item) => (
+            <motion.div
+              key={item}
+              variants={linkVariants}
+              whileHover="hover"
+              whileTap="tap"
+            >
+              <NavLink
+                to={`/${item.toLowerCase()}`}
+                className={({ isActive }) => `nav-link hover-underline${isActive ? ' active' : ''}`}
+                end={false}
               >
-                <Link 
-                  to={path} 
-                  className={`nav-link hover-underline${isActive ? ' active' : ''}`}
-                >
-                  {item}
-                </Link>
-              </motion.div>
-            );
-          })}
+                {item}
+              </NavLink>
+            </motion.div>
+          ))}
 
-          {/* Cart icon/link (simple wrapper so it aligns and can receive active class) */}
+          {/* Cart icon/link */}
           <div className="cart-wrapper">
-            <Link 
-              to="/cart" 
-              className={`nav-link cart-link${location.pathname === '/cart' ? ' active' : ''}`} 
+            <NavLink
+              to="/cart"
+              end={true}
+              className={({ isActive }) => `nav-link cart-link${isActive ? ' active' : ''}`}
               aria-label="Cart"
+              aria-current={location.pathname === '/cart' ? 'page' : undefined}
             >
               <ShoppingCart size={18} />
-            </Link>
+            </NavLink>
           </div>
         </div>
+        
       </div>
     </motion.nav>
   );

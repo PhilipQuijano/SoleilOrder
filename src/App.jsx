@@ -4,6 +4,7 @@ import Navbar from './components/Navbar/Navbar';
 import HomePage from './HomePage';
 import CustomizeBracelet from './components/CustomizeBracelet/CustomizeBracelet';
 import AboutPage from './components/AboutPage/AboutPage';
+import Charms from './components/Charms/Charms';
 import './App.css';
 import Checkout from './components/Checkout/Checkout';
 import { AnimatePresence } from 'framer-motion';
@@ -23,6 +24,7 @@ const App = () => {
             <Route path="/" element={<HomePage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/charms" element={<Charms />} />
             <Route path="/customize" element={<CustomizeBracelet />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/cart" element={<Cart />} />
