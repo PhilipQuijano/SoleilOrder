@@ -1,11 +1,17 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Montserrat:wght@500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@500;600&display=swap');
 
 :root {
   --primary-color: #582e4e;
   --secondary-color: #f9e0e8;
+  --accent-gold: #d4a574;
+  --error-red: #f44336;
   --text-color: #333333;
   --light-text: #666666;
   --white: #ffffff;
+  --background-gradient-start: #f8f9ff;
+  --background-gradient-end: #fdf8ff;
+  --primary-dark: #4a2741;
+  --primary-light: #6d3a60;
 }
 
 .font-montserrat-semibold {
@@ -18,6 +24,11 @@
   font-weight: 500;
 }
 
+.font-inter-semibold {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+}
+
 .font-inter-medium {
   font-family: 'Inter', sans-serif;
   font-weight: 500;
@@ -27,14 +38,16 @@
   font-family: 'Inter', sans-serif;
   font-weight: 400;
 }
-.font-playfair-bold { font-family: 'Playfair Display', serif; font-weight: 700; }
-.font-playfair-semibold { font-family: 'Playfair Display', serif; font-weight: 600; }
-.font-playfair-medium { font-family: 'Playfair Display', serif; font-weight: 500; }
-.font-playfair-regular { font-family: 'Playfair Display', serif; font-weight: 400; }
-.font-cormorant-semibold { font-family: 'Cormorant Garamond', serif; font-weight: 600; }
-.font-cormorant-medium { font-family: 'Cormorant Garamond', serif; font-weight: 500; }
-.font-source-medium { font-family: 'Source Sans Pro', sans-serif; font-weight: 500; }
-.font-source-regular { font-family: 'Source Sans Pro', sans-serif; font-weight: 400; }
+
+.font-cormorant-semibold {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+}
+
+.font-cormorant-medium {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 500;
+}
 
 * {
   margin: 0;
