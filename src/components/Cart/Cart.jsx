@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useCart } from '../../contexts/CartContext';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,6 +16,14 @@ const Cart = () => {
     clearCart 
   } = useCart();
   const navigate = useNavigate();
+  const [expandedBracelets, setExpandedBracelets] = useState({});
+
+  const toggleBraceletDetails = (braceletId) => {
+    setExpandedBracelets(prev => ({
+      ...prev,
+      [braceletId]: !prev[braceletId]
+    }));
+  };
 
   const handleEditBracelet = (braceletId) => {
     const braceletToEdit = cartBracelets.find(b => b.id === braceletId);
@@ -148,44 +156,71 @@ const Cart = () => {
 
                       {/* Price Breakdown */}
                       <div className="bracelet-details">
-                        <div className="price-breakdown">
-                          {getPriceBreakdown(bracelet).map((item, idx) => (
-                            <motion.div 
-                              key={idx} 
-                              className="price-item"
-                              initial={{ x: -10, opacity: 0 }}
-                              animate={{ x: 0, opacity: 1 }}
-                              transition={{ delay: 0.1 * idx, duration: 0.3 }}
-                            >
-                              <span className="font-inter-regular">{item.charm.name} × {item.count}</span>
-                              <span className="font-montserrat-medium">₱{item.totalPrice.toLocaleString()}</span>
-                            </motion.div>
-                          ))}
+                        {/* Header row with toggle and total */}
+                        <div className="bracelet-details-header">
+                          <button 
+                            className="price-breakdown-toggle font-inter-medium"
+                            onClick={() => toggleBraceletDetails(bracelet.id)}
+                          >
+                            <span>Price Breakdown</span>
+                            <span className={`toggle-icon ${expandedBracelets[bracelet.id] ? 'expanded' : ''}`}>
+                              ▼
+                            </span>
+                          </button>
                           
-                          <div className="bracelet-total">
-                            <div className="bracelet-total-row">
-                              <span className="total-label font-montserrat-semibold">Bracelet Total</span>
-                              <span className="total-amount font-montserrat-semibold">₱{bracelet.totalPrice.toLocaleString()}</span>
+                          <div className="bracelet-right-section">
+                            <div className="bracelet-total">
+                              <div className="bracelet-total-row">
+                                <span className="total-label font-montserrat-semibold">Bracelet Total</span>
+                                <span className="total-amount font-montserrat-semibold">₱{bracelet.totalPrice.toLocaleString()}</span>
+                              </div>
+                            </div>
+                            
+                            <div className="bracelet-actions">
+                              <button 
+                                className="edit-button font-inter-medium"
+                                onClick={() => handleEditBracelet(bracelet.id)}
+                              >
+                                Edit Bracelet
+                              </button>
+                              <button 
+                                className="remove-button font-inter-medium"
+                                onClick={() => removeBraceletFromCart(bracelet.id)}
+                                aria-label="Remove bracelet"
+                              >
+                                <img src={deleteIcon} alt="Delete" className="delete-icon" />
+                              </button>
                             </div>
                           </div>
                         </div>
-                      </div>
 
-                      {/* Action Buttons */}
-                      <div className="bracelet-actions">
-                        <button 
-                          className="edit-button font-inter-medium"
-                          onClick={() => handleEditBracelet(bracelet.id)}
-                        >
-                          Edit Bracelet
-                        </button>
-                        <button 
-                          className="remove-button font-inter-medium"
-                          onClick={() => removeBraceletFromCart(bracelet.id)}
-                          aria-label="Remove bracelet"
-                        >
-                          <img src={deleteIcon} alt="Delete" className="delete-icon" />
-                        </button>
+
+
+                        {/* Collapsible Content */}
+                        <AnimatePresence>
+                          {expandedBracelets[bracelet.id] && (
+                            <motion.div 
+                              className="price-breakdown"
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.3 }}
+                            >
+                              {getPriceBreakdown(bracelet).map((item, idx) => (
+                                <motion.div 
+                                  key={idx} 
+                                  className="price-item"
+                                  initial={{ x: -10, opacity: 0 }}
+                                  animate={{ x: 0, opacity: 1 }}
+                                  transition={{ delay: 0.05 * idx, duration: 0.3 }}
+                                >
+                                  <span className="font-inter-regular">{item.charm.name} × {item.count}</span>
+                                  <span className="font-montserrat-medium">₱{item.totalPrice.toLocaleString()}</span>
+                                </motion.div>
+                              ))}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
                     </motion.div>
                   ))}
@@ -197,66 +232,72 @@ const Cart = () => {
             {cartCharms.length > 0 && (
               <>
                 <h2 className="section-title font-cormorant-medium" style={{ marginTop: cartBracelets.length > 0 ? '40px' : '0' }}>Individual Charms</h2>
-                <AnimatePresence>
-                  {cartCharms.map((charm, index) => (
-                    <motion.div
-                      key={charm.cartItemId}
-                      className="cart-charm-item"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ delay: index * 0.1, duration: 0.5 }}
-                    >
-                      <div className="charm-item-content">
-                        <img 
-                          src={charm.image} 
-                          alt={charm.name}
-                          className="charm-item-image"
-                          onError={(e) => {
-                            e.target.src = '/api/placeholder/80/80';
-                          }}
-                        />
-                        <div className="charm-item-details">
-                          <h3 className="font-inter-semibold">{charm.name}</h3>
-                          {charm.category && (
-                            <p className="charm-category font-inter-regular">{charm.category}</p>
-                          )}
-                          <p className="charm-price font-inter-medium">₱{charm.price} each</p>
+                <div className="charms-grid-container">
+                  <AnimatePresence>
+                    {cartCharms.map((charm, index) => (
+                      <motion.div
+                        key={charm.cartItemId}
+                        className="cart-charm-item"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ delay: index * 0.1, duration: 0.5 }}
+                      >
+                        <div className="charm-item-left">
+                          <img 
+                            src={charm.image} 
+                            alt={charm.name}
+                            className="charm-item-image"
+                            onError={(e) => {
+                              e.target.src = '/api/placeholder/80/80';
+                            }}
+                          />
+                          <div className="quantity-control">
+                            <button
+                              onClick={() => updateCharmQuantity(charm.cartItemId, charm.quantity - 1)}
+                              disabled={charm.quantity <= 1}
+                              className="font-inter-medium"
+                            >
+                              -
+                            </button>
+                            <span className="quantity-display font-inter-medium">{charm.quantity}</span>
+                            <button
+                              onClick={() => updateCharmQuantity(charm.cartItemId, charm.quantity + 1)}
+                              disabled={charm.stock !== undefined && charm.quantity >= charm.stock}
+                              className="font-inter-medium"
+                            >
+                              +
+                            </button>
+                          </div>
                         </div>
-                      </div>
+                        
+                        <div className="charm-item-content">
+                          <div className="charm-item-details">
+                            <h3 className="font-inter-semibold">{charm.name}</h3>
+                            {charm.category && (
+                              <p className="charm-category font-inter-regular">{charm.category}</p>
+                            )}
+                            <p className="charm-price font-inter-medium">₱{charm.price} each</p>
+                          </div>
 
-                      <div className="charm-item-controls">
-                        <div className="quantity-control">
-                          <button
-                            onClick={() => updateCharmQuantity(charm.cartItemId, charm.quantity - 1)}
-                            disabled={charm.quantity <= 1}
-                            className="font-inter-medium"
-                          >
-                            -
-                          </button>
-                          <span className="quantity-display font-inter-medium">{charm.quantity}</span>
-                          <button
-                            onClick={() => updateCharmQuantity(charm.cartItemId, charm.quantity + 1)}
-                            disabled={charm.stock !== undefined && charm.quantity >= charm.stock}
-                            className="font-inter-medium"
-                          >
-                            +
-                          </button>
+                          <div className="charm-item-right-controls">
+                            <div className="charm-item-total">
+                              <span className="total-label font-inter-medium">Total:</span>
+                              <span className="total-price font-montserrat-semibold">₱{(charm.price * charm.quantity).toLocaleString()}</span>
+                            </div>
+                            <button 
+                              className="remove-charm-button font-inter-medium"
+                              onClick={() => removeCharmFromCart(charm.cartItemId)}
+                              aria-label="Remove charm"
+                            >
+                              <img src={deleteIcon} alt="Delete" className="delete-icon" />
+                            </button>
+                          </div>
                         </div>
-                        <div className="charm-item-total">
-                          <p className="font-montserrat-semibold">₱{(charm.price * charm.quantity).toLocaleString()}</p>
-                        </div>
-                        <button 
-                          className="remove-charm-button font-inter-medium"
-                          onClick={() => removeCharmFromCart(charm.cartItemId)}
-                          aria-label="Remove charm"
-                        >
-                          <img src={deleteIcon} alt="Delete" className="delete-icon" />
-                        </button>
-                      </div>
                     </motion.div>
                   ))}
                 </AnimatePresence>
+                </div>
               </>
             )}
           </div>
