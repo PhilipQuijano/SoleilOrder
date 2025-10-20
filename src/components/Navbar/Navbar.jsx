@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Instagram, Facebook } from 'lucide-react';
+import { Instagram, Facebook, ShoppingCart } from 'lucide-react';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -76,26 +76,42 @@ const Navbar = () => {
               SOLEIL
             </Link>
           </motion.div>
+          
         </div>
 
         {/* Navigation Links */}
         <div className="nav-links">
-          {['About', 'Customize', 'Contact'].map((item) => (
+          {['About', 'Charms', 'Customize', 'Contact'].map((item) => (
             <motion.div
               key={item}
               variants={linkVariants}
               whileHover="hover"
               whileTap="tap"
             >
-              <Link 
-                to={`/${item.toLowerCase()}`} 
-                className="nav-link hover-underline"
+              <NavLink
+                to={`/${item.toLowerCase()}`}
+                className={({ isActive }) => `nav-link hover-underline${isActive ? ' active' : ''}`}
+                end={false}
               >
                 {item}
-              </Link>
+              </NavLink>
             </motion.div>
           ))}
+
+          {/* Cart icon/link */}
+          <div className="cart-wrapper">
+            <NavLink
+              to="/cart"
+              end={true}
+              className={({ isActive }) => `nav-link cart-link${isActive ? ' active' : ''}`}
+              aria-label="Cart"
+              aria-current={location.pathname === '/cart' ? 'page' : undefined}
+            >
+              <ShoppingCart size={18} />
+            </NavLink>
+          </div>
         </div>
+        
       </div>
     </motion.nav>
   );
