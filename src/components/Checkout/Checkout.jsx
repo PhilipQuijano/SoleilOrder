@@ -32,9 +32,10 @@ const CheckoutPage = () => {
 
   // Initialize order data from various sources
   const [orderData] = useState(() => {
-    if (passedData?.bracelets) {
+    if (passedData?.bracelets || passedData?.charms) {
       return {
-        bracelets: passedData.bracelets,
+        bracelets: passedData.bracelets || [],
+        charms: passedData.charms || [],
         totalPrice: passedData.totalPrice
       };
     } else if (passedData?.charms) {
@@ -45,6 +46,7 @@ const CheckoutPage = () => {
           totalPrice: passedData.totalPrice,
           size: passedData.size
         }],
+        charms: [],
         totalPrice: passedData.totalPrice
       };
     }
@@ -62,6 +64,7 @@ const CheckoutPage = () => {
         totalPrice: 510,
         size: 17
       }],
+      charms: [],
       totalPrice: 510
     };
   });
@@ -167,10 +170,11 @@ const CheckoutPage = () => {
     return addressParts.join(', ');
   };
 
-  // Calculate charm quantities across all bracelets
+  // Calculate charm quantities across all bracelets and individual charms
   const getCharmQuantities = () => {
     const charmQuantities = {};
     
+    // Add charms from bracelets
     orderData.bracelets.forEach(bracelet => {
       bracelet.charms.forEach(charm => {
         if (charm && charm.id) {
@@ -187,6 +191,24 @@ const CheckoutPage = () => {
         }
       });
     });
+    
+    // Add individual charms
+    if (orderData.charms) {
+      orderData.charms.forEach(charm => {
+        if (charm && charm.id) {
+          if (charmQuantities[charm.id]) {
+            charmQuantities[charm.id].totalCount += charm.quantity;
+          } else {
+            charmQuantities[charm.id] = {
+              id: charm.id,
+              name: charm.name,
+              totalCount: charm.quantity,
+              price: charm.price
+            };
+          }
+        }
+      });
+    }
     
     return charmQuantities;
   };
@@ -495,6 +517,51 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
         }
       }
 
+      // Step 2b: Create order for individual charms if any
+      if (orderData.charms && orderData.charms.length > 0) {
+        const charmsTotal = orderData.charms.reduce((sum, charm) => sum + (charm.price * charm.quantity), 0);
+        
+        const charmOrderRecord = {
+          customer_name: customerInfo.name.trim(),
+          customer_phone: customerInfo.phone.trim(),
+          customer_email: customerInfo.email.trim() || null,
+          customer_address: fullAddress,
+          payment_method: customerInfo.paymentMethod,
+          delivery_method: customerInfo.deliveryMethod,
+          status: 'awaiting_confirmation',
+          total_amount: charmsTotal,
+          created_at: new Date().toISOString()
+        };
+
+        const { data: insertedCharmOrder, error: charmOrderError } = await supabase
+          .from('orders')
+          .insert([charmOrderRecord])
+          .select()
+          .single();
+
+        if (charmOrderError) {
+          throw new Error('Failed to create charm order. Please try again.');
+        }
+
+        orderRecords.push(insertedCharmOrder);
+
+        // Create order items for individual charms
+        const charmOrderItems = orderData.charms.map(charm => ({
+          order_id: insertedCharmOrder.id,
+          charm_id: charm.id,
+          quantity: charm.quantity,
+          price: charm.price
+        }));
+
+        const { error: charmItemsError } = await supabase
+          .from('order_items')
+          .insert(charmOrderItems);
+
+        if (charmItemsError) {
+          throw new Error('Order created but failed to save charm items. Please contact support.');
+        }
+      }
+
       // Step 3: Update stock after all orders are successfully created
       await updateCharmStock(stockValidation);
 
@@ -530,26 +597,47 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
             transition={{ delay: 0.2, duration: 0.5 }}
           >
             {/* Bracelets Preview */}
-            <div className="bracelets-preview">
-              <h2 className="font-cormorant-medium">Your Bracelet{orderData.bracelets.length > 1 ? 's' : ''} ({orderData.bracelets.length})</h2>
-              
-              {orderData.bracelets.map((bracelet, braceletIndex) => (
-                <div key={bracelet.id || braceletIndex} className="bracelet-final-preview">
-                  <h3 className="font-cormorant-medium">Bracelet #{braceletIndex + 1}</h3>
-                  <div className="final-bracelet-visual">
-                    {bracelet.charms.map((charm, charmIndex) => (
-                      <div key={charmIndex} className="final-bracelet-charm">
-                        <img src={charm?.image} alt={charm?.name} />
+            {orderData.bracelets.length > 0 && (
+              <div className="bracelets-preview">
+                <h2 className="font-cormorant-medium">Your Bracelet{orderData.bracelets.length > 1 ? 's' : ''} ({orderData.bracelets.length})</h2>
+                
+                {orderData.bracelets.map((bracelet, braceletIndex) => (
+                  <div key={bracelet.id || braceletIndex} className="bracelet-final-preview">
+                    <h3 className="font-cormorant-medium">Bracelet #{braceletIndex + 1}</h3>
+                    <div className="final-bracelet-visual">
+                      {bracelet.charms.map((charm, charmIndex) => (
+                        <div key={charmIndex} className="final-bracelet-charm">
+                          <img src={charm?.image} alt={charm?.name} />
+                        </div>
+                      ))}
+                    </div>
+                    <div className="bracelet-info">
+                      <p className="bracelet-size font-inter-regular">Size: {bracelet.size} cm</p>
+                      <p className="bracelet-price font-montserrat-medium">₱{bracelet.totalPrice.toLocaleString()}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Individual Charms Preview */}
+            {orderData.charms && orderData.charms.length > 0 && (
+              <div className="individual-charms-preview">
+                <h2 className="font-cormorant-medium">Individual Charms ({orderData.charms.length})</h2>
+                <div className="charms-grid-preview">
+                  {orderData.charms.map((charm, index) => (
+                    <div key={charm.cartItemId || index} className="charm-preview-item">
+                      <img src={charm.image} alt={charm.name} onError={(e) => { e.target.src = '/api/placeholder/80/80'; }} />
+                      <div className="charm-preview-details">
+                        <h4 className="font-inter-semibold">{charm.name}</h4>
+                        <p className="font-inter-regular">Qty: {charm.quantity}</p>
+                        <p className="font-montserrat-medium">₱{(charm.price * charm.quantity).toLocaleString()}</p>
                       </div>
-                    ))}
-                  </div>
-                  <div className="bracelet-info">
-                    <p className="bracelet-size font-inter-regular">Size: {bracelet.size} cm</p>
-                    <p className="bracelet-price font-montserrat-medium">₱{bracelet.totalPrice.toLocaleString()}</p>
-                  </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
 
             {/* Order Details */}
             <div className="order-details">
@@ -596,6 +684,34 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
                     </div>
                   );
                 })}
+
+                {/* Individual Charms Section */}
+                {orderData.charms && orderData.charms.length > 0 && (
+                  <div className="charms-order-section">
+                    <h4 className="font-cormorant-medium">Individual Charms</h4>
+                    {orderData.charms.map((charm, index) => (
+                      <motion.div 
+                        key={charm.cartItemId || index}
+                        className="order-item"
+                        initial={{ x: -10, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        transition={{ delay: 0.1 * index, duration: 0.3 }}
+                      >
+                        <div className="item-info">
+                          <img src={charm.image} alt={charm.name} className="item-image" onError={(e) => { e.target.src = '/api/placeholder/60/60'; }} />
+                          <div className="item-details">
+                            <span className="item-name font-inter-regular">{charm.name}</span>
+                            <span className="item-quantity font-inter-regular">x{charm.quantity}</span>
+                          </div>
+                        </div>
+                        <span className="item-price font-montserrat-medium">₱{(charm.price * charm.quantity).toLocaleString()}</span>
+                      </motion.div>
+                    ))}
+                    <div className="bracelet-subtotal">
+                      <span className="font-montserrat-medium">Charms Subtotal: ₱{orderData.charms.reduce((sum, charm) => sum + (charm.price * charm.quantity), 0).toLocaleString()}</span>
+                    </div>
+                  </div>
+                )}
                 
                 <div className="order-total">
                   <div className="total-divider"></div>
