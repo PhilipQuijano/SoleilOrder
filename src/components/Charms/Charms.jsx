@@ -106,7 +106,6 @@ const Charms = () => {
           transition={{ duration: 0.5 }}
         >
           <div className="spinner"></div>
-          <p className="font-inter-regular">Loading charms...</p>
         </motion.div>
       </div>
     );
