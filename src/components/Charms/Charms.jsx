@@ -7,7 +7,7 @@ import './Charms.css';
 
 const Charms = () => {
   const navigate = useNavigate();
-  const { addCharmToCart } = useCart();
+  const { addCharmToCart, cartCharms, updateCharmQuantity, removeCharmFromCart } = useCart();
   
   const [charms, setCharms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -220,13 +220,78 @@ const Charms = () => {
                   </p>
                 )}
                 
-                <button
-                  className="add-to-cart-btn font-inter-medium"
-                  onClick={() => handleAddToCart(charm)}
-                  disabled={charm.stock === 0}
-                >
-                  {charm.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-                </button>
+                {/* If charm is in cart, show quantity controls */}
+                {(() => {
+                  const cartItem = cartCharms.find(item => item.id === charm.id);
+                  if (cartItem) {
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', width: '100%' }}>
+                          <button
+                            className="add-to-cart-btn font-inter-medium"
+                            style={{ width: '28px', height: '28px', padding: '0', minWidth: 'unset' }}
+                            onClick={() => {
+                              if (cartItem.quantity > 1) {
+                                updateCharmQuantity(cartItem.cartItemId, cartItem.quantity - 1);
+                              } else {
+                                removeCharmFromCart(cartItem.cartItemId);
+                              }
+                            }}
+                          >
+                            -
+                          </button>
+                          <input
+                            type="number"
+                            min="1"
+                            max={charm.stock !== undefined ? charm.stock : 999}
+                            value={cartItem.quantity}
+                            onChange={e => {
+                              let val = parseInt(e.target.value) || 1;
+                              if (val < 1) val = 1;
+                              if (charm.stock !== undefined && val > charm.stock) val = charm.stock;
+                              updateCharmQuantity(cartItem.cartItemId, val);
+                            }}
+                            className="quantity-controls-input"
+                            style={{
+                              width: '32px',
+                              height: '28px',
+                              textAlign: 'center',
+                              fontWeight: 500,
+                              border: '1.5px solid #e0e0e0',
+                              borderRadius: '6px',
+                              fontSize: '1rem',
+                              margin: '0 2px'
+                            }}
+                          />
+                          <button
+                            className="add-to-cart-btn font-inter-medium"
+                            style={{ width: '28px', height: '28px', padding: '0', minWidth: 'unset' }}
+                            onClick={() => {
+                              if (!charm.stock || cartItem.quantity < charm.stock) {
+                                updateCharmQuantity(cartItem.cartItemId, cartItem.quantity + 1);
+                              }
+                            }}
+                            disabled={charm.stock !== undefined && cartItem.quantity >= charm.stock}
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return (
+                      <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <button
+                          className="add-to-cart-btn font-inter-medium"
+                          style={{ width: '120px', fontSize: '1rem', padding: '8px 0', borderRadius: '8px', margin: '0 auto', display: 'block', textAlign: 'center' }}
+                          onClick={() => handleAddToCart(charm)}
+                          disabled={charm.stock === 0}
+                        >
+                          {charm.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                        </button>
+                      </div>
+                  );
+                })()}
               </div>
             </motion.div>
           ))
