@@ -1,3 +1,54 @@
+/* Quantity controls container for charm card */
+.quantity-control-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+}
+/* Quantity button for charm card */
+.quantity-button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  min-width: unset;
+  border: 2px solid #d4a574;
+  background: white;
+  color: #d4a574;
+  border-radius: 7px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+}
+.quantity-button:hover:not(:disabled) {
+  background: #d4a574;
+  color: white;
+}
+.quantity-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+/* Quantity input for charm card */
+.quantity-input-inline {
+  width: 32px;
+  height: 28px;
+  text-align: center;
+  font-weight: 500;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 1rem;
+  margin: 0 2px;
+}
+/* Add to cart button container */
+.add-to-cart-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 /* Remove number input arrows for Chrome, Safari, Edge in charms card */
 .quantity-controls-input::-webkit-inner-spin-button,
 .quantity-controls-input::-webkit-outer-spin-button {
@@ -375,7 +426,7 @@
   border-radius: 7px;
   font-size: 1rem;
   text-align: center;
-  appearance: textfield;
+  /* appearance: textfield; removed, handled by browser-specific rules below */
 }
 /* Remove number input arrows for Chrome, Safari, Edge */
 .quantity-controls input[type=number]::-webkit-inner-spin-button,
@@ -396,7 +447,7 @@
 
 .modal-total {
   padding: 12px;
-  min-height: 185px;
+  /* min-height: 185px; removed for maintainability. If needed, document why. */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
