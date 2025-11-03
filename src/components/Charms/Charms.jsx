@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchCharms } from '../../../api/getCharms';
 import { useCart } from '../../contexts/CartContext';
 import './Charms.css';
 
 const Charms = () => {
-  const navigate = useNavigate();
   const { addCharmToCart, cartCharms, updateCharmQuantity, removeCharmFromCart } = useCart();
   
   const [charms, setCharms] = useState([]);

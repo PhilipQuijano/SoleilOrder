@@ -32,7 +32,7 @@ const CheckoutPage = () => {
 
   // Initialize order data from various sources
   const [orderData] = useState(() => {
-    if (passedData?.bracelets || passedData?.charms) {
+    if (passedData?.bracelets) {
       return {
         bracelets: passedData.bracelets || [],
         charms: passedData.charms || [],
