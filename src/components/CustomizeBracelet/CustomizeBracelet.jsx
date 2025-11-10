@@ -28,6 +28,7 @@ const CustomizeBracelet = () => {
   const [availableCharms, setAvailableCharms] = useState({});
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedSubtype, setSelectedSubtype] = useState(null);
+  const [showCategories, setShowCategories] = useState(true);
   const [defaultSilverCharm, setDefaultSilverCharm] = useState(null);
   const [plainCharms, setPlainCharms] = useState([]);
   
@@ -39,6 +40,7 @@ const CustomizeBracelet = () => {
   // Drag and drop state
   const [draggedCharm, setDraggedCharm] = useState(null);
   const [dragOverPosition, setDragOverPosition] = useState(null);
+  const [placedIndex, setPlacedIndex] = useState(null);
 
   // Configuration
   const sizeOptions = [
@@ -274,8 +276,18 @@ const CustomizeBracelet = () => {
       newCharms[position] = selectedCharm;
       setCharms(newCharms);
       calculateTotalPrice(newCharms);
+      // small placement animation
+      setPlacedIndex(position);
       setSelectedCharm(null);
+      setTimeout(() => setPlacedIndex(null), 350);
     }
+  };
+
+  const removeCharmFromPosition = (position) => {
+    const newCharms = [...charms];
+    newCharms[position] = defaultSilverCharm || { id: 'fallback-silver', image: defaultSilverCharmImage, name: 'Silver' };
+    setCharms(newCharms);
+    calculateTotalPrice(newCharms);
   };
 
   const calculateTotalPrice = (currentCharms) => {
@@ -573,28 +585,46 @@ const CustomizeBracelet = () => {
         
         <div className="bracelet-preview-section">
           <div className="bracelet-visual">
-            {charms.map((charm, index) => (
-              <div 
-                key={index} 
-                className={`bracelet-charm ${selectedCharm ? 'selectable' : ''} ${dragOverPosition === index ? 'drag-over' : ''}`}
-                onClick={() => selectedCharm && applyCharmToPosition(index)}
-                onDragOver={(e) => handleDragOver(e, index)}
-                onDragEnter={(e) => handleDragEnter(e, index)}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, index)}
-                title={selectedCharm ? 'Click to place charm here or drag a charm here' : charm.name}
-                style={{
-                  zIndex: selectedCharm ? 10 : 1
-                }}
-              >
-                <img 
-                  src={charm.image || defaultSilverCharmImage} 
-                  alt={charm.name} 
-                  className={charm.id === 146 || charm.id === 'fallback-silver' ? 'default-charm' : 'custom-charm'}
-                  draggable={false}
-                />
-              </div>
-            ))}
+            {charms.map((charm, index) => {
+              const isEmpty = charm && (charm.id === defaultSilverCharm?.id || charm.id === 'fallback-silver');
+              const isPlacedAnim = placedIndex === index;
+              return (
+                <div 
+                  key={index}
+                  className={`bracelet-charm ${selectedCharm ? 'selectable' : ''} ${dragOverPosition === index ? 'drag-over' : ''} ${isEmpty ? 'empty' : ''} ${isPlacedAnim ? 'placed' : ''}`}
+                  onClick={() => {
+                    // Only place a charm when a charm is currently selected.
+                    // Removing a placed charm should be done via the small remove button to avoid accidental deletions.
+                    if (selectedCharm) {
+                      applyCharmToPosition(index);
+                    }
+                  }}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragEnter={(e) => handleDragEnter(e, index)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, index)}
+                  title={selectedCharm ? 'Click to place charm here or drag a charm here' : (charm && charm.name ? charm.name : '')}
+                  style={{ zIndex: selectedCharm ? 10 : 1 }}
+                >
+                  <img 
+                    src={(charm && charm.image) || defaultSilverCharmImage} 
+                    alt={(charm && charm.name) || 'Charm'} 
+                    className={charm && (charm.id === 146 || charm.id === 'fallback-silver') ? 'default-charm' : 'custom-charm'}
+                    draggable={false}
+                  />
+                  {/* show remove handle when not selecting a charm and slot is occupied */}
+                  {!selectedCharm && !isEmpty && (
+                    <button
+                      className="remove-slot-button"
+                      onClick={(e) => { e.stopPropagation(); removeCharmFromPosition(index); }}
+                      aria-label={`Remove charm from position ${index + 1}`}
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </motion.div>
@@ -624,37 +654,125 @@ const CustomizeBracelet = () => {
           </div>
         ) : (
           <div className="selection-steps">
-            {/* Category Selection */}
-            {!selectedCategory && (
+              {/* Category row (now always visible above charm grid) */}
               <motion.div 
-                className="selection-step"
+                className="selection-step category-row"
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.4 }}
+                transition={{ duration: 0.35 }}
               >
-                <h3 className="step-title font-montserrat-semibold">CHOOSE A CATEGORY</h3>
-                <div className="category-cards-container">
-                  <div className="category-cards">
-                    {Object.entries(availableCharms).map(([key, category]) => (
+                <div style={{ position: 'relative' }}>
+                  <h3 className="step-title font-montserrat-semibold">Step 1: Browse Charm Categories</h3>
+                  <div className="category-controls">
+                    <button 
+                      className="toggle-categories-button"
+                      onClick={() => setShowCategories(!showCategories)}
+                      aria-pressed={!showCategories}
+                      title={showCategories ? 'Hide categories' : 'Show categories'}
+                    >
+                      {showCategories ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                </div>
+
+                {showCategories && (
+                  <div className="category-cards-container">
+                    <div className="category-cards">
+                      {/* All card */}
                       <div 
-                        key={key}
-                        className="category-card"
-                        onClick={() => handleCategorySelect(key, category.name)}
+                        key="all"
+                        className={`category-card ${!selectedCategory ? 'active' : ''}`}
+                        onClick={() => { setSelectedCategory(null); setSelectedSubtype(null); setSelectedCharm(null); }}
                       >
                         <div className="category-image-container">
                           <img 
-                            src={category.charms?.[0]?.image || category.subcategories?.[0]?.charms?.[0]?.image || defaultSilverCharmImage} 
-                            alt={category.name}
+                            src={defaultSilverCharm?.image || defaultSilverCharmImage} 
+                            alt="All Charms"
                             className="category-preview-image"
                           />
                         </div>
-                        <span className="category-name">{category.name.replace(' Charms', '')}</span>
+                        <span className="category-name">All</span>
                       </div>
-                    ))}
+
+                      {Object.entries(availableCharms).map(([key, category]) => (
+                        <div 
+                          key={key}
+                          className={`category-card ${selectedCategory && selectedCategory.key === key ? 'active' : ''}`}
+                          onClick={() => handleCategorySelect(key, category.name)}
+                        >
+                          <div className="category-image-container">
+                            <img 
+                              src={category.charms?.[0]?.image || category.subcategories?.[0]?.charms?.[0]?.image || defaultSilverCharmImage} 
+                              alt={category.name}
+                              className="category-preview-image"
+                            />
+                          </div>
+                          <span className="category-name">{category.name.replace(' Charms', '')}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </motion.div>
-            )}
+              {/* When no specific category selected (All), show a single Step 2 grid with all charms (no labels) */}
+              {!selectedCategory && (
+                <motion.div
+                  className="selection-step"
+                  initial={{ y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="step-header">
+                    <h3 className="step-title">Step 2: Choose Your Charm</h3>
+                  </div>
+
+                  <div className="charm-selection-area">
+                    <div className="charm-options">
+                      {(() => {
+                        // flatten all charms from availableCharms into a single list
+                        const all = [];
+                        Object.values(availableCharms).forEach((cat) => {
+                          if (cat.subcategories) {
+                            cat.subcategories.forEach((sc) => {
+                              sc.charms.forEach((c) => all.push(c));
+                            });
+                          }
+                          if (cat.charms) {
+                            cat.charms.forEach((c) => all.push(c));
+                          }
+                        });
+
+                        // remove potential duplicates by id
+                        const seen = new Set();
+                        const unique = all.filter((c) => {
+                          if (!c || !c.id) return false;
+                          if (seen.has(c.id)) return false;
+                          seen.add(c.id);
+                          return true;
+                        });
+
+                        return unique.map((charm) => (
+                          <motion.div
+                            key={charm.id}
+                            className={`charm-option ${selectedCharm && selectedCharm.id === charm.id ? 'selected' : ''}`}
+                            onClick={() => selectCharm(charm)}
+                            draggable={true}
+                            onDragStart={(e) => handleDragStart(e, charm)}
+                            onDragEnd={handleDragEnd}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            title={`${charm.name} - ₱${charm.price}`}
+                            style={{ cursor: 'grab', opacity: draggedCharm && draggedCharm.id === charm.id ? 0.5 : 1 }}
+                          >
+                            <img src={charm.image} alt={charm.name} onDragStart={(e) => e.preventDefault()} />
+                            <div className="price-tooltip">₱{charm.price}</div>
+                          </motion.div>
+                        ));
+                      })()}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
             
             {/* Charm Selection */}
             {selectedCategory && (
@@ -671,19 +789,6 @@ const CustomizeBracelet = () => {
                   <h3 className="step-title">
                     Step {(selectedCategory.key === 'gold' || selectedCategory.key === 'silver') ? '3' : '2'}: Choose Your Charm
                   </h3>
-                  <button 
-                    className="back-button" 
-                    onClick={() => {
-                      if (selectedSubtype) {
-                        setSelectedSubtype(null);
-                        setSelectedCharm(null);
-                      } else {
-                        resetSelection();
-                      }
-                    }}
-                  >
-                    ← Back
-                  </button>
                 </div>
 
                 <div className="charm-selection-area">
