@@ -41,6 +41,7 @@ const CustomizeBracelet = () => {
   const [draggedCharm, setDraggedCharm] = useState(null);
   const [dragOverPosition, setDragOverPosition] = useState(null);
   const [placedIndex, setPlacedIndex] = useState(null);
+  const [dragSourceIndex, setDragSourceIndex] = useState(null);
 
   // Configuration
   const sizeOptions = [
@@ -434,6 +435,7 @@ const CustomizeBracelet = () => {
     document.body.style.cursor = 'default';
     setDraggedCharm(null);
     setDragOverPosition(null);
+    setDragSourceIndex(null);
   };
 
   const handleDragOver = (e, index) => {
@@ -472,8 +474,22 @@ const CustomizeBracelet = () => {
     setDragOverPosition(null);
     
     if (draggedCharm) {
-      applyCharmToPosition(index);
+      // If a bracelet charm was the source (reordering within bracelet), swap positions.
+      if (dragSourceIndex !== null && dragSourceIndex !== undefined) {
+        setCharms((prev) => {
+          const next = [...prev];
+          const sourceCharm = next[dragSourceIndex];
+          const targetCharm = next[index];
+          next[index] = sourceCharm;
+          next[dragSourceIndex] = targetCharm;
+          calculateTotalPrice(next);
+          return next;
+        });
+      } else {
+        applyCharmToPosition(index);
+      }
       setDraggedCharm(null);
+      setDragSourceIndex(null);
     }
     
     document.body.style.cursor = 'default';
@@ -674,6 +690,9 @@ const CustomizeBracelet = () => {
                 <div 
                   key={index}
                   className={`bracelet-charm ${selectedCharm ? 'selectable' : ''} ${dragOverPosition === index ? 'drag-over' : ''} ${isEmpty ? 'empty' : ''} ${isPlacedAnim ? 'placed' : ''}`}
+                  draggable={!!charm}
+                  onDragStart={(e) => { if (charm) { handleDragStart(e, charm); setDragSourceIndex(index); } }}
+                  onDragEnd={(e) => { handleDragEnd(e); setDragSourceIndex(null); }}
                   onClick={() => {
                     // Only place a charm when a charm is currently selected.
                     // Removing a placed charm should be done via the small remove button to avoid accidental deletions.
