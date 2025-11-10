@@ -168,45 +168,93 @@ const About = () => {
   return (
     <div className='about' id="about">
       <div className="main-container">
-        <div className="about-content">
-          <div className="about-text">
-            <h2>Bringing <span className="italic">your vision</span> to life</h2>
-          </div>
-          <div className="about-images">
-            <div className="charms-grid">
-              {loading ? (
-                // Loading skeleton
-                [...Array(20)].map((_, i) => (
-                  <div key={i} className="charm-item loading-charm">
-                    <div className="loading-placeholder"></div>
+          <div className="about-content">
+            <div className="about-images">
+              <div className="about-charms-belts">
+                {/* TOP BELT */}
+                <div className="belt-strip top">
+                  <div className="belt-track">
+                    {loading ? (
+                      [...Array(20)].map((_, i) => (
+                        <div key={`ph-top-${i}`} className="belt-item loading-charm">
+                          <div className="loading-placeholder"></div>
+                        </div>
+                      ))
+                    ) : (
+                      <>
+                        {displayCharms.map((charm, i) => (
+                          <div key={`top-${charm.id}-${i}`} className="belt-item">
+                            <img
+                              src={preloadedImages.current.get(charm.id) || charm.image || defaultSilverCharmImage}
+                              alt={charm.name}
+                              className="charm-image"
+                              title={charm.name}
+                              onError={(e) => { e.target.src = defaultSilverCharmImage; }}
+                            />
+                          </div>
+                        ))}
+                        {displayCharms.map((charm, i) => (
+                          <div key={`top-dup-${charm.id}-${i}`} className="belt-item">
+                            <img
+                              src={preloadedImages.current.get(charm.id) || charm.image || defaultSilverCharmImage}
+                              alt={charm.name}
+                              className="charm-image"
+                              title={charm.name}
+                              onError={(e) => { e.target.src = defaultSilverCharmImage; }}
+                            />
+                          </div>
+                        ))}
+                      </>
+                    )}
                   </div>
-                ))
-              ) : (
-                // Charm grid with animations
-                displayCharms.map((charm, i) => (
-                  <div 
-                    key={`${charm.id}-${animationKey}-${i}`}
-                    className="charm-item"
-                    style={{
-                      animationDelay: `${getAnimationDelay(i)}s`
-                    }}
-                  >
-                    <img 
-                      src={preloadedImages.current.get(charm.id) || charm.image || defaultSilverCharmImage} 
-                      alt={charm.name}
-                      className="charm-image"
-                      title={charm.name}
-                      onError={(e) => {
-                        e.target.src = defaultSilverCharmImage;
-                      }}
-                    />
+                </div>
+
+                {/* CENTER TEXT */}
+                <div className="about-text" style={{ textAlign: 'center' }}>
+                  <h2>Bringing <span className="italic">your vision</span> to life</h2>
+                </div>
+
+                {/* BOTTOM BELT */}
+                <div className="belt-strip bottom">
+                  <div className="belt-track">
+                    {loading ? (
+                      [...Array(20)].map((_, i) => (
+                        <div key={`ph-bot-${i}`} className="belt-item loading-charm">
+                          <div className="loading-placeholder"></div>
+                        </div>
+                      ))
+                    ) : (
+                      <>
+                        {displayCharms.map((charm, i) => (
+                          <div key={`bot-${charm.id}-${i}`} className="belt-item">
+                            <img
+                              src={preloadedImages.current.get(charm.id) || charm.image || defaultSilverCharmImage}
+                              alt={charm.name}
+                              className="charm-image"
+                              title={charm.name}
+                              onError={(e) => { e.target.src = defaultSilverCharmImage; }}
+                            />
+                          </div>
+                        ))}
+                        {displayCharms.map((charm, i) => (
+                          <div key={`bot-dup-${charm.id}-${i}`} className="belt-item">
+                            <img
+                              src={preloadedImages.current.get(charm.id) || charm.image || defaultSilverCharmImage}
+                              alt={charm.name}
+                              className="charm-image"
+                              title={charm.name}
+                              onError={(e) => { e.target.src = defaultSilverCharmImage; }}
+                            />
+                          </div>
+                        ))}
+                      </>
+                    )}
                   </div>
-                ))
-              )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 };
