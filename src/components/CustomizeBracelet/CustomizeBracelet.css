@@ -15,6 +15,18 @@ body {
     line-height: 1.4;
     background: #fff5eb;
 }
+
+/* Theme variables to centralize brand colors and common values */
+:root {
+    --brand: #582e4e;
+    --brand-2: #6d3a60;
+    --brand-3: #7d4570;
+    --brand-rgb: 88,46,78;
+    --muted-bg: #f8f8f8;
+    --bg-light-1: #fdfcfd;
+    --bg-light-2: #f9f7f9;
+    --white: #ffffff;
+}
 .bracelet-charm.empty.selectable::after {
     content: '+';
     position: absolute;
@@ -86,7 +98,7 @@ body {
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1rem;
-    background: #8a6281;
+    background: rgba(114, 67, 103, 0.95);
     border-radius: 0.625rem;
     border: 1px solid rgba(88, 46, 78, 0.1);
     box-shadow: 0 2px 8px rgba(88, 46, 78, 0.08);
@@ -99,7 +111,7 @@ body {
 
 .control-group h3 {
     margin: 0;
-    color: #e6e0e0;
+    color: #ffffff;
     font-family: 'Inter', sans-serif;
     font-weight: 500;
     font-size: 0.875rem;
@@ -367,7 +379,7 @@ body {
 }
 
 .step-title {
-    color: #582e4e;
+    color: var(--brand);
     font-family: 'Montserrat', sans-serif;
     font-weight: 600;
     font-size: 1.1rem;
@@ -380,7 +392,7 @@ body {
 }
 
 .back-button {
-    background: linear-gradient(135deg, #582e4e 0%, #6d3a60 100%);
+    background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
     color: white;
     border: none;
     padding: 0.75rem 1.25rem;
@@ -402,9 +414,9 @@ body {
 }
 
 .back-button:hover {
-    background: linear-gradient(135deg, #6d3a60 0%, #582e4e 100%);
+    background: linear-gradient(135deg, var(--brand-2) 0%, var(--brand) 100%);
     transform: translateY(-50%) translateY(-1px);
-    box-shadow: 0 3px 10px rgba(88, 46, 78, 0.4);
+    box-shadow: 0 3px 10px rgba(var(--brand-rgb), 0.4);
 }
 
 .back-button:active {
@@ -724,7 +736,7 @@ body.dragging-active * {
     bottom: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(135deg, #582e4e 0%, #6d3a60 100%);
+    background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
     color: white;
     padding: 0.75rem 1rem;
     box-shadow: 0 -3px 13px rgba(88, 46, 78, 0.3);
@@ -995,12 +1007,12 @@ body.dragging-active * {
 }
 
 .modal-cancel-button:hover {
-    border-color: #582e4e;
-    color: #582e4e;
+    border-color: var(--brand);
+    color: var(--brand);
 }
 
 .modal-checkout-button {
-    background: linear-gradient(135deg, #582e4e 0%, #6d3a60 100%);
+    background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
     color: white;
     border: none;
     padding: 0.5rem 1.0625rem;
@@ -1017,9 +1029,9 @@ body.dragging-active * {
 }
 
 .modal-checkout-button:hover {
-    background: linear-gradient(135deg, #6d3a60 0%, #582e4e 100%);
+    background: linear-gradient(135deg, var(--brand-2) 0%, var(--brand) 100%);
     transform: translateY(-1px);
-    box-shadow: 0 0.1875rem 0.625rem rgba(88, 46, 78, 0.4);
+    box-shadow: 0 0.1875rem 0.625rem rgba(var(--brand-rgb), 0.4);
 }
 
 .modal-checkout-button:active {
