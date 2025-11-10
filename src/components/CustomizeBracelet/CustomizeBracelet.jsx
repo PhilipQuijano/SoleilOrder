@@ -629,18 +629,6 @@ const CustomizeBracelet = () => {
         </div>
       </motion.div>
 
-      {/* Cart Indicator */}
-      {getBraceletCount() > 0 && (
-        <div className="cart-indicator">
-          <button 
-            className="cart-button font-montserrat-medium"
-            onClick={() => navigate('/cart')}
-          >
-            Cart ({getBraceletCount()})
-          </button>
-        </div>
-      )}
-
       {/* Charm Selection */}
       <motion.div 
         className="charm-selection"
