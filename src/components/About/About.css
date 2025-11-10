@@ -23,6 +23,98 @@
 }
 
 /* Subtle texture overlay */
+/* --- Charms conveyor belts (two strips) --- */
+.about-charms-belts {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 300%;
+  box-sizing: border-box;
+}
+
+.belt-strip {
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  --belt-height: 160px; /* increased belt height */
+  height: var(--belt-height);
+  display: flex;
+  align-items: center;
+  background: transparent;
+}
+
+/* The track contains items twice (for a seamless loop) in markup or duplicated via JS */
+.belt-track {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  will-change: transform;
+}
+
+.belt-item {
+  flex: 0 0 auto;
+  width: 160px; /* item width */
+  height: calc(var(--belt-height) - 16px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(18,18,18,0.06);
+  padding: 8px;
+}
+
+/* top belt: scroll to right (visual direction), so track moves left-to-right */
+@keyframes belt-scroll-right {
+  0%   { transform: translateX(-50%); }
+  100% { transform: translateX(0%); }
+}
+
+/* bottom belt: scroll to left (visual direction), so track moves 0 -> -50% */
+@keyframes belt-scroll-left {
+  0%   { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.belt-strip.top .belt-track {
+  animation: belt-scroll-right 28s linear infinite;
+}
+
+.belt-strip.bottom .belt-track {
+  animation: belt-scroll-left 28s linear infinite;
+}
+
+/* Faster/slower depending on preference */
+.belt-strip.fast .belt-track { animation-duration: 18s; }
+.belt-strip.slow .belt-track { animation-duration: 40s; }
+
+/* Responsive: shrink items and belt height */
+@media (max-width: 1024px) {
+  .belt-item { width: 120px; }
+  .belt-strip { --belt-height: 110px; }
+}
+@media (max-width: 768px) {
+  .belt-item { width: 100px; }
+  .belt-strip { --belt-height: 96px; }
+}
+@media (max-width: 480px) {
+  .belt-item { width: 88px; }
+  .belt-strip { --belt-height: 84px; }
+}
+
+/* Optional: pause animation on hover for accessibility */
+.belt-strip:hover .belt-track { animation-play-state: paused; }
+
+/* If your About component currently uses a .charms-grid, you can hide it and show belts instead */
+.charms-grid.about-hide { display: none !important; }
+
+/* Hide original grid in About component when belts are used */
+.about .charms-grid { display: none !important; }
+
+/* belt item caption */
+/* captions removed: belt items show image only */
+
 .about::before {
   content: '';
   position: absolute;
@@ -61,7 +153,6 @@
    ============================================ */
 
 .about .container {
-  max-width: 75rem;
   margin: 0 auto;
   padding: 0 1rem;
   width: 100%;
@@ -73,11 +164,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 6rem;
-  max-width: 75rem;
-  margin: 0 auto;
-  padding: 5rem 2rem 7.5rem;
+  gap: 4rem;
   min-height: 100vh;
+  width: 100vh;
   position: relative;
   z-index: 2;
 }
@@ -88,7 +177,8 @@
 
 .about-text {
   flex-basis: 60%;
-  max-width: 37.5rem;
+  width: 100%;
+  margin: 6.5% 0;
 }
 
 .about-text h2 {
@@ -102,21 +192,16 @@
   letter-spacing: 0.25rem;
   text-transform: uppercase;
   
+  
   text-shadow: 
     0 0.1875rem 0.75rem rgba(0, 0, 0, 0.6),
     0 0.0625rem 0.1875rem rgba(0, 0, 0, 0.8),
     0 0.375rem 1.5rem rgba(88, 46, 78, 0.4);
   
-  border: 0.0625rem solid #ffdcf4;
   padding: 1.25rem 2.5rem;
   background-color: transparent;
   display: inline-block;
   width: 100%;
-  box-sizing: border-box;
-  
-  box-shadow: 
-    0 0.25rem 0.75rem rgba(0, 0, 0, 0.3),
-    0 0.125rem 0.25rem rgba(0, 0, 0, 0.2);
   
   animation: textGlow 4s ease-in-out infinite alternate;
   transition: all 0.3s ease;
@@ -166,10 +251,10 @@
 
 .charms-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 1.25rem;
-  padding: 2rem;
-  border-radius: 1.5rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 1rem;
   overflow: hidden;
   position: relative;
   background-color: rgba(255, 255, 255, 1);
@@ -236,17 +321,6 @@
    HOVER EFFECTS
    ============================================ */
 
-.about-text h2:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  transform: translateY(-0.125rem) scale(1.02);
-  box-shadow: 
-    0 0.375rem 1rem rgba(0, 0, 0, 0.4),
-    0 0.25rem 0.5rem rgba(0, 0, 0, 0.3);
-}
-
-.about-text h2:hover::after {
-  opacity: 1;
-}
 
 .charm-item:hover {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
