@@ -109,6 +109,30 @@ body {
 
 }
 
+/* Minimal, low-emphasis reset button used in control-group */
+.reset-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.35rem 0.55rem;
+    border-radius: 0.6rem;
+    border: 1px solid rgba(0,0,0,0.06);
+    background: linear-gradient(135deg, #f5f5f6 0%, #ebebeb 100%); /* neutral gray */
+    color: #363636; /* muted text */
+    cursor: pointer;
+    transition: transform 0.08s ease, box-shadow 0.12s ease, opacity 0.12s ease, background 0.12s ease;
+    box-shadow: none;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: 0.875rem;
+    line-height: 1;
+}
+.reset-button svg { display: block; color: #6b6b6b; }
+.reset-button .reset-label { color: #6b6b6b; font-family: 'Inter', sans-serif; font-weight: 400; font-size: 0.85rem; }
+.reset-button:hover { transform: translateY(-1px); background: linear-gradient(135deg, #efefef 0%, #e3e3e3 100%); box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
+.reset-button:active { transform: translateY(0); }
+.reset-button[disabled] { opacity: 0.6; cursor: default; box-shadow: none; }
+
 .control-group h3 {
     margin: 0;
     color: #ffffff;

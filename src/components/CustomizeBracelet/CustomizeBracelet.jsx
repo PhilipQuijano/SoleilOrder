@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
@@ -41,6 +41,7 @@ const CustomizeBracelet = () => {
   const [draggedCharm, setDraggedCharm] = useState(null);
   const [dragOverPosition, setDragOverPosition] = useState(null);
   const [placedIndex, setPlacedIndex] = useState(null);
+  const [dragSourceIndex, setDragSourceIndex] = useState(null);
 
   // Configuration
   const sizeOptions = [
@@ -54,31 +55,63 @@ const CustomizeBracelet = () => {
     { value: 24, label: '24 Charms - 24 cm', charms: 24 },
   ];
 
-  // Initialize charms based on size and edit mode
+  // Initialize charms based on size and edit mode.
+  // Preserve any already-placed charms when changing size or starting charm.
+  const prevDefaultRef = useRef(null);
+
   useEffect(() => {
-    if (defaultSilverCharm) {
-      const selectedSize = sizeOptions.find(s => s.value === size);
-      const initialCharmsCount = selectedSize ? selectedSize.charms : 17;
-      
-      if (isEditing && editData && editData.charms) {
-        const currentCharms = [...editData.charms];
-        
-        if (currentCharms.length < initialCharmsCount) {
-          while (currentCharms.length < initialCharmsCount) {
-            currentCharms.push(defaultSilverCharm);
+    if (!defaultSilverCharm) return;
+
+    const selectedSize = sizeOptions.find(s => s.value === size);
+    const initialCharmsCount = selectedSize ? selectedSize.charms : 17;
+
+    setCharms((prevCharms) => {
+      // If no charms yet (first load), initialize from edit data or defaults
+      if (!prevCharms || prevCharms.length === 0) {
+        if (isEditing && editData && editData.charms) {
+          const currentCharms = [...editData.charms];
+          // Grow or shrink to match size
+          if (currentCharms.length < initialCharmsCount) {
+            while (currentCharms.length < initialCharmsCount) {
+              currentCharms.push(defaultSilverCharm);
+            }
+          } else if (currentCharms.length > initialCharmsCount) {
+            currentCharms.splice(initialCharmsCount);
           }
-        } else if (currentCharms.length > initialCharmsCount) {
-          currentCharms.splice(initialCharmsCount);
+          calculateTotalPrice(currentCharms);
+          return currentCharms;
         }
-        
-        setCharms(currentCharms);
-        calculateTotalPrice(currentCharms);
-      } else if (!isEditing) {
+
         const defaultCharms = Array(initialCharmsCount).fill(defaultSilverCharm);
-        setCharms(defaultCharms);
         calculateTotalPrice(defaultCharms);
+        return defaultCharms;
       }
-    }
+
+      // We have existing charms: preserve non-default charms and only replace previous-default slots
+      let next = [...prevCharms];
+
+      // If the default charm changed, replace slots that had the old default with the new default
+      if (prevDefaultRef.current && prevDefaultRef.current !== defaultSilverCharm.id) {
+        next = next.map((c) => {
+          if (!c) return defaultSilverCharm;
+          if (c.id === prevDefaultRef.current || c.id === 'fallback-silver') return defaultSilverCharm;
+          return c;
+        });
+      }
+
+      // Adjust length to match new size while preserving order
+      if (next.length < initialCharmsCount) {
+        while (next.length < initialCharmsCount) next.push(defaultSilverCharm);
+      } else if (next.length > initialCharmsCount) {
+        next.splice(initialCharmsCount);
+      }
+
+      calculateTotalPrice(next);
+      return next;
+    });
+
+    // update ref for next change
+    prevDefaultRef.current = defaultSilverCharm.id;
   }, [size, defaultSilverCharm, isEditing]);
 
   // Load charms from API
@@ -260,8 +293,31 @@ const CustomizeBracelet = () => {
   };
 
   const handlePlainCharmChange = (charmId) => {
-    const selectedPlainCharm = plainCharms.find(charm => charm.id === parseInt(charmId));
+    const id = Number(charmId);
+    const selectedPlainCharm = plainCharms.find(charm => Number(charm.id) === id);
     if (selectedPlainCharm) {
+      // Immediately update charms: replace previous-default slots with the new default
+      const prevDefaultId = defaultSilverCharm?.id ?? prevDefaultRef.current ?? 'fallback-silver';
+      const prevDefaultImage = defaultSilverCharm?.image ?? null;
+
+      setCharms((prev) => {
+        if (!prev || prev.length === 0) {
+          const selectedSize = sizeOptions.find(s => s.value === size) || sizeOptions[0];
+          return Array(selectedSize.charms).fill(selectedPlainCharm);
+        }
+
+        return prev.map((c) => {
+          if (!c) return selectedPlainCharm;
+          // replace slots that had the previous default id or fallback id, or whose image matched the previous default image
+          if (String(c.id) === String(prevDefaultId) || c.id === 'fallback-silver' || (prevDefaultImage && c.image === prevDefaultImage)) {
+            return selectedPlainCharm;
+          }
+          return c;
+        });
+      });
+
+      // update ref for future comparisons
+      prevDefaultRef.current = String(selectedPlainCharm.id);
       setDefaultSilverCharm(selectedPlainCharm);
     }
   };
@@ -288,6 +344,20 @@ const CustomizeBracelet = () => {
     newCharms[position] = defaultSilverCharm || { id: 'fallback-silver', image: defaultSilverCharmImage, name: 'Silver' };
     setCharms(newCharms);
     calculateTotalPrice(newCharms);
+  };
+
+  const resetBracelet = () => {
+    const confirmReset = window.confirm('Reset bracelet to starting charms? This will remove all placed charms.');
+    if (!confirmReset) return;
+
+    const selectedSize = sizeOptions.find(s => s.value === size) || sizeOptions[0];
+    const count = selectedSize.charms;
+    const baseCharm = defaultSilverCharm || { id: 'fallback-silver', image: defaultSilverCharmImage, name: 'Silver' };
+
+    const newCharms = Array(count).fill(baseCharm);
+    setCharms(newCharms);
+    calculateTotalPrice(newCharms);
+    resetSelection();
   };
 
   const calculateTotalPrice = (currentCharms) => {
@@ -365,6 +435,7 @@ const CustomizeBracelet = () => {
     document.body.style.cursor = 'default';
     setDraggedCharm(null);
     setDragOverPosition(null);
+    setDragSourceIndex(null);
   };
 
   const handleDragOver = (e, index) => {
@@ -403,8 +474,22 @@ const CustomizeBracelet = () => {
     setDragOverPosition(null);
     
     if (draggedCharm) {
-      applyCharmToPosition(index);
+      // If a bracelet charm was the source (reordering within bracelet), swap positions.
+      if (dragSourceIndex !== null && dragSourceIndex !== undefined) {
+        setCharms((prev) => {
+          const next = [...prev];
+          const sourceCharm = next[dragSourceIndex];
+          const targetCharm = next[index];
+          next[index] = sourceCharm;
+          next[dragSourceIndex] = targetCharm;
+          calculateTotalPrice(next);
+          return next;
+        });
+      } else {
+        applyCharmToPosition(index);
+      }
       setDraggedCharm(null);
+      setDragSourceIndex(null);
     }
     
     document.body.style.cursor = 'default';
@@ -581,6 +666,19 @@ const CustomizeBracelet = () => {
               })}
             </select>
           </div>
+          <button
+              className="reset-button"
+              onClick={resetBracelet}
+              disabled={!defaultSilverCharm}
+              aria-label={!defaultSilverCharm ? 'Loading default charm' : 'Reset bracelet to starting charms'}
+              title={!defaultSilverCharm ? 'Loading default charm...' : 'Reset bracelet to starting charms'}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M21 12a9 9 0 10-3.2 6.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M21 3v6h-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span className="reset-label">Reset</span>
+            </button>
         </div>
         
         <div className="bracelet-preview-section">
@@ -592,6 +690,9 @@ const CustomizeBracelet = () => {
                 <div 
                   key={index}
                   className={`bracelet-charm ${selectedCharm ? 'selectable' : ''} ${dragOverPosition === index ? 'drag-over' : ''} ${isEmpty ? 'empty' : ''} ${isPlacedAnim ? 'placed' : ''}`}
+                  draggable={!!charm}
+                  onDragStart={(e) => { if (charm) { handleDragStart(e, charm); setDragSourceIndex(index); } }}
+                  onDragEnd={(e) => { handleDragEnd(e); setDragSourceIndex(null); }}
                   onClick={() => {
                     // Only place a charm when a charm is currently selected.
                     // Removing a placed charm should be done via the small remove button to avoid accidental deletions.

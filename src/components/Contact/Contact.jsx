@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { reviewsApi } from '../../../api/getReviews';
 import './Contact.css';
+import backgroundImage from '../../assets/charms-background.jpg';
 
 const Contact = () => {
   // State management
@@ -106,7 +107,7 @@ const Contact = () => {
   };
 
   return (
-    <div className="contact-page">
+    <div className="contact-page" style={{ backgroundImage: `linear-gradient(rgba(88, 46, 78, 0.8), rgba(88, 46, 78, 0.8)), url(${backgroundImage})` }}>
       <motion.div 
         className="contact-container"
         {...containerVariants}

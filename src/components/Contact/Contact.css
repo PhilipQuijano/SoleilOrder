@@ -481,7 +481,7 @@ textarea.form-textarea {
     border-left: 1px solid rgba(88, 46, 78, 0.06);
     /* force the contact column into the right grid column */
     grid-column: 2 / 3;
-    background-color: #582e4e;
+    background-color: #ffffff25;
     border-radius: 0.75rem;
   }
 
@@ -491,7 +491,7 @@ textarea.form-textarea {
   }
 
   #contact-heading {
-    color: #e6e0e0;
+    color: #ffffff;
   }
 
   .contact-item {
@@ -504,11 +504,6 @@ textarea.form-textarea {
   .contact-icon {
     background: transparent;
     box-shadow: none;
-    color: #ffffff;
-  }
-
-  .contact-link {
-    color: #6b6b6b;
   }
 
   .review-title,
