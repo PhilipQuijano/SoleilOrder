@@ -46,6 +46,11 @@ const Cart = () => {
     });
   };
 
+  // subtotal by type
+  const braceletsSubtotal = (cartBracelets || []).reduce((sum, b) => sum + (b.totalPrice || 0), 0);
+  const charmsSubtotal = (cartCharms || []).reduce((sum, c) => sum + ((c.price || 0) * (c.quantity || 0)), 0);
+  const computedSubtotal = braceletsSubtotal + charmsSubtotal;
+
   const getPriceBreakdown = (bracelet) => {
     const breakdown = {};
     
@@ -110,20 +115,7 @@ const Cart = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        {/* Cart Header */}
-        <motion.div 
-          className="cart-header"
-          initial={{ x: -20, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ delay: 0.1, duration: 0.5 }}
-        >
-          <h1 className="font-montserrat-semibold">
-            Your Cart ({cartBracelets.length} Bracelet{cartBracelets.length !== 1 ? 's' : ''}{cartCharms.length > 0 ? `, ${cartCharms.length} Charm Item${cartCharms.length !== 1 ? 's' : ''}` : ''})
-          </h1>
-          <button className="clear-cart-button font-inter-medium" onClick={clearCart}>
-            Clear Cart
-          </button>
-        </motion.div>
+
 
         <div className="cart-content">
           {/* Cart Items */}
@@ -131,7 +123,7 @@ const Cart = () => {
             {/* Bracelets Section */}
             {cartBracelets.length > 0 && (
               <>
-                <h2 className="section-title font-cormorant-medium">Custom Bracelets</h2>
+                <h2 className="section-title font-cormorant-medium">Custom Bracelets ({cartBracelets.length} Bracelet{cartBracelets.length !== 1 ? 's' : ''})</h2>
                 <AnimatePresence>
                   {cartBracelets.map((bracelet, index) => (
                     <motion.div
@@ -231,7 +223,7 @@ const Cart = () => {
             {/* Individual Charms Section */}
             {cartCharms.length > 0 && (
               <>
-                <h2 className="section-title font-cormorant-medium" style={{ marginTop: cartBracelets.length > 0 ? '40px' : '0' }}>Individual Charms</h2>
+                <h2 className="section-title font-cormorant-medium" style={{ marginTop: cartBracelets.length > 0 ? '40px' : '0' }}>Individual Charms ({cartCharms.length} Charm Item{cartCharms.length !== 1 ? 's' : ''})</h2>
                 <div className="charms-grid-container">
                   <AnimatePresence>
                     {cartCharms.map((charm, index) => (
@@ -243,41 +235,50 @@ const Cart = () => {
                         exit={{ opacity: 0, y: -20 }}
                         transition={{ delay: index * 0.1, duration: 0.5 }}
                       >
+                        {/* top-right compact remove button */}
+                        <button
+                          className="remove-charm-topright remove-charm-button font-inter-medium"
+                          onClick={() => removeCharmFromCart(charm.cartItemId)}
+                          aria-label="Remove charm"
+                        >
+                          <img src={deleteIcon} alt="Delete" className="delete-icon" />
+                        </button>
                         <div className="charm-item-left">
-                          <img 
-                            src={charm.image} 
-                            alt={charm.name}
-                            className="charm-item-image"
-                            onError={(e) => {
-                              e.target.src = '/api/placeholder/80/80';
-                            }}
-                          />
-                          <div className="quantity-control">
-                            <button
-                              onClick={() => updateCharmQuantity(charm.cartItemId, charm.quantity - 1)}
-                              disabled={charm.quantity <= 1}
-                              className="font-inter-medium"
-                            >
-                              -
-                            </button>
-                            <span className="quantity-display font-inter-medium">{charm.quantity}</span>
-                            <button
-                              onClick={() => updateCharmQuantity(charm.cartItemId, charm.quantity + 1)}
-                              disabled={charm.stock !== undefined && charm.quantity >= charm.stock}
-                              className="font-inter-medium"
-                            >
-                              +
-                            </button>
+                            <img 
+                              src={charm.image} 
+                              alt={charm.name}
+                              className="charm-item-image"
+                              onError={(e) => {
+                                e.target.src = '/api/placeholder/80/80';
+                              }}
+                            />
                           </div>
-                        </div>
                         
-                        <div className="charm-item-content">
+                          <div className="charm-item-content">
                           <div className="charm-item-details">
                             <h3 className="font-inter-semibold">{charm.name}</h3>
                             {charm.category && (
                               <p className="charm-category font-inter-regular">{charm.category}</p>
                             )}
                             <p className="charm-price font-inter-medium">₱{charm.price} each</p>
+                              {/* move quantity control under details to match reference layout */}
+                              <div className="quantity-control">
+                                <button
+                                  onClick={() => updateCharmQuantity(charm.cartItemId, charm.quantity - 1)}
+                                  disabled={charm.quantity <= 1}
+                                  className="font-inter-medium"
+                                >
+                                  -
+                                </button>
+                                <span className="quantity-display font-inter-medium">{charm.quantity}</span>
+                                <button
+                                  onClick={() => updateCharmQuantity(charm.cartItemId, charm.quantity + 1)}
+                                  disabled={charm.stock !== undefined && charm.quantity >= charm.stock}
+                                  className="font-inter-medium"
+                                >
+                                  +
+                                </button>
+                              </div>
                           </div>
 
                           <div className="charm-item-right-controls">
@@ -285,13 +286,6 @@ const Cart = () => {
                               <span className="total-label font-inter-medium">Total:</span>
                               <span className="total-price font-montserrat-semibold">₱{(charm.price * charm.quantity).toLocaleString()}</span>
                             </div>
-                            <button 
-                              className="remove-charm-button font-inter-medium"
-                              onClick={() => removeCharmFromCart(charm.cartItemId)}
-                              aria-label="Remove charm"
-                            >
-                              <img src={deleteIcon} alt="Delete" className="delete-icon" />
-                            </button>
                           </div>
                         </div>
                     </motion.div>
@@ -310,35 +304,50 @@ const Cart = () => {
             transition={{ delay: 0.2, duration: 0.5 }}
           >
             <div className="summary-card">
-              <h3 className="font-montserrat-semibold">Order Summary</h3>
+              {/* Order Summary title with item count */}
+              <h3 className="order-summary-title">ORDER SUMMARY | {cartBracelets.length + cartCharms.length} ITEM(S)</h3>
 
-              <div className="summary-total">
-                <span className="total-label font-montserrat-semibold">Total Amount</span>
-                <span className="total-amount font-montserrat-semibold">₱{totalCartPrice.toLocaleString()}</span>
+              {/* Compact breakdown box */}
+              <div className="summary-box">
+                <div className="summary-row">
+                  <div className="summary-line-label">Bracelet(s) subtotal</div>
+                  <div className="summary-line-value">₱{braceletsSubtotal.toLocaleString()}</div>
+                </div>
+
+                <div className="summary-row">
+                  <div className="summary-line-label">Charm(s) subtotal</div>
+                  <div className="summary-line-value">₱{charmsSubtotal.toLocaleString()}</div>
+                </div>
+
+                <div className="summary-divider" />
+
+                <div className="summary-row strong">
+                  <div className="summary-line-label">ORDER TOTAL</div>
+                  <div className="summary-line-value">₱{computedSubtotal.toLocaleString()}</div>
+                </div>
               </div>
-              
+
               <button 
-                className="checkout-button font-inter-medium"
+                className="checkout-button bold-checkout font-inter-medium"
                 onClick={handleCheckout}
               >
-                <span>Proceed to Checkout</span>
+                CHECKOUT
               </button>
-              
-              <div className="side-by-side-buttons">
-                <button 
-                  className="continue-shopping-button font-inter-medium"
-                  onClick={() => navigate('/customize')}
-                >
-                  <span>Add Bracelets</span>
-                </button>
-                
-                <button 
-                  className="shop-charms-button font-inter-medium"
-                  onClick={() => navigate('/charms')}
-                >
-                  Add Charms
-                </button>
-              </div>
+
+              <button 
+                className="continue-shopping-button outline font-inter-medium"
+                onClick={() => navigate('/customize')}
+              >
+                CONTINUE SHOPPING
+              </button>
+
+              <button 
+                className="continue-shopping-button outline font-inter-medium"
+                onClick={clearCart}
+              >
+                CLEAR CART
+              </button>
+
             </div>
           </motion.div>
         </div>
