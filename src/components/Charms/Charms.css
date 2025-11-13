@@ -63,7 +63,7 @@
 .charms-page {
   min-height: 100vh;
   padding: 120px 5% 80px 5%;
-  background: linear-gradient(135deg, #fef9f3 0%, #fff5eb 100%);
+  background: linear-gradient(135deg, #f0e5fd 0%, #f0e8fd 50%, #ede1ff 100%);
 }
 
 .charms-page.loading {
@@ -234,16 +234,24 @@
 
 .charm-info {
   padding: 12px;
-  min-height: 170px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
+/* Header row inside charm info: name on left, price aligned to right */
+.charm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
 .charm-name {
   font-size: 1rem;
   color: #2c2c2c;
-  margin-bottom: 4px;
+  margin: 0; /* spacing managed by .charm-header */
   min-height: 28px;
   display: flex;
   align-items: center;
@@ -253,15 +261,16 @@
   font-size: 0.8rem;
   color: #999;
   margin-bottom: 8px;
-  min-height: 40px;
+  min-height: 20px;
   display: flex;
   align-items: center;
 }
 
 .charm-price {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   color: #d4a574;
-  margin-bottom: 6px;
+  margin: 0;
+  white-space: nowrap;
 }
 
 .charm-stock {
@@ -272,14 +281,16 @@
 
 .add-to-cart-btn {
   width: 100%;
-  padding: 12px;
+  padding: 8px 10px;
   background: rgba(88, 46, 78, 0.95);
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 1rem;
+  border-radius: 6px;
+
+  line-height: 1;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.18s ease;
+
 }
 
 .add-to-cart-btn:hover:not(:disabled) {

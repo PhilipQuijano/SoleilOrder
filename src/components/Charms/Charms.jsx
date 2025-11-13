@@ -208,11 +208,13 @@ const Charms = () => {
               </div>
               
               <div className="charm-info">
-                <h3 className="charm-name font-inter-semibold">{charm.name}</h3>
+                <div className="charm-header">
+                  <h3 className="charm-name font-inter-semibold">{charm.name}</h3>
+                  <p className="charm-price font-inter-bold">₱{charm.price}</p>
+                </div>
                 {charm.category && (
                   <p className="charm-category font-inter-regular">{charm.category}</p>
                 )}
-                <p className="charm-price font-inter-bold">₱{charm.price}</p>
                 
                 {charm.stock !== undefined && (
                   <p className="charm-stock font-inter-regular">
@@ -283,7 +285,7 @@ const Charms = () => {
                       <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                         <button
                           className="add-to-cart-btn font-inter-medium"
-                          style={{ width: '120px', fontSize: '1rem', padding: '8px 0', borderRadius: '8px', margin: '0 auto', display: 'block', textAlign: 'center' }}
+                          style={{ width: '120px', padding: '8px 0', borderRadius: '8px', margin: '0 auto', display: 'block', textAlign: 'center' }}
                           onClick={() => handleAddToCart(charm)}
                           disabled={charm.stock === 0}
                         >
