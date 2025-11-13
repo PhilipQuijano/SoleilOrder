@@ -29,6 +29,16 @@
   overflow: hidden;
 }
 
+/* subtle decorative overlay for depth */
+.aboutpage-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient( circle at 10% 20%, rgba(255,220,244,0.12), transparent 15%), radial-gradient(circle at 85% 80%, rgba(232,213,255,0.08), transparent 18%);
+  pointer-events: none;
+  z-index: 1;
+}
+
 .hero-content {
   max-width: 90%; /* Responsive width */
   width: 100%;
@@ -60,10 +70,26 @@
   font-size: clamp(0.9rem, 3vw, 1.3rem); /* Better mobile scaling */
   font-weight: 300;
   color: #f0f0f0;
-  margin: 0;
+  margin-bottom: 6%;
   text-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.3);
   line-height: 1.4;
 }
+
+/* Hero CTA */
+.hero-cta { margin-top: 1.25rem; }
+.hero-cta-button {
+  background: linear-gradient(135deg, #ffdcf4 0%, #ffd1ea 100%);
+  color: #582e4e;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 999px;
+  font-weight: 600;
+  box-shadow: 0 0.5rem 1.25rem rgba(88,46,78,0.12);
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.hero-cta-button:hover { transform: translateY(-3px); box-shadow: 0 0.75rem 1.75rem rgba(88,46,78,0.18); }
+
 
 /* =================================
    CAROUSEL SECTION - Mobile First
@@ -178,6 +204,9 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+/* improve contrast for carousel images on wide screens */
+.carousel-image { filter: saturate(1.03) contrast(1.02); }
+
 .carousel-track {
   width: 100%;
   height: 100%;
@@ -217,7 +246,7 @@
   cursor: pointer;
   font-size: 1.2rem;
   color: #582e4e;
-  transition: all 0.3s ease;
+  transition: all 0.16s ease;
   z-index: 10;
   backdrop-filter: blur(0.625rem);
   touch-action: manipulation;
@@ -258,7 +287,7 @@
   border: 2px solid rgba(255, 255, 255, 0.8);
   background: transparent;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.16s ease;
   backdrop-filter: blur(0.3125rem);
   touch-action: manipulation;
 }
@@ -285,36 +314,35 @@
 }
 
 .aboutpage-container .section-title {
-  text-transform: uppercase;
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: clamp(1.5rem, 5vw, 2.8rem);
-  font-weight: 250;
-  color: #a04995;
-  margin: 0 auto 2rem auto;
-  text-align: center;
+  text-transform: none;
+  font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
+  font-size: clamp(1.25rem, 3.2vw, 1.75rem);
+  font-weight: 700;
+  color: var(--primary-color);
+  margin: 0 0 1.25rem 0;
+  text-align: left;
   position: relative;
-  padding: 1rem 2rem;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 3.125rem;
-  box-shadow: 0 0.125rem 0.5rem rgba(88, 46, 78, 0.38);
-  backdrop-filter: blur(0.625rem);
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
   display: block;
-  width: fit-content;
-  max-width: 90%;
-  transition: all 0.3s ease;
-  text-shadow: 0 0.125rem 0.25rem rgba(88, 46, 78, 0.3);
-  word-wrap: break-word;
-  hyphens: auto;
+  width: 100%;
+  max-width: 100%;
+  transition: all 0.2s ease;
 }
 
+/* tighten section spacing for a cleaner look */
+.main-content { padding-top: 2.5rem; padding-bottom: 2.5rem; }
+
 .aboutpage-container .section-title:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0.25rem 0.75rem rgba(88, 46, 78, 0.12);
+  transform: none;
+  box-shadow: none;
 }
 
 .main-content {
-  padding: 4rem 1rem;
-  background: linear-gradient(135deg, #e8d5ff 0%, #f0e6ff 50%, #e3d0ff 100%);
+  padding: 3.5rem 1rem;
+  background: #faf9fb; /* subtle neutral background */
 }
 
 .description-content {
@@ -352,82 +380,99 @@
    EXPERIENCE SECTION - Mobile First
    ================================= */
 .experience-content {
-  max-width: 100%;
+  max-width: 1100px;
   margin: 0 auto;
-  text-align: center;
+  text-align: left;
 }
 
 .experience-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 2rem;
-  margin: 3rem 0;
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+/* Professional 3-column layout on wider screens */
+@media (min-width: 48rem) {
+  .experience-grid { grid-template-columns: repeat(3, 1fr); gap: 1.75rem; }
+  .experience-card { padding: 1rem; }
 }
 
 .experience-card {
-  background: rgba(255, 255, 255, 0.8);
-  padding: 2rem 1.5rem;
-  border-radius: 1.25rem;
-  box-shadow: 0 0.625rem 1.875rem rgba(88, 46, 78, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  transition: all 0.4s ease;
+  background: #ffffff;
+  padding: 0.9rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 12px 30px rgba(24, 22, 28, 0.06);
+  border: 1px solid rgba(34, 30, 36, 0.04);
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   will-change: transform;
-  backdrop-filter: blur(0.625rem);
-  cursor: pointer;
+  cursor: default;
   width: 100%;
+  text-align: center; /* center card content (title + copy) */
 }
 
-.experience-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(202, 164, 255, 0.15) 0%, rgba(255, 220, 244, 0.15) 100%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.experience-card:hover::before {
-  opacity: 1;
-}
+/* Remove colorful overlay */
+.experience-card::before { display: none; }
 
 .experience-card:hover {
-  box-shadow: 0 1.25rem 3.125rem rgba(88, 46, 78, 0.25);
-  background: rgba(255, 255, 255, 0.95);
-  transform: translateY(-0.25rem);
+  transform: translateY(-4px);
+  box-shadow: 0 18px 36px rgba(24, 22, 28, 0.08);
 }
+
+/* Card top - icon + title */
+.card-top {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* center title (and icon if present) */
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.card-top.no-icon { padding-left: 0; }
 
 .card-icon {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-  display: block;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f3eef6;
+  box-shadow: none;
 }
 
-.experience-card h3 {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: clamp(1.1rem, 3vw, 1.4rem);
-  font-weight: 400;
-  color: #582e4e;
-  margin-bottom: 1rem;
-  word-wrap: break-word;
-  hyphens: auto;
+.card-icon svg { display: block; width: 20px; height: 20px; }
+
+.card-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #201b20;
+  margin: 0;
+  text-align: center;
 }
 
-.experience-card p {
-  color: #666;
-  line-height: 1.6;
-  font-size: clamp(0.85rem, 2vw, 1rem);
-  word-wrap: break-word;
-  hyphens: auto;
+.card-desc {
+  color: #5a5860;
+  line-height: 1.45; /* tighter, more readable spacing */
+  font-size: 0.95rem;
+  margin: 0.45rem 0 0 0; /* small gap from title */
+  text-align: center;
+}
+
+/* Ensure SVG icons are visible and high-contrast */
+.card-icon svg { display: block; width: 20px; height: 20px; }
+.card-icon svg * {
+  /* force icon strokes/fills to primary to ensure visibility */
+  fill: var(--primary-color) !important;
+  stroke: var(--primary-color) !important;
 }
 
 .future-plans {
-  background: rgba(255, 255, 255, 0.8);
-  padding: 2.5rem 2rem;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 1.25rem 1.5rem;
   border-radius: 1.25rem;
   box-shadow: 0 0.625rem 1.875rem rgba(88, 46, 78, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.9);
@@ -436,7 +481,7 @@
   text-align: left;
   backdrop-filter: blur(0.625rem);
   cursor: pointer;
-  transition: all 0.4s ease;
+  transition: all 0.22s ease;
   position: relative;
   z-index: 1;
 }
@@ -450,7 +495,7 @@
   bottom: 0;
   background: linear-gradient(135deg, rgba(202, 164, 255, 0.1) 0%, rgba(255, 220, 244, 0.1) 100%);
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.16s ease;
   border-radius: 1.25rem;
 }
 
@@ -465,15 +510,36 @@
 }
 
 .future-plans h3 {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: clamp(1.2rem, 4vw, 1.6rem);
-  font-weight: 400;
-  color: #582e4e;
-  margin-bottom: 1.5rem;
-  text-align: center;
-  word-wrap: break-word;
-  hyphens: auto;
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(1rem, 2.8vw, 1.2rem);
+  font-weight: 700;
+  color: var(--primary-color);
+  margin: 0 0 0.6rem 0;
+  text-align: center; /* center the What's Coming Next? heading */
 }
+
+/* list layout and star icon */
+.future-plans li {
+  margin: 0 0 0.6rem 0;
+  line-height: 1.55;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+/* star icon used in future-plans list */
+.list-star {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  color: var(--primary-color);
+  margin-top: 0;
+  align-self: center;
+}
+.list-star path { fill: currentColor; }
+
+/* remove any legacy emoji bullet content */
+.future-plans li::before { content: none !important; }
 
 .future-plans p {
   color: #444;
@@ -487,18 +553,19 @@
 .future-plans ul {
   list-style: none;
   padding: 0;
-  margin: 1.5rem 0;
+  margin: 1rem 0;
 }
 
 .future-plans li {
-  position: relative;
-  padding-left: 2rem;
-  margin-bottom: 1rem;
+  margin: 0 0 0.5rem 0;
   color: #444;
-  line-height: 1.6;
-  font-size: clamp(0.85rem, 2vw, 1rem);
+  line-height: 1.55;
+  font-size: clamp(0.9rem, 1.8vw, 1rem);
   word-wrap: break-word;
   hyphens: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
 }
 
 .future-plans li::before {
@@ -852,11 +919,11 @@
   }
   
   .experience-card {
-    padding: 3.125rem 2.1875rem;
+    padding: 1.6rem 1.6rem;
   }
   
   .future-plans {
-    padding: 3.75rem 3.125rem;
+    padding: 1.6rem 1.6rem;
   }
 }
 
@@ -917,4 +984,28 @@ html {
     min-height: auto !important;
     padding: 2rem 1rem !important;
   }
+}
+
+/* Styling for the 'What's Coming Next?' heading inside future-plans */
+.future-plans h3 {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--primary-color);
+  margin: 0 0 0.5rem 0;
+}
+
+/* Improve spacing and line-height inside the future-plans block */
+.future-plans p,
+.future-plans ul,
+.future-plans li {
+  color: #4a4750;
+}
+.future-plans p { line-height: 1.6; margin: 0 0 0.75rem 0; }
+.future-plans ul { padding-left: 1.15rem; margin: 0 0 0.75rem 0; }
+.future-plans li { margin: 0 0 0.6rem 0; line-height: 1.55; }
+
+/* Make the future-plans container content align left on wide screens */
+@media (min-width: 48rem) {
+  .future-plans { text-align: left; }
 }
