@@ -79,14 +79,14 @@
 .hero-cta { margin-top: 1.25rem; }
 .hero-cta-button {
   background: linear-gradient(135deg, #ffdcf4 0%, #ffd1ea 100%);
-  color: #582e4e;
+  color: var(--ap-accent);
   border: none;
   padding: 0.75rem 1.25rem;
   border-radius: 999px;
   font-weight: 600;
   box-shadow: 0 0.5rem 1.25rem rgba(88,46,78,0.12);
   cursor: pointer;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  transition: transform var(--ap-transition-fast) ease, box-shadow var(--ap-transition-fast) ease;
 }
 .hero-cta-button:hover { transform: translateY(-3px); box-shadow: 0 0.75rem 1.75rem rgba(88,46,78,0.18); }
 
@@ -246,7 +246,7 @@
   cursor: pointer;
   font-size: 1.2rem;
   color: #582e4e;
-  transition: all 0.16s ease;
+  transition: all var(--ap-transition-mid) ease;
   z-index: 10;
   backdrop-filter: blur(0.625rem);
   touch-action: manipulation;
@@ -287,7 +287,7 @@
   border: 2px solid rgba(255, 255, 255, 0.8);
   background: transparent;
   cursor: pointer;
-  transition: all 0.16s ease;
+  transition: all var(--ap-transition-mid) ease;
   backdrop-filter: blur(0.3125rem);
   touch-action: manipulation;
 }
@@ -342,7 +342,7 @@
 
 .main-content {
   padding: 3.5rem 1rem;
-  background: #faf9fb; /* subtle neutral background */
+  background: var(--ap-bg); /* subtle neutral background */
 }
 
 .description-content {
@@ -399,12 +399,12 @@
 }
 
 .experience-card {
-  background: #ffffff;
-  padding: 0.9rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 12px 30px rgba(24, 22, 28, 0.06);
-  border: 1px solid rgba(34, 30, 36, 0.04);
-  transition: transform 0.14s ease, box-shadow 0.14s ease;
+  background: var(--ap-card-bg);
+  padding: var(--ap-card-padding);
+  border-radius: var(--ap-card-radius);
+  box-shadow: var(--ap-card-shadow);
+  border: var(--ap-card-border);
+  transition: transform var(--ap-transition-snap) ease, box-shadow var(--ap-transition-snap) ease;
   position: relative;
   overflow: visible;
   will-change: transform;
@@ -442,8 +442,6 @@
   background: #f3eef6;
   box-shadow: none;
 }
-
-.card-icon svg { display: block; width: 20px; height: 20px; }
 
 .card-title {
   font-family: 'Montserrat', sans-serif;
@@ -513,18 +511,9 @@
   font-family: 'Montserrat', sans-serif;
   font-size: clamp(1rem, 2.8vw, 1.2rem);
   font-weight: 700;
-  color: var(--primary-color);
+  color: var(--ap-accent);
   margin: 0 0 0.6rem 0;
   text-align: center; /* center the What's Coming Next? heading */
-}
-
-/* list layout and star icon */
-.future-plans li {
-  margin: 0 0 0.6rem 0;
-  line-height: 1.55;
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
 }
 
 /* star icon used in future-plans list */
@@ -532,14 +521,12 @@
   width: 12px;
   height: 12px;
   flex: none;
-  color: var(--primary-color);
+  color: var(--ap-accent);
   margin-top: 0;
   align-self: center;
 }
 .list-star path { fill: currentColor; }
 
-/* remove any legacy emoji bullet content */
-.future-plans li::before { content: none !important; }
 
 .future-plans p {
   color: #444;
@@ -566,15 +553,6 @@
   display: flex;
   align-items: center;
   gap: 0.45rem;
-}
-
-.future-plans li::before {
-  content: '✨';
-  position: absolute;
-  left: 0;
-  top: 0;
-  color: #582e4e;
-  font-size: 1.1rem;
 }
 
 /* =================================
@@ -986,26 +964,4 @@ html {
   }
 }
 
-/* Styling for the 'What's Coming Next?' heading inside future-plans */
-.future-plans h3 {
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 700;
-  font-size: 1.05rem;
-  color: var(--primary-color);
-  margin: 0 0 0.5rem 0;
-}
-
-/* Improve spacing and line-height inside the future-plans block */
-.future-plans p,
-.future-plans ul,
-.future-plans li {
-  color: #4a4750;
-}
-.future-plans p { line-height: 1.6; margin: 0 0 0.75rem 0; }
-.future-plans ul { padding-left: 1.15rem; margin: 0 0 0.75rem 0; }
-.future-plans li { margin: 0 0 0.6rem 0; line-height: 1.55; }
-
-/* Make the future-plans container content align left on wide screens */
-@media (min-width: 48rem) {
-  .future-plans { text-align: left; }
-}
+/* End of AboutPage styles */

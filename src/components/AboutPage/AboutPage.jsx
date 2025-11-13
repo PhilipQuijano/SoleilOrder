@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import Star from '../icons/Star';
 import { supabase } from '../../../api/supabaseClient';
 import './AboutPage.css';
 
@@ -259,10 +260,10 @@ const AboutPage = () => {
                 We're excited to announce that Soleil is expanding! In the coming months, expect to see:
               </p>
               <ul className="font-inter-regular">
-                <li><svg className="list-star" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>New jewelry categories including rings, necklaces, and earrings</li>
-                <li><svg className="list-star" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>Seasonal charm collections</li>
-                <li><svg className="list-star" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>Limited edition collaborations</li>
-                <li><svg className="list-star" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>Enhanced customization options</li>
+                <li><Star className="list-star" />New jewelry categories including rings, necklaces, and earrings</li>
+                <li><Star className="list-star" />Seasonal charm collections</li>
+                <li><Star className="list-star" />Limited edition collaborations</li>
+                <li><Star className="list-star" />Enhanced customization options</li>
               </ul>
               <p className="font-inter-regular">
                 Stay tuned for these exciting additions to the Soleil family!

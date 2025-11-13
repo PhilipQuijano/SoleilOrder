@@ -7,6 +7,7 @@ import { fetchCharms } from '../../../api/getCharms';
 import './CustomizeBracelet.css';
 import '../GlobalTransitions.css';
 import defaultSilverCharmImage from '../../assets/default-silver-charm.jpg';
+import ConfirmModal from '../Shared/ConfirmModal';
 
 const CustomizeBracelet = () => {
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ const CustomizeBracelet = () => {
   const [showModal, setShowModal] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showConfirmReset, setShowConfirmReset] = useState(false);
   
   // Drag and drop state
   const [draggedCharm, setDraggedCharm] = useState(null);
@@ -347,9 +349,11 @@ const CustomizeBracelet = () => {
   };
 
   const resetBracelet = () => {
-    const confirmReset = window.confirm('Reset bracelet to starting charms? This will remove all placed charms.');
-    if (!confirmReset) return;
+    // show confirmation modal instead of window.confirm
+    setShowConfirmReset(true);
+  };
 
+  const performResetBracelet = () => {
     const selectedSize = sizeOptions.find(s => s.value === size) || sizeOptions[0];
     const count = selectedSize.charms;
     const baseCharm = defaultSilverCharm || { id: 'fallback-silver', image: defaultSilverCharmImage, name: 'Silver' };
@@ -358,6 +362,7 @@ const CustomizeBracelet = () => {
     setCharms(newCharms);
     calculateTotalPrice(newCharms);
     resetSelection();
+    setShowConfirmReset(false);
   };
 
   const calculateTotalPrice = (currentCharms) => {
@@ -1156,6 +1161,14 @@ const CustomizeBracelet = () => {
             </div>
           </div>
         )}
+        {/* Confirm reset modal for bracelet */}
+        <ConfirmModal
+          open={showConfirmReset}
+          title={"Reset Bracelet"}
+          message={"Reset bracelet to starting charms? This will remove all placed charms."}
+          onConfirm={performResetBracelet}
+          onCancel={() => setShowConfirmReset(false)}
+        />
     </motion.div>
   );
 };
