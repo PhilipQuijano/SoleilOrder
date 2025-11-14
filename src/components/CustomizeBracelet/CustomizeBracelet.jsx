@@ -8,6 +8,7 @@ import './CustomizeBracelet.css';
 import '../GlobalTransitions.css';
 import defaultSilverCharmImage from '../../assets/default-silver-charm.jpg';
 import ConfirmModal from '../Shared/ConfirmModal';
+import HelpOverlay from '../Shared/HelpOverlay';
 
 const CustomizeBracelet = () => {
   const navigate = useNavigate();
@@ -38,6 +39,7 @@ const CustomizeBracelet = () => {
   const [showInstructions, setShowInstructions] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showConfirmReset, setShowConfirmReset] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   
   // Drag and drop state
   const [draggedCharm, setDraggedCharm] = useState(null);
@@ -632,6 +634,16 @@ const CustomizeBracelet = () => {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.1, duration: 0.6 }}
       >
+        <button
+          className="help-button"
+          aria-haspopup="dialog"
+          aria-expanded={showHelp}
+          aria-controls="help-overlay"
+          onClick={() => setShowHelp(true)}
+          title="How to customize"
+        >
+          ? Help
+        </button>
         <div className="bracelet-controls">
           <div className="control-group">
             <h3>Size</h3>
@@ -1038,6 +1050,9 @@ const CustomizeBracelet = () => {
           </div>
         </div>
       )}
+
+      {/* Help Overlay */}
+      <HelpOverlay open={showHelp} onClose={() => setShowHelp(false)} />
 
       {/* Instructions Modal - only show for new bracelets */}
       {showInstructions && !isEditing && (

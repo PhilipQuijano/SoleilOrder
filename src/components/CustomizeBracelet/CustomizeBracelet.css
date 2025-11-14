@@ -92,6 +92,27 @@ body {
     flex-wrap: wrap;
 }
 
+/* Floating help button (accessible) */
+.help-button {
+    /* Use fixed so the button stays visible above the page and
+       outside of any transformed/positioned parent. Increase z-index
+       so it appears above the fixed navbar. */
+    position: fixed;
+    top: 72px;
+    right: 18px;
+    z-index: 1105;
+    background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
+    color: white;
+    border: none;
+    padding: 0.5rem 0.8rem;
+    border-radius: 999px;
+    box-shadow: 0 6px 18px rgba(88,46,78,0.16);
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+}
+.help-button:focus { outline: 3px solid rgba(88,46,78,0.14); outline-offset: 2px; }
+
 .control-group {
     display: flex;
     flex-direction: column;
