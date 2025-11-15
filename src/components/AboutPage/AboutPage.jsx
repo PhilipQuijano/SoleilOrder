@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Star from '../icons/Star';
 import { supabase } from '../../../api/supabaseClient';
 import './AboutPage.css';
@@ -10,7 +9,6 @@ const AboutPage = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchAboutImages();
@@ -84,6 +82,24 @@ const AboutPage = () => {
     );
   };
 
+  const getImagePosition = (index) => {
+    if (images.length === 0) return 'hidden';
+    
+    const diff = index - currentImageIndex;
+    const totalImages = images.length;
+    
+    // Handle wraparound
+    let normalizedDiff = diff;
+    if (Math.abs(diff) > totalImages / 2) {
+      normalizedDiff = diff > 0 ? diff - totalImages : diff + totalImages;
+    }
+    
+    if (normalizedDiff === 0) return 'center';
+    if (normalizedDiff === -1) return 'left';
+    if (normalizedDiff === 1) return 'right';
+    return 'hidden';
+  };
+
   const handleImageError = (e) => {
     e.target.style.display = 'none';
   };
@@ -135,34 +151,44 @@ const AboutPage = () => {
               )}
               
               <div className="carousel-track">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={currentImageIndex}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 1.05 }}
-                    transition={{ duration: 0.5 }}
-                    className="carousel-image-container"
-                  >
-                    <img 
-                      src={images[currentImageIndex]?.url}
-                      alt={`Soleil Gallery ${currentImageIndex + 1}`}
-                      className="carousel-image"
-                      onError={handleImageError}
-                      loading="lazy"
-                    />
-                  </motion.div>
-                </AnimatePresence>
+                {(() => {
+                  if (images.length === 0) return null;
+                  const total = images.length;
+                  const prevIndex = (currentImageIndex - 1 + total) % total;
+                  const nextIndex = (currentImageIndex + 1) % total;
+                  const visible = [
+                    { idx: prevIndex, position: 'left' },
+                    { idx: currentImageIndex, position: 'center' },
+                    { idx: nextIndex, position: 'right' }
+                  ];
+                  return visible.map(({ idx, position }) => {
+                    const image = images[idx];
+                    return (
+                      <div key={image.id} className={`carousel-image-container ${position}`}>
+                        <img
+                          src={image.url}
+                          alt={`Soleil Gallery ${idx + 1}`}
+                          className="carousel-image"
+                          onError={handleImageError}
+                          loading={position === 'center' ? 'eager' : 'lazy'}
+                        />
+                      </div>
+                    );
+                  });
+                })()}
               </div>
               
               {images.length > 1 && (
-                <button 
-                  className="carousel-nav next" 
-                  onClick={nextImage}
-                  aria-label="Next image"
-                >
-                  &#8250;
-                </button>
+                <>
+                  <button 
+                    className="carousel-nav next" 
+                    onClick={nextImage}
+                    aria-label="Next image"
+                  >
+                    &#8250;
+                  </button>
+                  
+                </>
               )}            
             </div>
           ) : (
@@ -179,7 +205,7 @@ const AboutPage = () => {
       {/* Main Content Section */}
       <section className="main-content">
         <div className="container">
-{/* Customization Experience */}
+          {/* Customization Experience */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -188,7 +214,7 @@ const AboutPage = () => {
             className="experience-content"
             style={{ marginTop: '30px' }}
           >
-          <h2 className="section-title font-cormorant-medium">Your Personalized Experience</h2>
+            <h2 className="section-title font-cormorant-medium">Your Personalized Experience</h2>
             <div className="experience-grid">
               <motion.div 
                 className="experience-card"
