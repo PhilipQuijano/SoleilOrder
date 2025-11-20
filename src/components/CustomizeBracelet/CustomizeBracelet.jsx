@@ -8,11 +8,12 @@ import './CustomizeBracelet.css';
 import '../GlobalTransitions.css';
 import defaultSilverCharmImage from '../../assets/default-silver-charm.jpg';
 import ConfirmModal from '../Shared/ConfirmModal';
+import HelpOverlay from '../Shared/HelpOverlay';
 
 const CustomizeBracelet = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { addBraceletToCart, getBraceletCount, editBracelet } = useCart();
+  const { addBraceletToCart, getBraceletCount, editBracelet, cartBracelets } = useCart();
   
   // Edit mode detection
   const editData = location.state?.editBracelet;
@@ -35,9 +36,9 @@ const CustomizeBracelet = () => {
   
   // Modal states
   const [showModal, setShowModal] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showConfirmReset, setShowConfirmReset] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   
   // Drag and drop state
   const [draggedCharm, setDraggedCharm] = useState(null);
@@ -217,16 +218,27 @@ const CustomizeBracelet = () => {
     loadCharms();
   }, []);
 
-  // Show welcome instructions for new users
+  // Show help overlay automatically for first-time users (no bracelets in cart)
   useEffect(() => {
-    if (!isEditing) {
-      const hasVisited = localStorage.getItem('soleil-bracelet-visited');
-      if (!hasVisited) {
-        setShowInstructions(true);
-        localStorage.setItem('soleil-bracelet-visited', 'true');
+    if (isEditing) return;
+
+    try {
+      const count = Array.isArray(cartBracelets)
+        ? cartBracelets.length
+        : (typeof getBraceletCount === 'function' ? getBraceletCount() : 0);
+
+      // Auto-open help overlay whenever the cart is empty (no bracelets).
+      // This intentionally ignores any "seen" flag so the overlay appears
+      // each time the user visits the customize page with an empty cart.
+      if (count === 0) {
+        setShowHelp(true);
       }
+    } catch (err) {
+      // fail quietly — don't block the page if cart isn't available
+      // eslint-disable-next-line no-console
+      console.warn('Could not determine cart state for help overlay', err);
     }
-  }, [isEditing]);
+  }, [isEditing, cartBracelets]);
 
   // Global drag event handlers
   useEffect(() => {
@@ -626,6 +638,22 @@ const CustomizeBracelet = () => {
       )}
 
       {/* Bracelet Display */}
+      {/* Floating help button placed outside animated container so fixed positioning
+          is relative to the viewport (not a transformed ancestor). */}
+      <button
+        className="help-button"
+        aria-haspopup="dialog"
+        aria-expanded={showHelp}
+        aria-controls="help-overlay"
+        onClick={() => setShowHelp(true)}
+        title="How to customize"
+        type="button"
+      >
+        <span className="help-circle" aria-hidden>
+          <span className="help-mark">?</span>
+        </span>
+      </button>
+
       <motion.div 
         className="bracelet-display"
         initial={{ y: -20, opacity: 0 }}
@@ -1039,56 +1067,10 @@ const CustomizeBracelet = () => {
         </div>
       )}
 
-      {/* Instructions Modal - only show for new bracelets */}
-      {showInstructions && !isEditing && (
-        <div className="modal-overlay" onClick={() => setShowInstructions(false)}>
-          <div className="instructions-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="instructions-header">
-              <h2 className="instructions-title">Welcome to Soleil!</h2>
-            </div>
-            
-            <div className="instructions-content">
-              <div className="instruction-step">
-                <div className="step-number">1</div>
-                <div className="step-text">
-                  <h3>Choose Your Category</h3>
-                  <p>Select from different charm categories like Letters, Gold, Silver, and more!</p>
-                </div>
-              </div>
-              
-              <div className="instruction-step">
-                <div className="step-number">2</div>
-                <div className="step-text">
-                  <h3>Pick Your Charm</h3>
-                  <p>Click on any charm to select it, then click on a position in your bracelet to place it.</p>
-                </div>
-              </div>
-              
-              <div className="instruction-step">
-                <div className="step-number">3</div>
-                <div className="step-text">
-                  <h3>Drag & Drop</h3>
-                  <p>You can also drag charms directly from the selection area to your bracelet!</p>
-                </div>
-              </div>
-              
-              <div className="instruction-step">
-                <div className="step-number">4</div>
-                <div className="step-text">
-                  <h3>Customize & Checkout</h3>
-                  <p>Adjust your bracelet size, change starting charms, and finalize when ready!</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="instructions-footer">
-              <button className="charmed-button" onClick={() => setShowInstructions(false)}>
-                I'm Charmed!
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Help Overlay */}
+      <HelpOverlay open={showHelp} onClose={() => setShowHelp(false)} />
+
+      {/* Instructions content replaced by `HelpOverlay` (auto-shown for first-time users). */}
       {/* Terms and Conditions Modal */}
         {showTermsModal && (
           <div className="modal-overlay" onClick={() => setShowTermsModal(false)}>
