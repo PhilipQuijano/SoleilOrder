@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import Star from '../icons/Star';
 import { supabase } from '../../../api/supabaseClient';
 import './AboutPage.css';
 
@@ -8,6 +10,7 @@ const AboutPage = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchAboutImages();
@@ -96,6 +99,7 @@ const AboutPage = () => {
             transition={{ duration: 0.8 }}
           >
             <h1 className="hero-title">About <span className="brand-highlight">Soleil</span></h1>
+            <p className="hero-subtitle">Handcrafted charm bracelets made to celebrate you — personal, playful, and designed with care.</p>
           </motion.div>
         </div>
         
@@ -193,13 +197,15 @@ const AboutPage = () => {
                 transition={{ duration: 0.5, delay: 0.1 }}
                 viewport={{ once: true }}
                 whileHover={{ 
-                  scale: 1.05,
-                  y: -8,
-                  transition: { duration: 0.3 }
+                  scale: 1.02,
+                  y: -6,
+                  transition: { duration: 0.25 }
                 }}
               >
-                <h3 className="font-montserrat-bold">Custom Design</h3>
-                <p className="font-inter-regular">Create your perfect bracelet with our intuitive customization tool. Mix and match charms to tell your unique story.</p>
+                <div className="card-top no-icon">
+                  <h3 className="card-title font-montserrat-bold">Custom Design</h3>
+                </div>
+                <p className="card-desc font-inter-regular">Use our intuitive builder to compose a bracelet that reflects your story — select charms, arrange order, and preview in real time.</p>
               </motion.div>
               <motion.div 
                 className="experience-card"
@@ -208,13 +214,15 @@ const AboutPage = () => {
                 transition={{ duration: 0.5, delay: 0.2 }}
                 viewport={{ once: true }}
                 whileHover={{ 
-                  scale: 1.05,
-                  y: -8,
-                  transition: { duration: 0.3 }
+                  scale: 1.02,
+                  y: -6,
+                  transition: { duration: 0.25 }
                 }}
               >
-                <h3 className="font-montserrat-bold">Quality Craftsmanship</h3>
-                <p className="font-inter-regular">Each piece is carefully crafted with attention to detail, ensuring your jewelry is as beautiful as it is meaningful.</p>
+                <div className="card-top no-icon">
+                  <h3 className="card-title font-montserrat-bold">Quality Craftsmanship</h3>
+                </div>
+                <p className="card-desc font-inter-regular">Hand-finished details and curated materials ensure every charm and bracelet is built to last and delight.</p>
               </motion.div>
               <motion.div 
                 className="experience-card"
@@ -223,13 +231,15 @@ const AboutPage = () => {
                 transition={{ duration: 0.5, delay: 0.3 }}
                 viewport={{ once: 'true' }}
                 whileHover={{ 
-                  scale: 1.05,
-                  y: -8,
-                  transition: { duration: 0.3 }
+                  scale: 1.02,
+                  y: -6,
+                  transition: { duration: 0.25 }
                 }}
               >
-                <h3 className="font-montserrat-bold">Frequent Updates</h3>
-                <p className="font-inter-regular">We're constantly adding new charms and expanding our collection. Check back regularly for fresh designs and seasonal specials.</p>
+                <div className="card-top no-icon">
+                  <h3 className="card-title font-montserrat-bold">Frequent Updates</h3>
+                </div>
+                <p className="card-desc font-inter-regular">New charms, seasonal drops, and limited collaborations — stay in the loop for curated releases you won't want to miss.</p>
               </motion.div>
             </div>
             
@@ -250,10 +260,10 @@ const AboutPage = () => {
                 We're excited to announce that Soleil is expanding! In the coming months, expect to see:
               </p>
               <ul className="font-inter-regular">
-                <li>New jewelry categories including rings, necklaces, and earrings</li>
-                <li>Seasonal charm collections</li>
-                <li>Limited edition collaborations</li>
-                <li>Enhanced customization options</li>
+                <li><Star className="list-star" />New jewelry categories including rings, necklaces, and earrings</li>
+                <li><Star className="list-star" />Seasonal charm collections</li>
+                <li><Star className="list-star" />Limited edition collaborations</li>
+                <li><Star className="list-star" />Enhanced customization options</li>
               </ul>
               <p className="font-inter-regular">
                 Stay tuned for these exciting additions to the Soleil family!

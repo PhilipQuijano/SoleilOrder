@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import './Cart.css';
 import deleteIcon from '../../assets/delete.png';
+import ConfirmModal from '../Shared/ConfirmModal';
 
 const Cart = () => {
   const { 
@@ -17,6 +18,7 @@ const Cart = () => {
   } = useCart();
   const navigate = useNavigate();
   const [expandedBracelets, setExpandedBracelets] = useState({});
+  const [showConfirmClear, setShowConfirmClear] = useState(false);
 
   const toggleBraceletDetails = (braceletId) => {
     setExpandedBracelets(prev => ({
@@ -44,6 +46,11 @@ const Cart = () => {
         totalPrice: totalCartPrice
       }
     });
+  };
+
+  const handleConfirmClear = () => {
+    clearCart();
+    setShowConfirmClear(false);
   };
 
   // subtotal by type
@@ -343,7 +350,7 @@ const Cart = () => {
 
               <button 
                 className="continue-shopping-button outline font-inter-medium"
-                onClick={clearCart}
+                onClick={() => setShowConfirmClear(true)}
               >
                 CLEAR CART
               </button>
@@ -351,6 +358,14 @@ const Cart = () => {
             </div>
           </motion.div>
         </div>
+        {/* Confirm modal for clearing cart */}
+        <ConfirmModal
+          open={showConfirmClear}
+          title={"Clear Cart"}
+          message={"This will remove all items from your cart. Are you sure you want to continue?"}
+          onConfirm={handleConfirmClear}
+          onCancel={() => setShowConfirmClear(false)}
+        />
       </motion.div>
     </div>
   );

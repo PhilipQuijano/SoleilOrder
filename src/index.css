@@ -12,6 +12,18 @@
   --background-gradient-end: #fdf8ff;
   --primary-dark: #4a2741;
   --primary-light: #6d3a60;
+
+  /* About page local variables (centralized here so multiple pages can share) */
+  --ap-bg: #faf9fb;
+  --ap-card-bg: #ffffff;
+  --ap-card-radius: 0.5rem;
+  --ap-card-shadow: 0 12px 30px rgba(24, 22, 28, 0.06);
+  --ap-card-border: 1px solid rgba(34, 30, 36, 0.04);
+  --ap-accent: var(--primary-color);
+  --ap-transition-fast: 0.12s;
+  --ap-transition-mid: 0.16s;
+  --ap-transition-snap: 0.14s;
+  --ap-card-padding: 0.9rem;
 }
 
 .font-montserrat-semibold {
