@@ -233,7 +233,7 @@ const AboutPage = () => {
                     {showAllGallery ? '◀' : '▼'}
                   </span>
                   <span className="toggle-text">
-                    {showAllGallery ? 'Go Back' : 'View All Images'}
+                    {showAllGallery ? 'Hide Images' : 'View All Images'}
                   </span>
                 </button>
               </motion.div>
