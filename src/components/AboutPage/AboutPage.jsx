@@ -9,6 +9,7 @@ const AboutPage = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showAllGallery, setShowAllGallery] = useState(false);
 
   useEffect(() => {
     fetchAboutImages();
@@ -139,58 +140,104 @@ const AboutPage = () => {
               </button> 
             </div>
           ) : images.length > 0 ? (
-            <div className="image-carousel">
-              {images.length > 1 && (
-                <button 
-                  className="carousel-nav prev" 
-                  onClick={prevImage}
-                  aria-label="Previous image"
-                >
-                  &#8249;
-                </button>
+            <>
+              {!showAllGallery ? (
+                <div className="image-carousel">
+                  {images.length > 1 && (
+                    <button 
+                      className="carousel-nav prev" 
+                      onClick={prevImage}
+                      aria-label="Previous image"
+                    >
+                      &#8249;
+                    </button>
+                  )}
+                  
+                  <div className="carousel-track">
+                    {(() => {
+                      if (images.length === 0) return null;
+                      const total = images.length;
+                      const prevIndex = (currentImageIndex - 1 + total) % total;
+                      const nextIndex = (currentImageIndex + 1) % total;
+                      const visible = [
+                        { idx: prevIndex, position: 'left' },
+                        { idx: currentImageIndex, position: 'center' },
+                        { idx: nextIndex, position: 'right' }
+                      ];
+                      return visible.map(({ idx, position }) => {
+                        const image = images[idx];
+                        return (
+                          <div key={image.id} className={`carousel-image-container ${position}`}>
+                            <img
+                              src={image.url}
+                              alt={`Soleil Gallery ${idx + 1}`}
+                              className="carousel-image"
+                              onError={handleImageError}
+                              loading={position === 'center' ? 'eager' : 'lazy'}
+                            />
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                  
+                  {images.length > 1 && (
+                    <>
+                      <button 
+                        className="carousel-nav next" 
+                        onClick={nextImage}
+                        aria-label="Next image"
+                      >
+                        &#8250;
+                      </button>
+                      
+                    </>
+                  )}            
+                </div>
+              ) : (
+                <div className="full-gallery-grid">
+                  {images.map((image, index) => (
+                    <motion.div
+                      key={image.id}
+                      className="gallery-grid-item"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      <img
+                        src={image.url}
+                        alt={`Soleil Gallery ${index + 1}`}
+                        className="gallery-grid-image"
+                        onError={handleImageError}
+                        loading="lazy"
+                      />
+                    </motion.div>
+                  ))}
+                </div>
               )}
               
-              <div className="carousel-track">
-                {(() => {
-                  if (images.length === 0) return null;
-                  const total = images.length;
-                  const prevIndex = (currentImageIndex - 1 + total) % total;
-                  const nextIndex = (currentImageIndex + 1) % total;
-                  const visible = [
-                    { idx: prevIndex, position: 'left' },
-                    { idx: currentImageIndex, position: 'center' },
-                    { idx: nextIndex, position: 'right' }
-                  ];
-                  return visible.map(({ idx, position }) => {
-                    const image = images[idx];
-                    return (
-                      <div key={image.id} className={`carousel-image-container ${position}`}>
-                        <img
-                          src={image.url}
-                          alt={`Soleil Gallery ${idx + 1}`}
-                          className="carousel-image"
-                          onError={handleImageError}
-                          loading={position === 'center' ? 'eager' : 'lazy'}
-                        />
-                      </div>
-                    );
-                  });
-                })()}
-              </div>
-              
-              {images.length > 1 && (
-                <>
-                  <button 
-                    className="carousel-nav next" 
-                    onClick={nextImage}
-                    aria-label="Next image"
-                  >
-                    &#8250;
-                  </button>
-                  
-                </>
-              )}            
-            </div>
+              {/* Gallery Toggle Button */}
+              <motion.div
+                className="gallery-toggle-container"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+              >
+                <button
+                  className="gallery-toggle-button"
+                  onClick={() => setShowAllGallery(!showAllGallery)}
+                  aria-label={showAllGallery ? "View carousel" : "View all images"}
+                >
+                  <span className="toggle-icon">
+                    {showAllGallery ? '◀' : '▼'}
+                  </span>
+                  <span className="toggle-text">
+                    {showAllGallery ? 'View Carousel' : 'View All Images'}
+                  </span>
+                </button>
+              </motion.div>
+            </>
           ) : (
             <div className="no-images">
               <div className="no-images-content">
