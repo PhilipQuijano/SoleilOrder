@@ -14,6 +14,7 @@ const Charms = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCharm, setSelectedCharm] = useState(null);
+  const [previewCharm, setPreviewCharm] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [showAddedNotification, setShowAddedNotification] = useState(false);
 
@@ -196,7 +197,7 @@ const Charms = () => {
               transition={{ duration: 0.3 }}
               whileHover={{ y: -5, transition: { duration: 0.2 } }}
             >
-              <div className="charm-image-container">
+              <div className="charm-image-container" onClick={() => setPreviewCharm(charm)}>
                 <img 
                   src={charm.image} 
                   alt={charm.name}
@@ -299,6 +300,70 @@ const Charms = () => {
           ))
         )}
       </motion.div>
+
+      {/* Close-up Preview Modal */}
+      <AnimatePresence>
+        {previewCharm && (
+          <motion.div 
+            className="modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setPreviewCharm(null)}
+          >
+            <motion.div 
+              className="modal-content preview-modal"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button 
+                className="close-btn"
+                onClick={() => setPreviewCharm(null)}
+                aria-label="Close preview"
+              >
+                ✕
+              </button>
+              
+              <div className="preview-image-wrapper">
+                <img 
+                  src={previewCharm.image} 
+                  alt={previewCharm.name}
+                  className="preview-image"
+                  onError={(e) => {
+                    e.target.src = '/api/placeholder/400/400';
+                  }}
+                />
+              </div>
+              
+              <div className="preview-info">
+                <h2 className="font-cormorant-medium">{previewCharm.name}</h2>
+                <p className="preview-price font-inter-bold">₱{previewCharm.price}</p>
+                {previewCharm.category && (
+                  <p className="preview-category font-inter-regular">{previewCharm.category}</p>
+                )}
+                {previewCharm.stock !== undefined && (
+                  <p className="preview-stock font-inter-regular">
+                    {previewCharm.stock > 0 ? `${previewCharm.stock} in stock` : 'Out of stock'}
+                  </p>
+                )}
+              </div>
+              
+              <button 
+                className="add-to-cart-btn font-inter-medium"
+                onClick={() => {
+                  handleAddToCart(previewCharm);
+                  setPreviewCharm(null);
+                }}
+                disabled={previewCharm.stock === 0}
+              >
+                {previewCharm.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Add to Cart Modal */}
       <AnimatePresence>
