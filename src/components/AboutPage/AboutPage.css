@@ -237,14 +237,12 @@
   /* backdrop-filter: blur(0.9375rem); */
 }
 
-/* Center (active) image */
 .carousel-image-container.center {
   z-index: 3;
   transform: translateX(0) scale(1);
   opacity: 1;
 }
 
-/* Left (previous) image */
 .carousel-image-container.left {
   z-index: 2;
   transform: translateX(-85%) scale(0.85);
@@ -252,7 +250,6 @@
   filter: brightness(0.7);
 }
 
-/* Right (next) image */
 .carousel-image-container.right {
   z-index: 2;
   transform: translateX(85%) scale(0.85);
@@ -260,7 +257,6 @@
   filter: brightness(0.7);
 }
 
-/* Hidden images (further away) */
 .carousel-image-container.hidden {
   z-index: 1;
   opacity: 0;
@@ -282,7 +278,7 @@
   background: rgba(255, 255, 255, 0.92);
   border: none;
   border-radius: 50%;
-  width: 3rem; /* 48px touch target */
+  width: 3rem;
   height: 3rem;
   display: flex;
   align-items: center;
@@ -292,8 +288,6 @@
   color: #582e4e;
   transition: all var(--ap-transition-mid) ease;
   z-index: 10;
-  /* Remove backdrop blur and reduce shadow for performance */
-  /* backdrop-filter: blur(0.625rem); */
   touch-action: manipulation;
   box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.14);
 }
