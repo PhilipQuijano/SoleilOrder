@@ -3,6 +3,12 @@ import { motion } from 'framer-motion';
 import Star from '../icons/Star';
 import { supabase } from '../../../api/supabaseClient';
 import './AboutPage.css';
+import { Instagram, Facebook} from 'lucide-react';
+
+const linkVariants = {
+  hover: { scale: 1.1 },
+  tap: { scale: 0.95 }
+};
 
 const AboutPage = () => {
   const [images, setImages] = useState([]);
@@ -342,11 +348,37 @@ const AboutPage = () => {
                 Stay tuned for these exciting additions to the Soleil family!
               </p>
             </motion.div>
+
+            <h2 className="section-title font-cormorant-medium">The Developers</h2>
+            <motion.div 
+              className="future-plans"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              viewport={{ once: true }}
+              whileHover={{ 
+                scale: 1.02,
+                y: -5,
+                transition: { duration: 0.3 }
+              }}
+            >
+              <h3 className="dev-list-title font-montserrat-bold">Website crafted with ❤️by</h3>
+              <ul className="dev-list font-inter-regular">
+                <li><Star className="list-star" />Philip Quijano</li>
+                <li><Star className="list-star" />Trish Aguarin</li>
+                <li><Star className="list-star" />Diane Cabato</li>
+                <li><Star className="list-star" />Mikhos Gumapos</li>
+                <li><Star className="list-star" />Chrystel Marcelo</li>
+                <li><Star className="list-star" />Anja Gonzales</li>
+                <li><Star className="list-star" />Zach Francisco</li>
+                <li><Star className="list-star" />Angelo Rocha</li>
+              </ul>
+            </motion.div>
           </motion.div>
         </div>
       </section>
 
-      {/* Developer Credit */}
+      {/* Footer */}
       <section className="developer-credit">
         <div className="container">
           <motion.div
@@ -356,15 +388,38 @@ const AboutPage = () => {
             viewport={{ once: true }}
             className="credit-content"
           >
-            <div className="credit-line"></div>
+
             <p className="credit-text font-inter-regular">
-              Website crafted with ❤️ by 
+              Follow us ❤️ 
             </p>
-            <p className="credit-developer">
-              <a href="https://github.com/PhilipQuijano" target="_blank" rel="noopener noreferrer" className="developer-link font-montserrat-semibold">
-                Philip Quijano
-              </a>
-            </p>
+
+            <div className="credit-line"></div>
+            <div className="social-icons flex gap-4 mt-4">
+              <motion.a
+                href="https://www.instagram.com/soleilphl/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="social-link"
+                variants={linkVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                <Instagram size={20} />
+              </motion.a>
+              
+              <motion.a
+                href="https://www.facebook.com/profile.php?id=61567161596724"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="social-link"
+                variants={linkVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                <Facebook size={20} />
+              </motion.a>
+            </div>
+
           </motion.div>
         </div>
       </section>

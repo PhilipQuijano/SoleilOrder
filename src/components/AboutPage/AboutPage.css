@@ -640,6 +640,52 @@
   gap: 0.45rem;
 }
 
+.dev-list-title {
+  text-align: center;
+  padding-bottom: 16px;  
+}
+
+.dev-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem 2rem; /* row gap, column gap */
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.dev-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+
+.social-icons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.social-link {
+  color: #fff;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.social-link:hover {
+  color: #f9e0e8;
+  background: rgba(249, 224, 232, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(249, 224, 232, 0.3);
+}
+
 /* =================================
    DEVELOPER CREDIT - Mobile First
    ================================= */
@@ -656,11 +702,12 @@
 }
 
 .credit-line {
-  width: 7.5rem;
+  width: 15rem;
   height: 2px;
   background: linear-gradient(90deg, transparent, #ffdcf4, transparent);
   margin: 0 auto 1.25rem;
   border-radius: 1px;
+  margin-top: 1.5rem;
 }
 
 .credit-text {
@@ -671,80 +718,34 @@
   hyphens: auto;
 }
 
-.credit-developer {
-  font-size: clamp(1rem, 3vw, 1.2rem);
+.social-icons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+
 }
 
-.developer-link {
-  color: #ffdcf4;
+.social-link {
+  color: #fff;
   text-decoration: none;
-  font-weight: 500;
   transition: all 0.3s ease;
-  position: relative;
-  padding: 0.5rem 0;
-  display: inline-block;
-  touch-action: manipulation;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
 }
 
-.developer-link::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: #ffdcf4;
-  transition: width 0.3s ease;
+.social-link:hover {
+  color: #f9e0e8;
+  background: rgba(249, 224, 232, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(249, 224, 232, 0.3);
 }
 
-.developer-link:hover::after,
-.developer-link:focus::after {
-  width: 100%;
-}
-
-.developer-link:hover,
-.developer-link:focus {
-  color: white;
-  text-shadow: 0 0.125rem 0.5rem rgba(255, 220, 244, 0.5);
-}
-
-.credit-contact {
-  font-size: clamp(0.85rem, 2vw, 1rem);
-  margin: 0;
-}
-
-.contact-link {
-  color: #ffdcf4;
-  text-decoration: none;
-  font-weight: 400;
-  transition: all 0.3s ease;
-  position: relative;
-  padding: 0.5rem 0;
-  display: inline-block;
-  touch-action: manipulation;
-}
-
-.contact-link::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: #ffdcf4;
-  transition: width 0.3s ease;
-}
-
-.contact-link:hover::after,
-.contact-link:focus::after {
-  width: 100%;
-}
-
-.contact-link:hover,
-.contact-link:focus {
-  color: white;
-  text-shadow: 0 0.125rem 0.5rem rgba(255, 220, 244, 0.5);
-}
 
 /* =================================
    RESPONSIVE BREAKPOINTS
