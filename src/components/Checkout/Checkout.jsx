@@ -87,6 +87,7 @@ const CheckoutPage = () => {
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
 
   // Handle form input changes
   const handleInputChange = (field, value) => {
@@ -599,11 +600,31 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
             {/* Bracelets Preview */}
             {orderData.bracelets.length > 0 && (
               <div className="bracelets-preview">
-                <h2 className="font-cormorant-medium">Your Bracelet{orderData.bracelets.length > 1 ? 's' : ''} ({orderData.bracelets.length})</h2>
+                <div className="section-header-container">
+                  <h2 className="section-header">Preview</h2>
+                  <button 
+                    className="toggle-preview-button"
+                    onClick={() => setShowPreview(!showPreview)}
+                    aria-label={showPreview ? "Hide preview" : "Show preview"}
+                  >
+                    {showPreview ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="18 15 12 9 6 15"></polyline>
+                      </svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
+                    )}
+                    <span>{showPreview ? 'Hide' : 'Show'}</span>
+                  </button>
+                </div>
                 
-                {orderData.bracelets.map((bracelet, braceletIndex) => (
+                {showPreview && (
+                  <>
+                    {orderData.bracelets.map((bracelet, braceletIndex) => (
                   <div key={bracelet.id || braceletIndex} className="bracelet-final-preview">
-                    <h3 className="font-cormorant-medium">Bracelet #{braceletIndex + 1}</h3>
+                    <h3>Bracelet #{braceletIndex + 1}</h3>
                     <div className="final-bracelet-visual">
                       {bracelet.charms.map((charm, charmIndex) => (
                         <div key={charmIndex} className="final-bracelet-charm">
@@ -612,26 +633,28 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
                       ))}
                     </div>
                     <div className="bracelet-info">
-                      <p className="bracelet-size font-inter-regular">Size: {bracelet.size} cm</p>
-                      <p className="bracelet-price font-montserrat-medium">₱{bracelet.totalPrice.toLocaleString()}</p>
+                      <p className="bracelet-size">Size: {bracelet.size} cm</p>
+                      <p className="bracelet-price">₱{bracelet.totalPrice.toLocaleString()}</p>
                     </div>
                   </div>
                 ))}
+                  </>
+                )}
               </div>
             )}
 
             {/* Individual Charms Preview */}
-            {orderData.charms && orderData.charms.length > 0 && (
+            {orderData.charms && orderData.charms.length > 0 && showPreview && (
               <div className="individual-charms-preview">
-                <h2 className="font-cormorant-medium">Individual Charms ({orderData.charms.length})</h2>
+                <h2>Individual Charms ({orderData.charms.length})</h2>
                 <div className="charms-grid-preview">
                   {orderData.charms.map((charm, index) => (
                     <div key={charm.cartItemId || index} className="charm-preview-item">
                       <img src={charm.image} alt={charm.name} onError={(e) => { e.target.src = '/api/placeholder/80/80'; }} />
                       <div className="charm-preview-details">
-                        <h4 className="font-inter-semibold">{charm.name}</h4>
-                        <p className="font-inter-regular">Qty: {charm.quantity}</p>
-                        <p className="font-montserrat-medium">₱{(charm.price * charm.quantity).toLocaleString()}</p>
+                        <h4>{charm.name}</h4>
+                        <p>Qty: {charm.quantity}</p>
+                        <p>₱{(charm.price * charm.quantity).toLocaleString()}</p>
                       </div>
                     </div>
                   ))}
@@ -641,7 +664,7 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
 
             {/* Order Details */}
             <div className="order-details">
-              <h2 className="font-montserrat-semibold">Order Summary</h2>
+              <h2 className="section-header">Order Summary</h2>
               <div className="order-items">
                 {orderData.bracelets.map((bracelet, braceletIndex) => {
                   const charmBreakdown = {};
@@ -657,7 +680,7 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
 
                   return (
                     <div key={bracelet.id || braceletIndex} className="bracelet-order-section">
-                      <h4 className="font-cormorant-medium">Bracelet #{braceletIndex + 1} - {bracelet.size}cm</h4>
+                      <h4>Bracelet #{braceletIndex + 1} - {bracelet.size}cm</h4>
                       {Object.values(charmBreakdown).map((charm, index) => (
                         <motion.div 
                           key={`${bracelet.id}-${charm.id}-${index}`}
@@ -669,17 +692,17 @@ Hi SOLEIL! I would like to confirm my bracelet order above. Please send me the p
                           <div className="item-info">
                             <img src={charm.image} alt={charm.name} className="item-image" />
                             <div className="item-details">
-                              <span className="item-name font-inter-regular">{charm.name}</span>
+                              <span className="item-name">{charm.name}</span>
                               {charm.count > 1 && (
-                                <span className="item-quantity font-inter-regular">x{charm.count}</span>
+                                <span className="item-quantity">x{charm.count}</span>
                               )}
                             </div>
                           </div>
-                          <span className="item-price font-montserrat-medium">₱{(charm.price * charm.count).toLocaleString()}</span>
+                          <span className="item-price">₱{(charm.price * charm.count).toLocaleString()}</span>
                         </motion.div>
                       ))}
                       <div className="bracelet-subtotal">
-                        <span className="font-montserrat-medium">Subtotal: ₱{bracelet.totalPrice.toLocaleString()}</span>
+                        <span>Subtotal: ₱{bracelet.totalPrice.toLocaleString()}</span>
                       </div>
                     </div>
                   );
