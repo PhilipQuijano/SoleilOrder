@@ -1,4 +1,3 @@
-
 /* CustomizeBracelet.css - Enhanced Mobile Responsive Version */
 
 /* =============================================================================
@@ -14,61 +13,70 @@ body {
     overflow-x: hidden;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     line-height: 1.4;
+    background: #fff5eb;
 }
 
-html {
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
+/* Theme variables to centralize brand colors and common values */
+:root {
+    --brand: #582e4e;
+    --brand-2: #6d3a60;
+    --brand-3: #7d4570;
+    --brand-rgb: 88,46,78;
+    --muted-bg: #f8f8f8;
+    --bg-light-1: #fdfcfd;
+    --bg-light-2: #f9f7f9;
+    --white: #ffffff;
 }
-
-.cart-button {
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 500;
-}
-
-/* =============================================================================
-   MAIN CONTAINER
-   ============================================================================= */
-.customize-bracelet-page {
-    width: 100%;
-    min-height: 100vh;
+.bracelet-charm.empty.selectable::after {
+    content: '+';
+    position: absolute;
+    font-size: 1.125rem;
+    color: #582e4e;
+    right: 6px;
+    bottom: 6px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
     display: flex;
-    flex-direction: column;
-    background-color: #f7f1fd;
-    padding: 74px 0 80px 0; /* Top padding for header, bottom for footer */
-}
-
-
-/* =============================================================================
-   STICKY BRACELET DISPLAY
-   ============================================================================= */
-.bracelet-display {
-    position: sticky;
-    top: 75px;
-    z-index: 90;
-    background-color: rgb(255, 255, 255);
-    padding: 1rem;
-    margin: 0 1rem 1.25rem 1rem;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
     align-items: center;
-    border-bottom: 1px solid #f0f0f0;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-    backdrop-filter: blur(10px);
-    border-radius: 1.25rem;
-    max-width: calc(100% - 2rem);
-    overflow-x: hidden;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(88,46,78,0.12);
+    pointer-events: none;
+    transition: transform 0.15s ease;
 }
-
-.bracelet-display h2 {
-    margin: 0 0 0.625rem 0;
-    color: #333;
+/* small placed animation */
+.bracelet-charm.placed {
+    transform: scale(1.08) translateY(-4px);
+    box-shadow: 0 8px 18px rgba(88,46,78,0.12);
+}
+/* Remove button that appears when hovering a filled slot */
+.remove-slot-button {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0,0,0,0.55);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.12s ease, transform 0.12s ease;
+    z-index: 2;
+}
+.bracelet-charm:hover .remove-slot-button {
+    opacity: 1;
+    transform: translateY(-1px);
     font-weight: 500;
     font-size: 1rem;
-    width: 100%;
-    text-align: center;
+    /* keep the remove button compact — do not expand to full width (prevents accidental large click targets) */
 }
 
 /* =============================================================================
@@ -84,26 +92,136 @@ html {
     flex-wrap: wrap;
 }
 
+/* Floating help button (accessible) */
+.help-button {
+    /* Keep visible above navbar */
+    position: fixed;
+    top: 76px;
+    right: 18px;
+    z-index: 1105;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+.help-button:focus { outline: none; }
+
+/* Circular question mark */
+.help-circle {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* Translucent purple bubble using theme RGB with subtle gradient */
+    background: #582e4e85;
+    color: rgba(255,255,255,0.95);
+    box-shadow: 0 2px 8px rgba(var(--brand-rgb),0.06);
+    line-height: 1;
+    text-align: center;
+    padding: 4px; /* allow multi-line centering */
+    position: relative; /* for badge and tail */
+}
+
+.help-mark {
+    font-size: 1.4rem;
+    font-weight: 700;
+    line-height: 1;
+    color: rgba(255,255,255,0.98);
+}
+
+.help-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    margin-top: 0px;
+    line-height: 1;
+    transform: translateY(-2px);
+    color: rgba(255,255,255,0.92);
+}
+
+/* small notification badge in the top-right of the bubble */
+.help-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.95);
+    font-weight: 700;
+    font-size: 0.68rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    border: 1px solid rgba(255,255,255,0.14);
+}
+
+/* speech-bubble tail */
+/* removed speech-bubble tail — keep the help control as a simple circular button */
+
+.visually-hidden {
+    position: absolute !important;
+    height: 1px; width: 1px;
+    overflow: hidden; clip: rect(1px, 1px, 1px, 1px);
+    white-space: nowrap; border: 0; padding: 0; margin: -1px;
+}
+
+.help-button:focus .help-circle { box-shadow: 0 0 0 4px rgba(var(--brand-rgb), 0.12); }
+
 .control-group {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1rem;
-    background-color: rgb(255, 255, 255);
+    background: rgba(114, 67, 103, 0.95);
     border-radius: 0.625rem;
     border: 1px solid rgba(88, 46, 78, 0.1);
     box-shadow: 0 2px 8px rgba(88, 46, 78, 0.08);
     transition: all 0.3s ease;
-    min-width: 120px;
+    min-width: 150px;
     flex: 1;
-    max-width: 200px;
+    max-width: 230px;
 
 }
 
+/* Minimal, low-emphasis reset button used in control-group */
+.reset-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.35rem 0.55rem;
+    border-radius: 0.6rem;
+    border: 1px solid rgba(0,0,0,0.06);
+    background: white;
+    color: #363636; /* muted text */
+    cursor: pointer;
+    transition: transform 0.08s ease, box-shadow 0.12s ease, opacity 0.12s ease, background 0.12s ease;
+    box-shadow: none;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: 0.875rem;
+    line-height: 1;
+}
+.reset-button svg { display: block; color: #6b6b6b; }
+.reset-button .reset-label { color: #6b6b6b; font-family: 'Inter', sans-serif; font-weight: 400; font-size: 0.85rem; }
+.reset-button:hover { transform: translateY(-1px); background: linear-gradient(135deg, #efefef 0%, #e3e3e3 100%); box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
+.reset-button:active { transform: translateY(0); }
+.reset-button[disabled] { opacity: 0.6; cursor: default; box-shadow: none; }
+
 .control-group h3 {
     margin: 0;
-    color: #582e4e;
+    color: #ffffff;
     font-family: 'Inter', sans-serif;
     font-weight: 500;
     font-size: 0.875rem;
@@ -122,8 +240,8 @@ html {
     padding: 0.75rem 1rem;
     border-radius: 0.5rem;
     border: 2px solid #e8e8e8;
-    color: #333;
-    background: linear-gradient(145deg, #ffffff 0%, #fafafa 100%);
+    color: #000;
+    background: #ffffff;
     font-size: 0.875rem;
     font-family: 'Inter', sans-serif;
     font-weight: 400;
@@ -180,7 +298,7 @@ html {
     margin: 0 auto;
     padding: 0.75rem 1rem;
     background: white;
-    width: 100%;
+    width: max-content;
     min-height: 5rem;
     overflow-x: auto;
     overflow-y: hidden;
@@ -188,6 +306,7 @@ html {
     scrollbar-color: rgba(88, 46, 78, 0.3) transparent;
     border-radius: 0.5rem;
     box-shadow: inset 0 1px 4px rgba(0,0,0,0.05);
+    border-radius: 15px;
 }
 
 .bracelet-visual::-webkit-scrollbar {
@@ -309,6 +428,56 @@ html {
     box-shadow: 0 3px 13px rgba(88, 46, 78, 0.08);
     border: 1px solid rgba(88, 46, 78, 0.1);
 }
+/* Category row tweaks when always visible */
+.category-row {
+    padding-bottom: 0.75rem;
+}
+
+.category-controls {
+    position: absolute;
+    right: 1rem;
+    top: -6px; /* raised slightly */
+}
+.toggle-categories-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #ffffff 0%, #fbf7fb 100%);
+    border: 1px solid rgba(88,46,78,0.12);
+    color: #582e4e;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow: 0 6px 18px rgba(88,46,78,0.08);
+    transition: all 0.18s ease;
+    backdrop-filter: blur(4px);
+}
+.toggle-categories-button::before {
+    content: '';
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23582e4e' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z'/><circle cx='12' cy='12' r='3'/></svg>");
+    background-size: 16px 16px;
+    background-repeat: no-repeat;
+}
+.toggle-categories-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 26px rgba(88,46,78,0.12);
+}
+.toggle-categories-button:active {
+    transform: translateY(0);
+    box-shadow: 0 6px 14px rgba(88,46,78,0.09);
+}
+
+/* Smaller on very small screens */
+@media screen and (max-width: 480px) {
+    .category-controls { top: -4px; right: 0.6rem; }
+    .toggle-categories-button { padding: 0.35rem 0.65rem; font-size: 0.82rem; }
+    .toggle-categories-button::before { width: 14px; height: 14px; background-size: 14px 14px; }
+}
 
 .step-header {
     display: flex;
@@ -320,7 +489,7 @@ html {
 }
 
 .step-title {
-    color: #582e4e;
+    color: var(--brand);
     font-family: 'Montserrat', sans-serif;
     font-weight: 600;
     font-size: 1.1rem;
@@ -333,7 +502,7 @@ html {
 }
 
 .back-button {
-    background: linear-gradient(135deg, #582e4e 0%, #6d3a60 100%);
+    background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
     color: white;
     border: none;
     padding: 0.75rem 1.25rem;
@@ -355,9 +524,9 @@ html {
 }
 
 .back-button:hover {
-    background: linear-gradient(135deg, #6d3a60 0%, #582e4e 100%);
+    background: linear-gradient(135deg, var(--brand-2) 0%, var(--brand) 100%);
     transform: translateY(-50%) translateY(-1px);
-    box-shadow: 0 3px 10px rgba(88, 46, 78, 0.4);
+    box-shadow: 0 3px 10px rgba(var(--brand-rgb), 0.4);
 }
 
 .back-button:active {
@@ -369,31 +538,26 @@ html {
    CATEGORY CARDS
    ============================================================================= */
 .category-cards-container {
-    display: flex;
-    justify-content: center;
+    display: block; /* wrap rows instead of horizontal scroll */
     width: 100%;
-    padding: 0;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(88, 46, 78, 0.3) transparent;
+    padding: 0 1rem;
+    overflow: visible;
 }
 
 .category-cards {
     display: flex;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
+    flex-wrap: wrap; /* allow multiple rows */
+    justify-content: center;
     gap: 1rem;
-    padding: 1rem;
+    padding: 1rem 0;
     background-color: transparent;
     border-radius: 0.5rem;
-    min-width: max-content;
 }
 
 .category-card {
     background-color: white;
     border-radius: 0.75rem;
-    padding: 1rem;
+    padding: 0.75rem;
     cursor: pointer;
     transition: all 0.3s ease;
     border: 2px solid transparent;
@@ -401,10 +565,10 @@ html {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
     flex-shrink: 0;
-    min-width: 6rem;
-    min-height: 7rem;
+    min-width: 100px;
+    min-height: 88px;
     position: relative;
     overflow: hidden;
 }
@@ -515,12 +679,15 @@ html {
    ============================================================================= */
 .charm-options {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 13px; /* 20px * 0.67 */
-    padding: 13px 0; /* 20px * 0.67 */
-    max-width: 335px; /* 500px * 0.67 */
+    /* Use fixed 76px tiles and allow the grid to center when there's extra space */
+    grid-template-columns: repeat(auto-fit, minmax(76px, 76px));
+    gap: 16px; /* fixed gap between tiles */
+    padding: 16px 0;
+    max-width: 100%;
+    width: 100%;
     margin: 0 auto;
     justify-items: center;
+    justify-content: center; /* center the whole grid within its container */
 }
 .charm-option {
     aspect-ratio: 1;
@@ -538,8 +705,15 @@ html {
     -webkit-touch-callout: none;
     -webkit-tap-highlight-color: transparent;
     width: 100%;
-    min-width: 4rem;
-    min-height: 4rem;
+    width: 76px;
+    height: 76px;
+    min-width: 76px;
+    min-height: 76px;
+    max-width: 76px;
+    max-height: 76px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .charm-option:active,
@@ -594,8 +768,8 @@ html {
 }
 
 .charm-option img {
-    width: 100%;
-    height: 100%;
+    width: 64px;
+    height: 64px;
     object-fit: contain;
     padding: 0.5rem;
     display: block;
@@ -672,7 +846,7 @@ body.dragging-active * {
     bottom: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(135deg, #582e4e 0%, #6d3a60 100%);
+    background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
     color: white;
     padding: 0.75rem 1rem;
     box-shadow: 0 -3px 13px rgba(88, 46, 78, 0.3);
@@ -798,6 +972,8 @@ body.dragging-active * {
     box-shadow: 0 0.8125rem 2.5rem rgba(88, 46, 78, 0.3);
     border: 1px solid rgba(88, 46, 78, 0.1);
     position: relative;
+    /* Ensure modal content uses Inter for body text for consistency */
+    font-family: 'Inter', sans-serif;
 }
 
 .modal-header {
@@ -811,8 +987,10 @@ body.dragging-active * {
 
 .modal-title {
     color: #582e4e;
-    font-weight: 700;
-    font-size: 1rem;
+    /* Heading uses Montserrat to match other headings */
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 1.15rem;
     margin: 0;
 }
 
@@ -845,10 +1023,12 @@ body.dragging-active * {
 }
 
 .modal-price-item {
-    display: flex;
-    justify-content: space-between;
+    /* Grid layout: icon | name+count | price */
+    display: grid;
+    grid-template-columns: auto 1fr auto;
     align-items: center;
-    padding: 0.5rem 0;
+    gap: 0.75rem;
+    padding: 0.6rem 0.4rem;
     border-bottom: 1px solid #f0f0f0;
 }
 
@@ -859,25 +1039,25 @@ body.dragging-active * {
 .modal-price-item-left {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
     flex: 1;
     min-width: 0;
 }
 
 .modal-price-charm-image {
-    width: 2.125rem;
-    height: 2.125rem;
+    width: 2.25rem;
+    height: 2.25rem;
     object-fit: contain;
-    border-radius: 0.3125rem;
+    border-radius: 0.375rem;
     background: #f8f8f8;
-    padding: 0.1875rem;
+    padding: 0.25rem;
     flex-shrink: 0;
 }
 
 .modal-price-charm-name {
     font-weight: 500;
     color: #333;
-    font-size: 0.67rem;
+    font-size: 0.95rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -886,7 +1066,7 @@ body.dragging-active * {
 
 .modal-charm-count {
     color: #666;
-    font-size: 0.6rem;
+    font-size: 0.85rem;
     margin-left: 0.1875rem;
     flex-shrink: 0;
 }
@@ -894,29 +1074,32 @@ body.dragging-active * {
 .modal-price-value {
     font-weight: 600;
     color: #582e4e;
-    font-size: 0.74rem;
+    font-size: 0.95rem;
     flex-shrink: 0;
 }
 
 .modal-price-total {
     border-top: 3px solid #582e4e;
-    padding-top: 0.8125rem;
-    margin-top: 0.625rem;
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
     background: linear-gradient(135deg, #fdf9fd 0%, #f8f4f8 100%);
     border-radius: 0.5rem;
-    padding: 0.8125rem;
+    padding: 0.75rem 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .modal-total-label {
     font-weight: 700;
     color: #582e4e;
-    font-size: 0.8rem;
+    font-size: 0.95rem;
 }
 
 .modal-total-value {
     font-weight: 700;
     color: #582e4e;
-    font-size: 1rem;
+    font-size: 1.05rem;
 }
 
 .modal-buttons {
@@ -930,9 +1113,10 @@ body.dragging-active * {
     background: transparent;
     color: #666;
     border: 2px solid #ddd;
-    padding: 0.5rem 1.0625rem;
+    padding: 0.6rem 1.125rem;
     border-radius: 1.0625rem;
-    font-size: 0.67rem;
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -942,41 +1126,49 @@ body.dragging-active * {
     justify-content: center;
 }
 
-.modal-cancel-button:hover {
-    border-color: #582e4e;
-    color: #582e4e;
+.modal-buttons {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
 }
-
+.modal-cancel-button {
+    background: transparent;
+    color: #666;
+    border: 2px solid #ddd;
+    padding: 0.55rem 1rem;
+    border-radius: 1.0625rem;
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+}
 .modal-checkout-button {
-    background: linear-gradient(135deg, #582e4e 0%, #6d3a60 100%);
+    background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
     color: white;
     border: none;
-    padding: 0.5rem 1.0625rem;
+    padding: 0.6rem 1.25rem;
     border-radius: 1.0625rem;
-    font-size: 0.67rem;
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 0.125rem 0.4375rem rgba(88, 46, 78, 0.3);
-    min-height: 48px;
-    display: flex;
+    min-height: 44px;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex: 0 0 auto;
+    min-width: 140px;
 }
-
-.modal-checkout-button:hover {
-    background: linear-gradient(135deg, #6d3a60 0%, #582e4e 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 0.1875rem 0.625rem rgba(88, 46, 78, 0.4);
-}
-
-.modal-checkout-button:active {
-    transform: translateY(0);
-}
-
-/* =============================================================================
-   EDIT MODE BANNER - MOBILE RESPONSIVE
-   ============================================================================= */
 .edit-mode-banner {
     position: fixed;
     top: 0;
@@ -1391,6 +1583,7 @@ body.dragging-active * {
     .charm-options {
         grid-template-columns: repeat(auto-fit, minmax(3.5rem, 1fr));
         gap: 0.75rem;
+        justify-content: center;
     }
 
     .subcategory-charms {
@@ -1426,10 +1619,9 @@ body.dragging-active * {
         padding: 70px 0 75px 0; /* Reduced bottom padding for smaller footer */
     }
 
-    /* Sticky bracelet display - aligned with content */
+    /* Bracelet display - keep in flow on mobile */
     .bracelet-display {
-        position: sticky;
-        top: 65px;
+        position: static;
         margin: 0 1rem 1rem 1rem; /* Consistent margin with charm selection */
         padding: 0.75rem;
         border-radius: 1rem;
@@ -1548,6 +1740,7 @@ body.dragging-active * {
         grid-template-columns: repeat(auto-fit, minmax(3.5rem, 1fr));
         gap: 0.75rem;
         padding: 0.75rem 0;
+        justify-content: center;
     }
 
     .charm-option {
@@ -1566,8 +1759,56 @@ body.dragging-active * {
 
     /* Subcategory charms */
     .subcategory-charms {
-        grid-template-columns: repeat(auto-fit, minmax(3.5rem, 1fr));
-        gap: 0.75rem;
+    /* Empty slot hint when a charm is selected */
+    .bracelet-charm.empty.selectable::after {
+        content: '+';
+        position: absolute;
+        font-size: 1.125rem;
+        color: #582e4e;
+        right: 6px;
+        bottom: 6px;
+        background: rgba(255,255,255,0.9);
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(88,46,78,0.12);
+        pointer-events: none;
+        transition: transform 0.15s ease;
+    }
+    /* small placed animation */
+    .bracelet-charm.placed {
+        transform: scale(1.08) translateY(-4px);
+        box-shadow: 0 8px 18px rgba(88,46,78,0.12);
+    }
+    /* Remove button that appears when hovering a filled slot */
+    .remove-slot-button {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(0,0,0,0.55);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.12s ease, transform 0.12s ease;
+        z-index: 2;
+    }
+    .bracelet-charm:hover .remove-slot-button {
+        opacity: 1;
+        transform: translateY(-1px);
+        font-weight: 500;
+        font-size: 0.95rem;
     }
 
     .charm-subcategory h4 {
@@ -1901,6 +2142,7 @@ body.dragging-active * {
     .charm-options {
         grid-template-columns: repeat(auto-fit, minmax(3rem, 1fr));
         gap: 0.5rem;
+        justify-content: center;
     }
 
     .charm-option {
@@ -2127,5 +2369,37 @@ body.dragging-active * {
 
     .customize-bracelet-page {
         padding: 0;
+    }
+}
+
+/* Added missing closing brace to balance file after edits */
+}
+
+/* On wide screens avoid the sticky bracelet blocking the top content; keep relative so category row is visible */
+@media screen and (min-width: 1025px) {
+    .bracelet-display {
+        position: relative;
+        top: 0;
+        margin-bottom: 1rem;
+    }
+}
+
+/* Safety overrides to ensure page is scrollable and top content is visible */
+html, body {
+    overflow-y: auto !important;
+}
+
+.customize-bracelet-page {
+    /* ensure the top is visible below any fixed header/nav */
+    padding-top: 110px !important;
+    padding-bottom: 140px !important;
+    background: linear-gradient(135deg, #f0e5fd 0%, #f0e8fd 50%, #ede1ff 100%);
+}
+
+@media screen and (min-width: 1025px) {
+    .bracelet-display {
+        position: static !important;
+        top: auto !important;
+        z-index: 95;
     }
 }

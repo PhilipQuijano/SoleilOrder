@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
@@ -7,11 +7,13 @@ import { fetchCharms } from '../../../api/getCharms';
 import './CustomizeBracelet.css';
 import '../GlobalTransitions.css';
 import defaultSilverCharmImage from '../../assets/default-silver-charm.jpg';
+import ConfirmModal from '../Shared/ConfirmModal';
+import HelpOverlay from '../Shared/HelpOverlay';
 
 const CustomizeBracelet = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { addBraceletToCart, getBraceletCount, editBracelet } = useCart();
+  const { addBraceletToCart, getBraceletCount, editBracelet, cartBracelets } = useCart();
   
   // Edit mode detection
   const editData = location.state?.editBracelet;
@@ -28,17 +30,21 @@ const CustomizeBracelet = () => {
   const [availableCharms, setAvailableCharms] = useState({});
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedSubtype, setSelectedSubtype] = useState(null);
+  const [showCategories, setShowCategories] = useState(true);
   const [defaultSilverCharm, setDefaultSilverCharm] = useState(null);
   const [plainCharms, setPlainCharms] = useState([]);
   
   // Modal states
   const [showModal, setShowModal] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showConfirmReset, setShowConfirmReset] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   
   // Drag and drop state
   const [draggedCharm, setDraggedCharm] = useState(null);
   const [dragOverPosition, setDragOverPosition] = useState(null);
+  const [placedIndex, setPlacedIndex] = useState(null);
+  const [dragSourceIndex, setDragSourceIndex] = useState(null);
 
   // Configuration
   const sizeOptions = [
@@ -52,31 +58,63 @@ const CustomizeBracelet = () => {
     { value: 24, label: '24 Charms - 24 cm', charms: 24 },
   ];
 
-  // Initialize charms based on size and edit mode
+  // Initialize charms based on size and edit mode.
+  // Preserve any already-placed charms when changing size or starting charm.
+  const prevDefaultRef = useRef(null);
+
   useEffect(() => {
-    if (defaultSilverCharm) {
-      const selectedSize = sizeOptions.find(s => s.value === size);
-      const initialCharmsCount = selectedSize ? selectedSize.charms : 17;
-      
-      if (isEditing && editData && editData.charms) {
-        const currentCharms = [...editData.charms];
-        
-        if (currentCharms.length < initialCharmsCount) {
-          while (currentCharms.length < initialCharmsCount) {
-            currentCharms.push(defaultSilverCharm);
+    if (!defaultSilverCharm) return;
+
+    const selectedSize = sizeOptions.find(s => s.value === size);
+    const initialCharmsCount = selectedSize ? selectedSize.charms : 17;
+
+    setCharms((prevCharms) => {
+      // If no charms yet (first load), initialize from edit data or defaults
+      if (!prevCharms || prevCharms.length === 0) {
+        if (isEditing && editData && editData.charms) {
+          const currentCharms = [...editData.charms];
+          // Grow or shrink to match size
+          if (currentCharms.length < initialCharmsCount) {
+            while (currentCharms.length < initialCharmsCount) {
+              currentCharms.push(defaultSilverCharm);
+            }
+          } else if (currentCharms.length > initialCharmsCount) {
+            currentCharms.splice(initialCharmsCount);
           }
-        } else if (currentCharms.length > initialCharmsCount) {
-          currentCharms.splice(initialCharmsCount);
+          calculateTotalPrice(currentCharms);
+          return currentCharms;
         }
-        
-        setCharms(currentCharms);
-        calculateTotalPrice(currentCharms);
-      } else if (!isEditing) {
+
         const defaultCharms = Array(initialCharmsCount).fill(defaultSilverCharm);
-        setCharms(defaultCharms);
         calculateTotalPrice(defaultCharms);
+        return defaultCharms;
       }
-    }
+
+      // We have existing charms: preserve non-default charms and only replace previous-default slots
+      let next = [...prevCharms];
+
+      // If the default charm changed, replace slots that had the old default with the new default
+      if (prevDefaultRef.current && prevDefaultRef.current !== defaultSilverCharm.id) {
+        next = next.map((c) => {
+          if (!c) return defaultSilverCharm;
+          if (c.id === prevDefaultRef.current || c.id === 'fallback-silver') return defaultSilverCharm;
+          return c;
+        });
+      }
+
+      // Adjust length to match new size while preserving order
+      if (next.length < initialCharmsCount) {
+        while (next.length < initialCharmsCount) next.push(defaultSilverCharm);
+      } else if (next.length > initialCharmsCount) {
+        next.splice(initialCharmsCount);
+      }
+
+      calculateTotalPrice(next);
+      return next;
+    });
+
+    // update ref for next change
+    prevDefaultRef.current = defaultSilverCharm.id;
   }, [size, defaultSilverCharm, isEditing]);
 
   // Load charms from API
@@ -180,16 +218,27 @@ const CustomizeBracelet = () => {
     loadCharms();
   }, []);
 
-  // Show welcome instructions for new users
+  // Show help overlay automatically for first-time users (no bracelets in cart)
   useEffect(() => {
-    if (!isEditing) {
-      const hasVisited = localStorage.getItem('soleil-bracelet-visited');
-      if (!hasVisited) {
-        setShowInstructions(true);
-        localStorage.setItem('soleil-bracelet-visited', 'true');
+    if (isEditing) return;
+
+    try {
+      const count = Array.isArray(cartBracelets)
+        ? cartBracelets.length
+        : (typeof getBraceletCount === 'function' ? getBraceletCount() : 0);
+
+      // Auto-open help overlay whenever the cart is empty (no bracelets).
+      // This intentionally ignores any "seen" flag so the overlay appears
+      // each time the user visits the customize page with an empty cart.
+      if (count === 0) {
+        setShowHelp(true);
       }
+    } catch (err) {
+      // fail quietly — don't block the page if cart isn't available
+      // eslint-disable-next-line no-console
+      console.warn('Could not determine cart state for help overlay', err);
     }
-  }, [isEditing]);
+  }, [isEditing, cartBracelets]);
 
   // Global drag event handlers
   useEffect(() => {
@@ -258,8 +307,31 @@ const CustomizeBracelet = () => {
   };
 
   const handlePlainCharmChange = (charmId) => {
-    const selectedPlainCharm = plainCharms.find(charm => charm.id === parseInt(charmId));
+    const id = Number(charmId);
+    const selectedPlainCharm = plainCharms.find(charm => Number(charm.id) === id);
     if (selectedPlainCharm) {
+      // Immediately update charms: replace previous-default slots with the new default
+      const prevDefaultId = defaultSilverCharm?.id ?? prevDefaultRef.current ?? 'fallback-silver';
+      const prevDefaultImage = defaultSilverCharm?.image ?? null;
+
+      setCharms((prev) => {
+        if (!prev || prev.length === 0) {
+          const selectedSize = sizeOptions.find(s => s.value === size) || sizeOptions[0];
+          return Array(selectedSize.charms).fill(selectedPlainCharm);
+        }
+
+        return prev.map((c) => {
+          if (!c) return selectedPlainCharm;
+          // replace slots that had the previous default id or fallback id, or whose image matched the previous default image
+          if (String(c.id) === String(prevDefaultId) || c.id === 'fallback-silver' || (prevDefaultImage && c.image === prevDefaultImage)) {
+            return selectedPlainCharm;
+          }
+          return c;
+        });
+      });
+
+      // update ref for future comparisons
+      prevDefaultRef.current = String(selectedPlainCharm.id);
       setDefaultSilverCharm(selectedPlainCharm);
     }
   };
@@ -274,8 +346,35 @@ const CustomizeBracelet = () => {
       newCharms[position] = selectedCharm;
       setCharms(newCharms);
       calculateTotalPrice(newCharms);
+      // small placement animation
+      setPlacedIndex(position);
       setSelectedCharm(null);
+      setTimeout(() => setPlacedIndex(null), 350);
     }
+  };
+
+  const removeCharmFromPosition = (position) => {
+    const newCharms = [...charms];
+    newCharms[position] = defaultSilverCharm || { id: 'fallback-silver', image: defaultSilverCharmImage, name: 'Silver' };
+    setCharms(newCharms);
+    calculateTotalPrice(newCharms);
+  };
+
+  const resetBracelet = () => {
+    // show confirmation modal instead of window.confirm
+    setShowConfirmReset(true);
+  };
+
+  const performResetBracelet = () => {
+    const selectedSize = sizeOptions.find(s => s.value === size) || sizeOptions[0];
+    const count = selectedSize.charms;
+    const baseCharm = defaultSilverCharm || { id: 'fallback-silver', image: defaultSilverCharmImage, name: 'Silver' };
+
+    const newCharms = Array(count).fill(baseCharm);
+    setCharms(newCharms);
+    calculateTotalPrice(newCharms);
+    resetSelection();
+    setShowConfirmReset(false);
   };
 
   const calculateTotalPrice = (currentCharms) => {
@@ -353,6 +452,7 @@ const CustomizeBracelet = () => {
     document.body.style.cursor = 'default';
     setDraggedCharm(null);
     setDragOverPosition(null);
+    setDragSourceIndex(null);
   };
 
   const handleDragOver = (e, index) => {
@@ -391,8 +491,22 @@ const CustomizeBracelet = () => {
     setDragOverPosition(null);
     
     if (draggedCharm) {
-      applyCharmToPosition(index);
+      // If a bracelet charm was the source (reordering within bracelet), swap positions.
+      if (dragSourceIndex !== null && dragSourceIndex !== undefined) {
+        setCharms((prev) => {
+          const next = [...prev];
+          const sourceCharm = next[dragSourceIndex];
+          const targetCharm = next[index];
+          next[index] = sourceCharm;
+          next[dragSourceIndex] = targetCharm;
+          calculateTotalPrice(next);
+          return next;
+        });
+      } else {
+        applyCharmToPosition(index);
+      }
       setDraggedCharm(null);
+      setDragSourceIndex(null);
     }
     
     document.body.style.cursor = 'default';
@@ -524,6 +638,22 @@ const CustomizeBracelet = () => {
       )}
 
       {/* Bracelet Display */}
+      {/* Floating help button placed outside animated container so fixed positioning
+          is relative to the viewport (not a transformed ancestor). */}
+      <button
+        className="help-button"
+        aria-haspopup="dialog"
+        aria-expanded={showHelp}
+        aria-controls="help-overlay"
+        onClick={() => setShowHelp(true)}
+        title="How to customize"
+        type="button"
+      >
+        <span className="help-circle" aria-hidden>
+          <span className="help-mark">?</span>
+        </span>
+      </button>
+
       <motion.div 
         className="bracelet-display"
         initial={{ y: -20, opacity: 0 }}
@@ -569,47 +699,69 @@ const CustomizeBracelet = () => {
               })}
             </select>
           </div>
+          <button
+              className="reset-button"
+              onClick={resetBracelet}
+              disabled={!defaultSilverCharm}
+              aria-label={!defaultSilverCharm ? 'Loading default charm' : 'Reset bracelet to starting charms'}
+              title={!defaultSilverCharm ? 'Loading default charm...' : 'Reset bracelet to starting charms'}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M21 12a9 9 0 10-3.2 6.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M21 3v6h-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span className="reset-label">Reset</span>
+            </button>
         </div>
         
         <div className="bracelet-preview-section">
           <div className="bracelet-visual">
-            {charms.map((charm, index) => (
-              <div 
-                key={index} 
-                className={`bracelet-charm ${selectedCharm ? 'selectable' : ''} ${dragOverPosition === index ? 'drag-over' : ''}`}
-                onClick={() => selectedCharm && applyCharmToPosition(index)}
-                onDragOver={(e) => handleDragOver(e, index)}
-                onDragEnter={(e) => handleDragEnter(e, index)}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, index)}
-                title={selectedCharm ? 'Click to place charm here or drag a charm here' : charm.name}
-                style={{
-                  zIndex: selectedCharm ? 10 : 1
-                }}
-              >
-                <img 
-                  src={charm.image || defaultSilverCharmImage} 
-                  alt={charm.name} 
-                  className={charm.id === 146 || charm.id === 'fallback-silver' ? 'default-charm' : 'custom-charm'}
-                  draggable={false}
-                />
-              </div>
-            ))}
+            {charms.map((charm, index) => {
+              const isEmpty = charm && (charm.id === defaultSilverCharm?.id || charm.id === 'fallback-silver');
+              const isPlacedAnim = placedIndex === index;
+              return (
+                <div 
+                  key={index}
+                  className={`bracelet-charm ${selectedCharm ? 'selectable' : ''} ${dragOverPosition === index ? 'drag-over' : ''} ${isEmpty ? 'empty' : ''} ${isPlacedAnim ? 'placed' : ''}`}
+                  draggable={!!charm}
+                  onDragStart={(e) => { if (charm) { handleDragStart(e, charm); setDragSourceIndex(index); } }}
+                  onDragEnd={(e) => { handleDragEnd(e); setDragSourceIndex(null); }}
+                  onClick={() => {
+                    // Only place a charm when a charm is currently selected.
+                    // Removing a placed charm should be done via the small remove button to avoid accidental deletions.
+                    if (selectedCharm) {
+                      applyCharmToPosition(index);
+                    }
+                  }}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragEnter={(e) => handleDragEnter(e, index)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, index)}
+                  title={selectedCharm ? 'Click to place charm here or drag a charm here' : (charm && charm.name ? charm.name : '')}
+                  style={{ zIndex: selectedCharm ? 10 : 1 }}
+                >
+                  <img 
+                    src={(charm && charm.image) || defaultSilverCharmImage} 
+                    alt={(charm && charm.name) || 'Charm'} 
+                    className={charm && (charm.id === 146 || charm.id === 'fallback-silver') ? 'default-charm' : 'custom-charm'}
+                    draggable={false}
+                  />
+                  {/* show remove handle when not selecting a charm and slot is occupied */}
+                  {!selectedCharm && !isEmpty && (
+                    <button
+                      className="remove-slot-button"
+                      onClick={(e) => { e.stopPropagation(); removeCharmFromPosition(index); }}
+                      aria-label={`Remove charm from position ${index + 1}`}
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </motion.div>
-
-      {/* Cart Indicator */}
-      {getBraceletCount() > 0 && (
-        <div className="cart-indicator">
-          <button 
-            className="cart-button font-montserrat-medium"
-            onClick={() => navigate('/cart')}
-          >
-            Cart ({getBraceletCount()})
-          </button>
-        </div>
-      )}
 
       {/* Charm Selection */}
       <motion.div 
@@ -624,37 +776,125 @@ const CustomizeBracelet = () => {
           </div>
         ) : (
           <div className="selection-steps">
-            {/* Category Selection */}
-            {!selectedCategory && (
+              {/* Category row (now always visible above charm grid) */}
               <motion.div 
-                className="selection-step"
+                className="selection-step category-row"
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.4 }}
+                transition={{ duration: 0.35 }}
               >
-                <h3 className="step-title font-montserrat-semibold">CHOOSE A CATEGORY</h3>
-                <div className="category-cards-container">
-                  <div className="category-cards">
-                    {Object.entries(availableCharms).map(([key, category]) => (
+                <div style={{ position: 'relative' }}>
+                  <h3 className="step-title font-montserrat-semibold">Step 1: Browse Charm Categories</h3>
+                  <div className="category-controls">
+                    <button 
+                      className="toggle-categories-button"
+                      onClick={() => setShowCategories(!showCategories)}
+                      aria-pressed={!showCategories}
+                      title={showCategories ? 'Hide categories' : 'Show categories'}
+                    >
+                      {showCategories ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                </div>
+
+                {showCategories && (
+                  <div className="category-cards-container">
+                    <div className="category-cards">
+                      {/* All card */}
                       <div 
-                        key={key}
-                        className="category-card"
-                        onClick={() => handleCategorySelect(key, category.name)}
+                        key="all"
+                        className={`category-card ${!selectedCategory ? 'active' : ''}`}
+                        onClick={() => { setSelectedCategory(null); setSelectedSubtype(null); setSelectedCharm(null); }}
                       >
                         <div className="category-image-container">
                           <img 
-                            src={category.charms?.[0]?.image || category.subcategories?.[0]?.charms?.[0]?.image || defaultSilverCharmImage} 
-                            alt={category.name}
+                            src={defaultSilverCharm?.image || defaultSilverCharmImage} 
+                            alt="All Charms"
                             className="category-preview-image"
                           />
                         </div>
-                        <span className="category-name">{category.name.replace(' Charms', '')}</span>
+                        <span className="category-name">All</span>
                       </div>
-                    ))}
+
+                      {Object.entries(availableCharms).map(([key, category]) => (
+                        <div 
+                          key={key}
+                          className={`category-card ${selectedCategory && selectedCategory.key === key ? 'active' : ''}`}
+                          onClick={() => handleCategorySelect(key, category.name)}
+                        >
+                          <div className="category-image-container">
+                            <img 
+                              src={category.charms?.[0]?.image || category.subcategories?.[0]?.charms?.[0]?.image || defaultSilverCharmImage} 
+                              alt={category.name}
+                              className="category-preview-image"
+                            />
+                          </div>
+                          <span className="category-name">{category.name.replace(' Charms', '')}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </motion.div>
-            )}
+              {/* When no specific category selected (All), show a single Step 2 grid with all charms (no labels) */}
+              {!selectedCategory && (
+                <motion.div
+                  className="selection-step"
+                  initial={{ y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="step-header">
+                    <h3 className="step-title">Step 2: Choose Your Charm</h3>
+                  </div>
+
+                  <div className="charm-selection-area">
+                    <div className="charm-options">
+                      {(() => {
+                        // flatten all charms from availableCharms into a single list
+                        const all = [];
+                        Object.values(availableCharms).forEach((cat) => {
+                          if (cat.subcategories) {
+                            cat.subcategories.forEach((sc) => {
+                              sc.charms.forEach((c) => all.push(c));
+                            });
+                          }
+                          if (cat.charms) {
+                            cat.charms.forEach((c) => all.push(c));
+                          }
+                        });
+
+                        // remove potential duplicates by id
+                        const seen = new Set();
+                        const unique = all.filter((c) => {
+                          if (!c || !c.id) return false;
+                          if (seen.has(c.id)) return false;
+                          seen.add(c.id);
+                          return true;
+                        });
+
+                        return unique.map((charm) => (
+                          <motion.div
+                            key={charm.id}
+                            className={`charm-option ${selectedCharm && selectedCharm.id === charm.id ? 'selected' : ''}`}
+                            onClick={() => selectCharm(charm)}
+                            draggable={true}
+                            onDragStart={(e) => handleDragStart(e, charm)}
+                            onDragEnd={handleDragEnd}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            title={`${charm.name} - ₱${charm.price}`}
+                            style={{ cursor: 'grab', opacity: draggedCharm && draggedCharm.id === charm.id ? 0.5 : 1 }}
+                          >
+                            <img src={charm.image} alt={charm.name} onDragStart={(e) => e.preventDefault()} />
+                            <div className="price-tooltip">₱{charm.price}</div>
+                          </motion.div>
+                        ));
+                      })()}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
             
             {/* Charm Selection */}
             {selectedCategory && (
@@ -671,19 +911,6 @@ const CustomizeBracelet = () => {
                   <h3 className="step-title">
                     Step {(selectedCategory.key === 'gold' || selectedCategory.key === 'silver') ? '3' : '2'}: Choose Your Charm
                   </h3>
-                  <button 
-                    className="back-button" 
-                    onClick={() => {
-                      if (selectedSubtype) {
-                        setSelectedSubtype(null);
-                        setSelectedCharm(null);
-                      } else {
-                        resetSelection();
-                      }
-                    }}
-                  >
-                    ← Back
-                  </button>
                 </div>
 
                 <div className="charm-selection-area">
@@ -840,56 +1067,10 @@ const CustomizeBracelet = () => {
         </div>
       )}
 
-      {/* Instructions Modal - only show for new bracelets */}
-      {showInstructions && !isEditing && (
-        <div className="modal-overlay" onClick={() => setShowInstructions(false)}>
-          <div className="instructions-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="instructions-header">
-              <h2 className="instructions-title">Welcome to Soleil!</h2>
-            </div>
-            
-            <div className="instructions-content">
-              <div className="instruction-step">
-                <div className="step-number">1</div>
-                <div className="step-text">
-                  <h3>Choose Your Category</h3>
-                  <p>Select from different charm categories like Letters, Gold, Silver, and more!</p>
-                </div>
-              </div>
-              
-              <div className="instruction-step">
-                <div className="step-number">2</div>
-                <div className="step-text">
-                  <h3>Pick Your Charm</h3>
-                  <p>Click on any charm to select it, then click on a position in your bracelet to place it.</p>
-                </div>
-              </div>
-              
-              <div className="instruction-step">
-                <div className="step-number">3</div>
-                <div className="step-text">
-                  <h3>Drag & Drop</h3>
-                  <p>You can also drag charms directly from the selection area to your bracelet!</p>
-                </div>
-              </div>
-              
-              <div className="instruction-step">
-                <div className="step-number">4</div>
-                <div className="step-text">
-                  <h3>Customize & Checkout</h3>
-                  <p>Adjust your bracelet size, change starting charms, and finalize when ready!</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="instructions-footer">
-              <button className="charmed-button" onClick={() => setShowInstructions(false)}>
-                I'm Charmed!
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Help Overlay */}
+      <HelpOverlay open={showHelp} onClose={() => setShowHelp(false)} />
+
+      {/* Instructions content replaced by `HelpOverlay` (auto-shown for first-time users). */}
       {/* Terms and Conditions Modal */}
         {showTermsModal && (
           <div className="modal-overlay" onClick={() => setShowTermsModal(false)}>
@@ -962,6 +1143,14 @@ const CustomizeBracelet = () => {
             </div>
           </div>
         )}
+        {/* Confirm reset modal for bracelet */}
+        <ConfirmModal
+          open={showConfirmReset}
+          title={"Reset Bracelet"}
+          message={"Reset bracelet to starting charms? This will remove all placed charms."}
+          onConfirm={performResetBracelet}
+          onCancel={() => setShowConfirmReset(false)}
+        />
     </motion.div>
   );
 };

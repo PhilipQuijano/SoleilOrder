@@ -22,6 +22,16 @@ export const CartProvider = ({ children }) => {
     }
   });
 
+  const [cartCharms, setCartCharms] = useState(() => {
+    try {
+      const savedCharms = localStorage.getItem('cartCharms');
+      return savedCharms ? JSON.parse(savedCharms) : [];
+    } catch (error) {
+      console.error('Error loading charms from localStorage:', error);
+      return [];
+    }
+  });
+
   const [totalCartPrice, setTotalCartPrice] = useState(0);
 
   // Save cart to localStorage whenever cartBracelets changes
@@ -33,11 +43,21 @@ export const CartProvider = ({ children }) => {
     }
   }, [cartBracelets]);
 
+  // Save charms to localStorage whenever cartCharms changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('cartCharms', JSON.stringify(cartCharms));
+    } catch (error) {
+      console.error('Error saving charms to localStorage:', error);
+    }
+  }, [cartCharms]);
+
   // Calculate total price whenever cart changes
   useEffect(() => {
-    const total = cartBracelets.reduce((sum, bracelet) => sum + bracelet.totalPrice, 0);
-    setTotalCartPrice(total);
-  }, [cartBracelets]);
+    const braceletTotal = cartBracelets.reduce((sum, bracelet) => sum + bracelet.totalPrice, 0);
+    const charmsTotal = cartCharms.reduce((sum, charm) => sum + (charm.price * charm.quantity), 0);
+    setTotalCartPrice(braceletTotal + charmsTotal);
+  }, [cartBracelets, cartCharms]);
 
   // Add bracelet to cart
   const addBraceletToCart = (braceletData) => {
@@ -69,10 +89,14 @@ export const CartProvider = ({ children }) => {
   // Clear cart
   const clearCart = () => {
     setCartBracelets([]);
+    setCartCharms([]);
   };
 
   // Get bracelet count
   const getBraceletCount = () => cartBracelets.length;
+
+  // Get total item count (bracelets + charm types)
+  const getItemCount = () => cartBracelets.length + cartCharms.length;
 
   const editBracelet = (braceletId, updatedBracelet) => {
     setCartBracelets(prevBracelets => 
@@ -82,15 +106,65 @@ export const CartProvider = ({ children }) => {
     );
   };
 
+  // Add individual charm to cart
+  const addCharmToCart = (charmData) => {
+    setCartCharms(prev => {
+      // Check if charm already exists in cart
+      const existingIndex = prev.findIndex(item => item.id === charmData.id);
+      
+      if (existingIndex !== -1) {
+        // Update quantity of existing charm
+        const updated = [...prev];
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          quantity: updated[existingIndex].quantity + charmData.quantity
+        };
+        return updated;
+      } else {
+        // Add new charm to cart
+        return [...prev, {
+          ...charmData,
+          cartItemId: Date.now() // Unique ID for cart management
+        }];
+      }
+    });
+  };
+
+  // Remove individual charm from cart
+  const removeCharmFromCart = (cartItemId) => {
+    setCartCharms(prev => prev.filter(charm => charm.cartItemId !== cartItemId));
+  };
+
+  // Update charm quantity in cart
+  const updateCharmQuantity = (cartItemId, newQuantity) => {
+    if (newQuantity <= 0) {
+      removeCharmFromCart(cartItemId);
+      return;
+    }
+    
+    setCartCharms(prev => 
+      prev.map(charm => 
+        charm.cartItemId === cartItemId 
+          ? { ...charm, quantity: newQuantity }
+          : charm
+      )
+    );
+  };
+
   const value = {
     cartBracelets,
+    cartCharms,
     editBracelet,
     totalCartPrice,
     addBraceletToCart,
     removeBraceletFromCart,
     updateBraceletInCart,
+    addCharmToCart,
+    removeCharmFromCart,
+    updateCharmQuantity,
     clearCart,
-    getBraceletCount
+    getBraceletCount,
+    getItemCount
   };
 
   return (

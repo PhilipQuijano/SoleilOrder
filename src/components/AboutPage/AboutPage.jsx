@@ -1,13 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import Star from '../icons/Star';
 import { supabase } from '../../../api/supabaseClient';
 import './AboutPage.css';
+import { Instagram, Facebook} from 'lucide-react';
+
+const linkVariants = {
+  hover: { scale: 1.1 },
+  tap: { scale: 0.95 }
+};
 
 const AboutPage = () => {
   const [images, setImages] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showAllGallery, setShowAllGallery] = useState(false);
 
   useEffect(() => {
     fetchAboutImages();
@@ -18,97 +26,37 @@ const AboutPage = () => {
       setLoading(true);
       setError(null);
       
-      // Check if about-images bucket exists
-      const { data: buckets } = await supabase.storage.listBuckets();
-      const aboutBucket = buckets?.find(bucket => bucket.name === 'about-images');
-      
-      if (!aboutBucket && buckets) {
-        console.warn('About-images bucket not found, attempting to access anyway');
-      }
-      
-      // Try multiple methods to fetch images
-      let data, error;
-      
-      // Method 1: List with parameters
-      const result1 = await supabase
+      const { data, error } = await supabase
         .storage
         .from('about-images')
-        .list('', {
-          limit: 100,
-          offset: 0,
-          sortBy: { column: 'name', order: 'asc' }
-        });
-      
-      if (result1.error) {
-        // Method 2: List without parameters
-        const result2 = await supabase
-          .storage
-          .from('about-images')
-          .list();
-        
-        if (result2.error) {
-          // Method 3: List root directory explicitly
-          const result3 = await supabase
-            .storage
-            .from('about-images')
-            .list('/', { limit: 100 });
-          
-          data = result3.data;
-          error = result3.error;
-        } else {
-          data = result2.data;
-          error = result2.error;
-        }
-      } else {
-        data = result1.data;
-        error = result1.error;
-      }
+        .list('', { limit: 100 });
       
       if (error) {
-        setError(`Storage error: ${error.message}`);
+        setError(`Failed to load images: ${error.message}`);
+        return;
+      }
+      
+      if (!data || data.length === 0) {
         setImages([]);
         return;
       }
       
-      if (data && data.length > 0) {
-        // Filter for valid image files
-        const imageFiles = data.filter(file => {
-          if (!file.name) return false;
-          
-          const isImage = file.name.match(/\.(jpg|jpeg|png|gif|webp|avif|bmp|tiff)$/i);
-          const isNotFolder = file.name !== '.emptyFolderPlaceholder' && 
-                             !file.name.endsWith('/') &&
-                             file.id;
-          
-          return isImage && isNotFolder;
-        });
-        
-        if (imageFiles.length > 0) {
-          // Get public URLs for images
-          const imageUrls = imageFiles.map(file => {
-            const { data: urlData } = supabase
-              .storage
-              .from('about-images')
-              .getPublicUrl(file.name);
-            
-            return {
-              id: file.id || file.name,
-              url: urlData.publicUrl,
-              name: file.name,
-              size: file.metadata?.size || 0,
-              lastModified: file.updated_at || file.created_at
-            };
-          });
-          setImages(imageUrls);
-        } else {
-          setImages([]);
-        }
-      } else {
-        setImages([]);
-      }
+      // Filter for valid image files
+      const imageFiles = data.filter(file => 
+        file.name && 
+        file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i) &&
+        file.id
+      );
+      
+      const imageUrls = imageFiles.map(file => ({
+        id: file.id,
+        url: supabase.storage.from('about-images').getPublicUrl(file.name).data.publicUrl,
+        name: file.name
+      }));
+      
+      setImages(imageUrls);
     } catch (error) {
       setError(`Failed to load images: ${error.message}`);
-      setImages([]);
     } finally {
       setLoading(false);
     }
@@ -141,6 +89,24 @@ const AboutPage = () => {
     );
   };
 
+  const getImagePosition = (index) => {
+    if (images.length === 0) return 'hidden';
+    
+    const diff = index - currentImageIndex;
+    const totalImages = images.length;
+    
+    // Handle wraparound
+    let normalizedDiff = diff;
+    if (Math.abs(diff) > totalImages / 2) {
+      normalizedDiff = diff > 0 ? diff - totalImages : diff + totalImages;
+    }
+    
+    if (normalizedDiff === 0) return 'center';
+    if (normalizedDiff === -1) return 'left';
+    if (normalizedDiff === 1) return 'right';
+    return 'hidden';
+  };
+
   const handleImageError = (e) => {
     e.target.style.display = 'none';
   };
@@ -156,6 +122,7 @@ const AboutPage = () => {
             transition={{ duration: 0.8 }}
           >
             <h1 className="hero-title">About <span className="brand-highlight">Soleil</span></h1>
+            <p className="hero-subtitle">Handcrafted charm bracelets made to celebrate you — personal, playful, and designed with care.</p>
           </motion.div>
         </div>
         
@@ -179,48 +146,104 @@ const AboutPage = () => {
               </button> 
             </div>
           ) : images.length > 0 ? (
-            <div className="image-carousel">
-              {images.length > 1 && (
-                <button 
-                  className="carousel-nav prev" 
-                  onClick={prevImage}
-                  aria-label="Previous image"
-                >
-                  &#8249;
-                </button>
+            <>
+              {!showAllGallery ? (
+                <div className="image-carousel">
+                  {images.length > 1 && (
+                    <button 
+                      className="carousel-nav prev" 
+                      onClick={prevImage}
+                      aria-label="Previous image"
+                    >
+                      &#8249;
+                    </button>
+                  )}
+                  
+                  <div className="carousel-track">
+                    {(() => {
+                      if (images.length === 0) return null;
+                      const total = images.length;
+                      const prevIndex = (currentImageIndex - 1 + total) % total;
+                      const nextIndex = (currentImageIndex + 1) % total;
+                      const visible = [
+                        { idx: prevIndex, position: 'left' },
+                        { idx: currentImageIndex, position: 'center' },
+                        { idx: nextIndex, position: 'right' }
+                      ];
+                      return visible.map(({ idx, position }) => {
+                        const image = images[idx];
+                        return (
+                          <div key={image.id} className={`carousel-image-container ${position}`}>
+                            <img
+                              src={image.url}
+                              alt={`Soleil Gallery ${idx + 1}`}
+                              className="carousel-image"
+                              onError={handleImageError}
+                              loading={position === 'center' ? 'eager' : 'lazy'}
+                            />
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                  
+                  {images.length > 1 && (
+                    <>
+                      <button 
+                        className="carousel-nav next" 
+                        onClick={nextImage}
+                        aria-label="Next image"
+                      >
+                        &#8250;
+                      </button>
+                      
+                    </>
+                  )}            
+                </div>
+              ) : (
+                <div className="full-gallery-grid">
+                  {images.map((image, index) => (
+                    <motion.div
+                      key={image.id}
+                      className="gallery-grid-item"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      <img
+                        src={image.url}
+                        alt={`Soleil Gallery ${index + 1}`}
+                        className="gallery-grid-image"
+                        onError={handleImageError}
+                        loading="lazy"
+                      />
+                    </motion.div>
+                  ))}
+                </div>
               )}
               
-              <div className="carousel-track">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={currentImageIndex}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 1.05 }}
-                    transition={{ duration: 0.5 }}
-                    className="carousel-image-container"
-                  >
-                    <img 
-                      src={images[currentImageIndex]?.url}
-                      alt={`Soleil Gallery ${currentImageIndex + 1}`}
-                      className="carousel-image"
-                      onError={handleImageError}
-                      loading="lazy"
-                    />
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-              
-              {images.length > 1 && (
-                <button 
-                  className="carousel-nav next" 
-                  onClick={nextImage}
-                  aria-label="Next image"
+              {/* Gallery Toggle Button */}
+              <motion.div
+                className="gallery-toggle-container"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+              >
+                <button
+                  className="gallery-toggle-button"
+                  onClick={() => setShowAllGallery(!showAllGallery)}
+                  aria-label={showAllGallery ? "View carousel" : "View all images"}
                 >
-                  &#8250;
+                  <span className="toggle-icon">
+                    {showAllGallery ? '◀' : '▼'}
+                  </span>
+                  <span className="toggle-text">
+                    {showAllGallery ? 'Hide Images' : 'View All Images'}
+                  </span>
                 </button>
-              )}            
-            </div>
+              </motion.div>
+            </>
           ) : (
             <div className="no-images">
               <div className="no-images-content">
@@ -235,7 +258,7 @@ const AboutPage = () => {
       {/* Main Content Section */}
       <section className="main-content">
         <div className="container">
-{/* Customization Experience */}
+          {/* Customization Experience */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -244,7 +267,7 @@ const AboutPage = () => {
             className="experience-content"
             style={{ marginTop: '30px' }}
           >
-          <h2 className="section-title font-cormorant-medium">Your Personalized Experience</h2>
+            <h2 className="section-title font-cormorant-medium">Your Personalized Experience</h2>
             <div className="experience-grid">
               <motion.div 
                 className="experience-card"
@@ -253,13 +276,15 @@ const AboutPage = () => {
                 transition={{ duration: 0.5, delay: 0.1 }}
                 viewport={{ once: true }}
                 whileHover={{ 
-                  scale: 1.05,
-                  y: -8,
-                  transition: { duration: 0.3 }
+                  scale: 1.02,
+                  y: -6,
+                  transition: { duration: 0.25 }
                 }}
               >
-                <h3 className="font-montserrat-bold">Custom Design</h3>
-                <p className="font-inter-regular">Create your perfect bracelet with our intuitive customization tool. Mix and match charms to tell your unique story.</p>
+                <div className="card-top no-icon">
+                  <h3 className="card-title font-montserrat-bold">Custom Design</h3>
+                </div>
+                <p className="card-desc font-inter-regular">Use our intuitive builder to compose a bracelet that reflects your story — select charms, arrange order, and preview in real time.</p>
               </motion.div>
               <motion.div 
                 className="experience-card"
@@ -268,13 +293,15 @@ const AboutPage = () => {
                 transition={{ duration: 0.5, delay: 0.2 }}
                 viewport={{ once: true }}
                 whileHover={{ 
-                  scale: 1.05,
-                  y: -8,
-                  transition: { duration: 0.3 }
+                  scale: 1.02,
+                  y: -6,
+                  transition: { duration: 0.25 }
                 }}
               >
-                <h3 className="font-montserrat-bold">Quality Craftsmanship</h3>
-                <p className="font-inter-regular">Each piece is carefully crafted with attention to detail, ensuring your jewelry is as beautiful as it is meaningful.</p>
+                <div className="card-top no-icon">
+                  <h3 className="card-title font-montserrat-bold">Quality Craftsmanship</h3>
+                </div>
+                <p className="card-desc font-inter-regular">Hand-finished details and curated materials ensure every charm and bracelet is built to last and delight.</p>
               </motion.div>
               <motion.div 
                 className="experience-card"
@@ -283,13 +310,15 @@ const AboutPage = () => {
                 transition={{ duration: 0.5, delay: 0.3 }}
                 viewport={{ once: 'true' }}
                 whileHover={{ 
-                  scale: 1.05,
-                  y: -8,
-                  transition: { duration: 0.3 }
+                  scale: 1.02,
+                  y: -6,
+                  transition: { duration: 0.25 }
                 }}
               >
-                <h3 className="font-montserrat-bold">Frequent Updates</h3>
-                <p className="font-inter-regular">We're constantly adding new charms and expanding our collection. Check back regularly for fresh designs and seasonal specials.</p>
+                <div className="card-top no-icon">
+                  <h3 className="card-title font-montserrat-bold">Frequent Updates</h3>
+                </div>
+                <p className="card-desc font-inter-regular">New charms, seasonal drops, and limited collaborations — stay in the loop for curated releases you won't want to miss.</p>
               </motion.div>
             </div>
             
@@ -310,20 +339,46 @@ const AboutPage = () => {
                 We're excited to announce that Soleil is expanding! In the coming months, expect to see:
               </p>
               <ul className="font-inter-regular">
-                <li>New jewelry categories including rings, necklaces, and earrings</li>
-                <li>Seasonal charm collections</li>
-                <li>Limited edition collaborations</li>
-                <li>Enhanced customization options</li>
+                <li><Star className="list-star" />New jewelry categories including rings, necklaces, and earrings</li>
+                <li><Star className="list-star" />Seasonal charm collections</li>
+                <li><Star className="list-star" />Limited edition collaborations</li>
+                <li><Star className="list-star" />Enhanced customization options</li>
               </ul>
               <p className="font-inter-regular">
                 Stay tuned for these exciting additions to the Soleil family!
               </p>
             </motion.div>
+
+            <h2 className="section-title font-cormorant-medium">The Developers</h2>
+            <motion.div 
+              className="future-plans"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              viewport={{ once: true }}
+              whileHover={{ 
+                scale: 1.02,
+                y: -5,
+                transition: { duration: 0.3 }
+              }}
+            >
+              <h3 className="dev-list-title font-montserrat-bold">Website crafted with ❤️by</h3>
+              <ul className="dev-list font-inter-regular">
+                <li><Star className="list-star" />Philip Quijano</li>
+                <li><Star className="list-star" />Trish Aguarin</li>
+                <li><Star className="list-star" />Diane Cabato</li>
+                <li><Star className="list-star" />Mikhos Gumapos</li>
+                <li><Star className="list-star" />Chrystel Marcelo</li>
+                <li><Star className="list-star" />Anja Gonzales</li>
+                <li><Star className="list-star" />Zach Francisco</li>
+                <li><Star className="list-star" />Angelo Rocha</li>
+              </ul>
+            </motion.div>
           </motion.div>
         </div>
       </section>
 
-      {/* Developer Credit */}
+      {/* Footer */}
       <section className="developer-credit">
         <div className="container">
           <motion.div
@@ -333,15 +388,38 @@ const AboutPage = () => {
             viewport={{ once: true }}
             className="credit-content"
           >
-            <div className="credit-line"></div>
+
             <p className="credit-text font-inter-regular">
-              Website crafted with ❤️ by 
+              Follow us ❤️ 
             </p>
-            <p className="credit-developer">
-              <a href="https://github.com/PhilipQuijano" target="_blank" rel="noopener noreferrer" className="developer-link font-montserrat-semibold">
-                Philip Quijano
-              </a>
-            </p>
+
+            <div className="credit-line"></div>
+            <div className="social-icons flex gap-4 mt-4">
+              <motion.a
+                href="https://www.instagram.com/soleilphl/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="social-link"
+                variants={linkVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                <Instagram size={20} />
+              </motion.a>
+              
+              <motion.a
+                href="https://www.facebook.com/profile.php?id=61567161596724"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="social-link"
+                variants={linkVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                <Facebook size={20} />
+              </motion.a>
+            </div>
+
           </motion.div>
         </div>
       </section>

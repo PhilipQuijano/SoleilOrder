@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { reviewsApi } from '../../../api/getReviews';
 import './Contact.css';
+import backgroundImage from '../../assets/charms-background.jpg';
 
 const Contact = () => {
   // State management
@@ -48,6 +49,20 @@ const Contact = () => {
     setReviewData(prev => ({ ...prev, rating }));
   };
 
+  const handleStarKeyDown = (e, star) => {
+    // Allow arrow keys to adjust rating and Enter/Space to select
+    if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+      setReviewData(prev => ({ ...prev, rating: Math.min(5, prev.rating + 1) }));
+      e.preventDefault();
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+      setReviewData(prev => ({ ...prev, rating: Math.max(1, prev.rating - 1) }));
+      e.preventDefault();
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      setReviewData(prev => ({ ...prev, rating: star }));
+      e.preventDefault();
+    }
+  };
+
   // Animation variants
   const containerVariants = {
     initial: { opacity: 0, y: 20 },
@@ -92,7 +107,7 @@ const Contact = () => {
   };
 
   return (
-    <div className="contact-page">
+    <div className="contact-page" style={{ backgroundImage: `linear-gradient(rgba(88, 46, 78, 0.8), rgba(88, 46, 78, 0.8)), url(${backgroundImage})` }}>
       <motion.div 
         className="contact-container"
         {...containerVariants}
@@ -101,22 +116,17 @@ const Contact = () => {
           className="contact-card"
           {...cardVariants}
         >
-          <motion.h1 
-            className="contact-title font-cormorant-bold"
-            {...titleVariants}
-          >
-            Contact Us
-          </motion.h1>
 
           <motion.div 
-            className="review-section"
+            className="review-section feedback-panel"
             {...sectionVariants}
           >
-            <h2 className="review-title font-montserrat-medium">
-              Leave a comment if you have any suggestions or comments about Soleil!
-            </h2>
-            
-            <form onSubmit={handleSubmit} className="review-form">
+            <div className="review-header">
+              <h2 id="feedback-heading" className="review-title font-montserrat-medium">Feedback</h2>
+              <p className="review-subtitle font-inter-regular">Have suggestions or experiences to share? Leave a short review or feedback below — we read every message.</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="review-form" aria-labelledby="feedback-heading">
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="name" className="form-label font-inter-medium">Name</label>
@@ -126,7 +136,8 @@ const Contact = () => {
                     name="name"
                     value={reviewData.name}
                     onChange={handleInputChange}
-                    className="form-input font-inter-regular"
+                    className="form-input form-input-line font-inter-regular"
+                    placeholder="Your full name"
                     required
                     disabled={isSubmitting}
                   />
@@ -140,7 +151,8 @@ const Contact = () => {
                     name="email"
                     value={reviewData.email}
                     onChange={handleInputChange}
-                    className="form-input font-inter-regular"
+                    className="form-input form-input-line font-inter-regular"
+                    placeholder="you@example.com"
                     required
                     disabled={isSubmitting}
                   />
@@ -156,6 +168,10 @@ const Contact = () => {
                       type="button"
                       className={`star ${star <= reviewData.rating ? 'active' : ''}`}
                       onClick={() => handleRatingClick(star)}
+                      onKeyDown={(e) => handleStarKeyDown(e, star)}
+                      aria-pressed={star <= reviewData.rating}
+                      aria-label={`Rate ${star} ${star === 1 ? 'star' : 'stars'}`}
+                      title={`Rate ${star} ${star === 1 ? 'star' : 'stars'}`}
                       disabled={isSubmitting}
                     >
                       ★
@@ -176,7 +192,7 @@ const Contact = () => {
                   onChange={handleInputChange}
                   className="form-textarea font-inter-regular"
                   rows="4"
-                  placeholder="Share your thoughts about Soleil..."
+                  placeholder="Share your thoughts about Soleil... (what worked, what didn't, suggestions)"
                   required
                   disabled={isSubmitting}
                 />
@@ -187,7 +203,7 @@ const Contact = () => {
                 className="submit-btn font-montserrat-semibold"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Submitting...' : 'Submit Review'}
+                {isSubmitting ? 'Submitting...' : 'Submit Feedback'}
               </button>
 
               {submitMessage && (
@@ -202,6 +218,9 @@ const Contact = () => {
             className="contact-info"
             {...contactInfoVariants}
           >
+
+            <h2 id="contact-heading" className="review-title font-montserrat-medium">Contact</h2>
+
             <motion.div 
               className="contact-item"
               {...contactItemVariants(0.6)}
@@ -212,10 +231,9 @@ const Contact = () => {
                   <polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
-              <div className="contact-details">
-                <span className="contact-label font-inter-medium">Email:</span>
-                <a href="mailto:soleil.phl.2025@gmail.com" className="contact-link font-inter-regular">
-                  soleil.phl.2025@gmail.com
+              <div className="contact-details contact-details-inline">
+                <a href="mailto:soleil.phl.2025@gmail.com" className="contact-link-inline contact-link font-inter-regular" aria-label="Email soleil.phl.2025 at gmail dot com">
+                  <span className="contact-value">soleil.phl.2025@gmail.com</span>
                 </a>
               </div>
             </motion.div>
@@ -231,15 +249,15 @@ const Contact = () => {
                   <path d="M8 6H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
-              <div className="contact-details">
-                <span className="contact-label font-inter-medium">Facebook:</span>
-                <a 
-                  href="https://facebook.com/people/Soleil-phl/61567161596724/" 
-                  target="_blank" 
+              <div className="contact-details contact-details-inline">
+                <a
+                  href="https://facebook.com/people/Soleil-phl/61567161596724/"
+                  target="_blank"
                   rel="noopener noreferrer"
-                  className="contact-link font-inter-regular"
+                  className="contact-link-inline contact-link font-inter-regular"
+                  aria-label="Visit Soleil on Facebook (opens in new tab)"
                 >
-                  facebook.com/people/Soleil-phl/61567161596724/
+                  <span className="contact-label font-inter-medium">Facebook</span>
                 </a>
               </div>
             </motion.div>
@@ -255,25 +273,18 @@ const Contact = () => {
                   <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
               </div>
-              <div className="contact-details">
-                <span className="contact-label font-inter-medium">Instagram:</span>
-                <a 
-                  href="https://www.instagram.com/soleilphl/" 
-                  target="_blank" 
+              <div className="contact-details contact-details-inline">
+                <a
+                  href="https://www.instagram.com/soleilphl/"
+                  target="_blank"
                   rel="noopener noreferrer"
-                  className="contact-link font-inter-regular"
+                  className="contact-link-inline contact-link font-inter-regular"
+                  aria-label="Visit @soleilphl on Instagram (opens in new tab)"
                 >
-                  @soleilphl
+                  <span className="contact-label font-inter-medium">Instagram</span>
                 </a>
               </div>
             </motion.div>
-          </motion.div>
-
-          <motion.div 
-            className="contact-message"
-            {...messageVariants}
-          >
-            <p className="font-inter-regular">If you have any questions or queries, let us know!</p>
           </motion.div>
         </motion.div>
       </motion.div>
